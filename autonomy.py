@@ -5,8 +5,7 @@ import pickle # For loading waypoints from file
 # Hardware support
 from gps import Coordinate, GPS
 import hmc5883l as magnetometer
-from motors import Motors
-from servodriver import ServoDriver
+from motorsRoveComm import Motors
 
 # Algorithms
 from math import radians, cos, sin, asin, sqrt, atan2, degrees
@@ -15,7 +14,7 @@ from headinghold import headinghold
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 3.0   # Meters
 BEARING_FLIP_THRESHOLD      = 30.0  # 180 +/- this many degrees
-SPEED                       = 100   # Percent
+SPEED                       = 40    # Percent
 GPS_TRUST_SPEED             = 30    # Speed in meters per second at which 100% of bearing is
                                     # calculated using the delta in GPS coordinates
 
@@ -83,6 +82,8 @@ class Autonomy:
         self.last_location = self.location
         self.startpoint = self.location
         self.prevtime = time.time()
+
+        self._decimation = 0
         
     def addWaypoint(self, coordinate):
         self.waypoints.append(coordinate)
@@ -113,6 +114,12 @@ class Autonomy:
 
                 # Skip the filtering, trust the magnetometer
                 current_heading = mag.heading()
+                
+                self._decimation += 1
+                if ( (self._decimation % 20) == 0 ):
+		    print "Target Distance\t: ", target_distance
+                    print "Target Heading\t:  ", target_heading
+                    print "Measured Heading\t:", current_heading 
 
                 # Adjust path    
                 headinghold(target_heading, current_heading, self.motors, SPEED)
@@ -123,13 +130,12 @@ class Autonomy:
 if __name__ == "__main__":
 
     # Hardware Setup
-    servos = ServoDriver()
-    motors = Motors(servos)
+    motors = Motors()
     gps = GPS("/dev/ttyS0")
     
     # Using magnetic declination to compensate for how the compass is mounted.
     # TODO: This feels like the wrong way to do things
-    mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-90,0))
+    mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-175,0))
 
     autonomy = Autonomy(gps, mag, motors)
     

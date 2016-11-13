@@ -1,14 +1,13 @@
 import time
 import hmc5883l as magnetometer
-from motors import Motors
-from servodriver import ServoDriver
+from motorsRoveComm import Motors
 from PIDcontroller import *
 
 # For the interactive tester
 import sys
 import time
 
-pid = PIDcontroller(Kp=1, Ki=0, Kd=0, wraparound=360)
+pid = PIDcontroller(Kp=8, Ki=0, Kd=0, wraparound=360)
         
 def headinghold(goal, actual_heading, motors, speed):
     correction = pid.update(goal, actual_heading)
@@ -17,9 +16,9 @@ def headinghold(goal, actual_heading, motors, speed):
     
 if __name__ == "__main__":
 
-    servos = ServoDriver()
-    motor_ctl = Motors(servos)
-    mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-90,0))
+   
+    motor_ctl = Motors()
+    mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-175,0))
     
     try:
         goal = float(sys.argv[1])
@@ -31,7 +30,6 @@ if __name__ == "__main__":
         quit()
     
     print "Starting heading hold routine. Goal: ", goal, " degrees"
-    motor_ctl.enable()
     while(True):
         headinghold(goal, mag.heading(), motor_ctl, speed)
         

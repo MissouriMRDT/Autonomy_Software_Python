@@ -19,8 +19,10 @@ class hmc5883l:
     # TODO: Let the user set this
     # Source for these values: followed the procedure at 
     # http://blog.bitify.co.uk/2013/11/connecting-and-calibrating-hmc5883l.html
-    __x_offset =  240
-    __y_offset =  -182
+    __x_offset =  -161.0
+    __y_offset =  164.0
+    __x_scale  =  226.0
+    __y_scale  =  215.0
     
     __scales = {
         0.88: [0, 0.73],
@@ -64,13 +66,15 @@ class hmc5883l:
     def axes(self):
         data = self.bus.read_i2c_block_data(self.address, 0x00)
         #print map(hex, data)
-        x = self.__convert(data, 3) - self.__x_offset
-        y = self.__convert(data, 7) - self.__y_offset
+        x = self.__convert(data, 3)
+        y = self.__convert(data, 7)
         z = self.__convert(data, 5)
         return (x,y,z)
 
     def heading(self):
         (x, y, z) = self.axes()
+        x = (x + self.__x_offset) / self.__x_scale
+        y = (y + self.__y_offset) / self.__y_scale
         headingRad = math.atan2(y, x)
         headingRad += self.__declination
 
@@ -100,9 +104,19 @@ class hmc5883l:
                "Heading: " + self.degrees(self.heading()) + "\n"
 
 if __name__ == "__main__":
-    compass = hmc5883l(gauss = 1.3, declination = (-90,0))
+    compass = hmc5883l(gauss = 1.3, declination = (-175,0))
+    
+    (raw_x, raw_y, raw_z) = compass.axes()
+    (max_x, max_y) = (raw_x, raw_y)
+    (min_x, min_y) = (raw_x, raw_y)
+    
     while True:
+        (raw_x, raw_y, raw_z) = compass.axes()
+        (max_x, max_y) = (max(raw_x, max_x), max(raw_y, max_y))
+        (min_x, min_y) = (min(raw_x, min_x), min(raw_y, min_y))
         sys.stdout.write("\rHeading: " + str(compass.heading()) + "     ")
         sys.stdout.flush()
         time.sleep(0.5)
+	print "Raw:", (raw_x, raw_y)       
+    	print "Calibration min(x,y), max(x,y): ", (min_x, min_y), (max_x, max_y)
 
