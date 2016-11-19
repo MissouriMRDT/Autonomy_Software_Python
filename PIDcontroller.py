@@ -2,6 +2,7 @@ import time
 
 clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
+
 class PIDcontroller:
     """ Simple PID controller.
         Does not need to be run at a fixed frequency; can adjust itself using system clock.      
@@ -36,7 +37,7 @@ class PIDcontroller:
         Ts                     = time.time() - self.prevTime
         error                  = setpoint - real_position      
         
-        if(self.wraparound):
+        if self.wraparound:
             if(error > (self.wraparound / 2.0)):
                 error = error - self.wraparound
             elif(error < -(self.wraparound / 2.0)):
