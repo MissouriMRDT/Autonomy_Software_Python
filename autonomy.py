@@ -1,6 +1,6 @@
 # System support
 import time
-import pickle # For loading waypoints from file
+import json
 
 # Hardware support
 from gps import Coordinate, GPS
@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
     autonomy = Autonomy(gps, mag, motors)
     
-    with open('waypoints.dat', 'rb') as waypointfile:
-        autonomy.waypoints = pickle.load(waypointfile)
+    with open('waypoints.json', 'rb') as waypointfile:
+        autonomy.waypoints = json.load(waypointfile)
 
     autonomy.start()    

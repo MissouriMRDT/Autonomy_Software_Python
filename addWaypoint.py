@@ -1,5 +1,5 @@
 from gps import GPS
-import pickle
+import json
 
 gps = GPS("/dev/ttyS0")
 waypoints = []
@@ -10,7 +10,7 @@ while choice == "a":
 	print("Waypoints: ", waypoints)
 	choice = raw_input("a to add another waypoint, q to quit")
 
-with open('waypoints.dat','wb') as waypointfile:
-	pickle.dump(waypoints, waypointfile, pickle.HIGHEST_PROTOCOL)
+with open('waypoints.json','wb') as waypointfile:
+	json.dump(waypoints, waypointfile)
 	
 print "Waypoints saved"
