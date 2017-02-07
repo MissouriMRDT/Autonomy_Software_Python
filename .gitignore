@@ -1,0 +1,5 @@
+# PyCharm files
+.idea/
+
+# Mac Temp Files
+.DS_Store
