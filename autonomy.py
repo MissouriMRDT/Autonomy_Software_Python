@@ -1,16 +1,12 @@
 # System support
+import json
 import time
-import pickle # For loading waypoints from file
 
-# Hardware support
-from gps import Coordinate, GPS
-import hmc5883l as magnetometer
-from motorsRoveComm import Motors
-
-# Algorithms
-import geomath
-from headinghold import headinghold
-from PIDcontroller import PIDcontroller
+from algorithms import geomath
+from algorithms.headinghold import headinghold
+from drivers import hmc5883l as magnetometer
+from drivers.gps import GPS
+from drivers.motorsRoveComm import Motors
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 3.0   # Meters
@@ -129,7 +125,7 @@ if __name__ == "__main__":
 
     autonomy = Autonomy(gps, mag, motors)
     
-    with open('waypoints.dat', 'rb') as waypointfile:
-        autonomy.waypoints = pickle.load(waypointfile)
+    with open('waypoints.json', 'rb') as waypointfile:
+        autonomy.waypoints = json.load(waypointfile)
 
     autonomy.start()    

@@ -1,7 +1,6 @@
 
 import struct
 import socket
-import binascii
 import threading
 import time
 
