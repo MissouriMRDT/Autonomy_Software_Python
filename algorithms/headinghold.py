@@ -12,8 +12,6 @@ def headinghold(goal, actual_heading, motors, speed):
     motors.move(speed,  correction)
     
 if __name__ == "__main__":
-
-   
     motor_ctl = Motors()
     mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-175,0))
     
