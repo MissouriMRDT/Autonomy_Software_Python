@@ -1,16 +1,12 @@
 # System support
-import time
 import json
+import time
 
-# Hardware support
-from gps import Coordinate, GPS
-import hmc5883l as magnetometer
-from motorsRoveComm import Motors
-
-# Algorithms
-import geomath
-from headinghold import headinghold
-from PIDcontroller import PIDcontroller
+from algorithms import geomath
+from algorithms.headinghold import headinghold
+from drivers import hmc5883l as magnetometer
+from drivers.gps import GPS
+from drivers.motorsRoveComm import Motors
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 3.0   # Meters

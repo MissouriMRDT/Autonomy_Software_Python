@@ -1,11 +1,8 @@
-import time
-import hmc5883l as magnetometer
-from motorsRoveComm import Motors
-from PIDcontroller import *
-
-# For the interactive tester
 import sys
-import time
+
+from algorithms.PIDcontroller import *
+from drivers import hmc5883l as magnetometer
+from drivers.motorsRoveComm import Motors
 
 pid = PIDcontroller(Kp=8, Ki=0, Kd=0, wraparound=360)
         
