@@ -1,34 +1,29 @@
+import socket
 import struct
 import threading
 
-PORT = 11000
-VERSION = 1
 
+class RoveComm(object):
+    header_format = ">BHBHH"
+    port = 11000
+    version = 1
 
-class RoveCommSocket(object):
     def __init__(self):
         self.callbacks = {}
+
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.socket.bind(("127.0.0.1", RoveComm.port))
+        except:
+            print "Error: Could not claim port." \
+                  " You can only have one RoveComm listener at a time " \
+                  " Are you sure you didn't accidentally make a copy? "
+            raise Exception()
 
         #start a thread / async thingy
         self.monitoring_thread = threading.Thread(target=self._listen_thread, args=self)
         self.monitoring_thread.daemon = True
         self.monitoring_thread.start()
-
-    def _listen_thread(self):
-        while True:
-            packet = self.socket.get_packet()
-
-            header = parse_header(packet)
-
-            self.callbacks[data_type](packet)
-
-
-class RoveCommMessage(object):
-    header_format = ">BHBHH"
-
-    def __init__(self, data_id, format_code):
-        self.data_id = data_id
-        self.format_code = format_code
 
     def send(self, data, dest_ip, port=PORT, seq_num=0x0F49, flags=0x00):
         """ Send a RoveComm formatted message
@@ -43,22 +38,30 @@ class RoveCommMessage(object):
             flags: Unused in current version of RoveComm
         """
 
-        packetsize = len(data)
+        packet_size = len(data)
         header = struct.pack(self.header_format,
-                             VERSION,
+                             RoveComm.version,
                              seq_num,
                              flags,
                              self.data_id,
-                             packetsize)
+                             packet_size)
         msgbuffer = header + data
         # print "Message Buffer: ", binascii.hexlify(msgbuffer), "\n"
-        sock.sendto(msgbuffer, (dest_ip, port))
+        self.socket.sendto(msgbuffer, (dest_ip, port))
 
-    def parse(self, contents):
-        header_bytes = contents[0:struct.calcsize(self.header_format)]
-        content_bytes = contents[struct.calcsize(self.header_format):]
+    def _listen_thread(self):
+        while True:
+            packet = self.socket.get_packet()
 
-        header = struct.unpack(self.header_format, header_bytes)
-        content = struct.unpack(self.format, content_bytes)
-        data_id = header[3]
+            data_id, content_bytes = self._parse_header(packet)
+            try:
+                self.callbacks[data_id](packet)
+            except KeyError:
+                print "Warning: no callback assigned for data id %d", data_id
 
+    def _parse_header(self, packet):
+        header_bytes = packet[0:struct.calcsize(self.header_format)]
+        content_bytes = packet[struct.calcsize(self.header_format):]
+
+        (header_format, version, seq_num, flags, data_id, size) = struct.unpack(self.header_format, header_bytes)
+        return data_id, content_bytes
