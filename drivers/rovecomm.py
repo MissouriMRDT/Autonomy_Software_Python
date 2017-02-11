@@ -2,10 +2,10 @@ import socket
 import struct
 import threading
 
+PORT = 11000
 
 class RoveComm(object):
     header_format = ">BHBHH"
-    port = 11000
     version = 1
 
     def __init__(self):
@@ -21,11 +21,11 @@ class RoveComm(object):
             raise Exception()
 
         #start a thread / async thingy
-        self.monitoring_thread = threading.Thread(target=self._listen_thread, args=self)
+        self.monitoring_thread = threading.Thread(target=self._listen_thread)
         self.monitoring_thread.daemon = True
         self.monitoring_thread.start()
 
-    def send(self, data, dest_ip, port=PORT, seq_num=0x0F49, flags=0x00):
+    def send(self, data, data_id, dest_ip, PORT, seq_num=0x0F49, flags=0x00):
         """ Send a RoveComm formatted message
 
         Parameters
@@ -43,7 +43,7 @@ class RoveComm(object):
                              RoveComm.version,
                              seq_num,
                              flags,
-                             self.data_id,
+                             data_id,
                              packet_size)
         msgbuffer = header + data
         # print "Message Buffer: ", binascii.hexlify(msgbuffer), "\n"
@@ -51,7 +51,8 @@ class RoveComm(object):
 
     def _listen_thread(self):
         while True:
-            packet = self.socket.get_packet()
+            packet, addr = self.socket.recvfrom(1024)
+            print "DEBUG: Packet received: ", packet
 
             data_id, content_bytes = self._parse_header(packet)
             try:
