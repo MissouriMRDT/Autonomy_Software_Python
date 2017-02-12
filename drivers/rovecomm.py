@@ -9,10 +9,12 @@ HEADER_FORMAT = ">BHBHH"
 
 ACK_FLAG      = 0x01
 INTERNAL_DATA_IDS = {
-    "Ping"       : 1,
-    "Ping Reply" : 2,
-    "Subscribe"  : 3,
-
+    "Ping"             : 1,
+    "Ping Reply"       : 2,
+    "Subscribe"        : 3,
+    "Unsubcribe"       : 4,
+    "Force Unsubcribe" : 5,
+    "ACK"              : 6,
 }
 
 
@@ -120,3 +122,6 @@ class RoveComm(object):
 
         (header_format, version, seq_num, flags, data_id, size) = struct.unpack(self.header_format, header_bytes)
         return data_id, content_bytes
+
+    def _ping_reply(self, contents):
+        
