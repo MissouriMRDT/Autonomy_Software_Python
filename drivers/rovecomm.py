@@ -2,21 +2,22 @@ import socket
 import struct
 import threading
 import logging
+import time
 
 PORT          = 11000
 VERSION       = 1
 HEADER_FORMAT = ">BHBHH"
 
+# Flag bit fields
 ACK_FLAG      = 0x01
-INTERNAL_DATA_IDS = {
-    "Ping"             : 1,
-    "Ping Reply"       : 2,
-    "Subscribe"        : 3,
-    "Unsubcribe"       : 4,
-    "Force Unsubcribe" : 5,
-    "ACK"              : 6,
-}
 
+# Special Data IDs
+PING              = 1
+PING_REPLY        = 2
+SUBSCRIBE         = 3
+UNSUBSCRIBE       = 4
+FORCE_UNSUBSCRIBE = 5
+ACK               = 6
 
 class RoveComm(object):
     """
@@ -56,13 +57,14 @@ class RoveComm(object):
         while True:
             my_telemetry = random.random()
             rovecomm_node.send(data_id = 138,
-                               data = struct.pack(my_telemetry, 'f'),
+                               contents = struct.pack(my_telemetry, 'f'),
                                destination_ip = "192.168.1.20")
             time.sleep(5)
     """
 
     def __init__(self):
         self.callbacks = {}
+        self.subscribers = []
 
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -70,21 +72,47 @@ class RoveComm(object):
         except socket.error:
             raise Exception("Error: Could not claim port. "
                             "Either another program or another copy or rovecomm"
-                            "is using port %d " % (PORT,))
+                            "is using port %d " % PORT)
 
         # start a thread to get messages in the background
         self._monitoring_thread = threading.Thread(target=self._listen_thread)
         self._monitoring_thread.daemon = True
         self._monitoring_thread.start()
 
-    def send(self, data_id, data, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
+    def send(self, data_id, contents):
         """
-        Send a RoveComm formatted message
+        Send a RoveComm formatted message to everyone subscribed
 
         Parameters
         -----------
             data_id        : RoveComm Data ID. 16-bit integer.
-            data           : bytes to send
+            contents       : bytes to send
+        """
+        for subscriber in self.subscribers:
+            self._send_to(data_id, contents, subscriber)
+
+    def subscribe(self, destination_ip):
+        """
+        Ask to receive messages from another device
+        """
+        self._send_to(SUBSCRIBE, None, destination_ip)
+
+    def unsubscribe(self, destination_ip):
+        """
+        Stop receiving messages from another device
+        """
+        self._send_to(UNSUBSCRIBE, None, destination_ip)
+
+    def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
+        """
+        Send a RoveComm formatted message to a specific address
+
+        Used internally
+
+        Parameters
+        -----------
+            data_id        : RoveComm Data ID. 16-bit integer.
+            contents           : bytes to send
             destination_ip : IP address to send to. String formatted like "192.168.1.1"
 
             The following parameters are optional and not commonly used:
@@ -94,34 +122,44 @@ class RoveComm(object):
             flags          : Bit addressable field. OR all ack flags together
         """
 
-        packet_size = len(data)
+        packet_size = len(contents)
         header = struct.pack(self.header_format,
                              RoveComm.version,
                              seq_num,
                              flags,
                              data_id,
                              packet_size)
-        msgbuffer = header + data
+        msgbuffer = header + contents
         self._socket.sendto(msgbuffer, (destination_ip, port))
 
     def _listen_thread(self):
         while True:
-            packet, addr = self._socket.recvfrom(1024)
-            # TODO: Upgrade to logging
-            print "DEBUG: Packet received: ", packet
+            packet, sender = self._socket.recvfrom(1024)
+            logging.debug("Packet received: ", packet)
 
-            data_id, content_bytes = self._parse_header(packet)
-            try:
-                self.callbacks[data_id](packet)
-            except KeyError:
-                print "Warning: no callback assigned for data id %d", data_id
+            # Parse the message header
+            header_length = struct.calcsize(self.header_format)
+            header_bytes = packet[0:header_length]
+            content_bytes = packet[header_length:]
+            (header_format, version, seq_num, flags, data_id, size) = struct.unpack(self.header_format, header_bytes)
 
-    def _parse_header(self, packet):
-        header_bytes = packet[0:struct.calcsize(self.header_format)]
-        content_bytes = packet[struct.calcsize(self.header_format):]
+            # Check for special features, like pings and acknowledgements
+            if flags & ACK_FLAG:
+                self._send_to(ACK, data=data_id, destination_ip=sender)
 
-        (header_format, version, seq_num, flags, data_id, size) = struct.unpack(self.header_format, header_bytes)
-        return data_id, content_bytes
+            if data_id == PING:
+                self._send_to(PING_REPLY, data=struct.pack(">H", seq_num), destination_ip=sender)
+            elif data_id == SUBSCRIBE:
+                self.subscribers.append(sender)
+            elif data_id == UNSUBSCRIBE:
+                try:
+                    self.subscribers.remove(sender)
+                except ValueError:
+                    logging.warning("%s tried to unsubscribe, but wasn't subscribed in the first place" % sender)
 
-    def _ping_reply(self, contents):
-        
+            # No special features needed? Good. Just a normal packet.
+            else:
+                try:
+                    self.callbacks[data_id](content_bytes)
+                except KeyError:
+                    print "Warning: no callback assigned for data id %d", data_id
