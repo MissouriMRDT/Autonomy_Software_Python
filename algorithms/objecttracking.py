@@ -8,9 +8,12 @@ MIN_RADIUS  = 20
 
 class ObjectTracker(object):
     def __init__(self, camera=0):
-        self.camera = cv2.VideoCapture(camera)
-        self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
-        self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+        try:
+            self.camera = cv2.VideoCapture(camera)
+            self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
+            self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+        except:
+            raise Exception("Could not connect to camera")
         pass
 
     def __del__(self):
