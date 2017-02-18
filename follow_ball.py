@@ -1,0 +1,26 @@
+import algorithms.objecttracking
+import drivers.motorsRoveComm
+
+tracker = algorithms.objecttracking.tracker()
+motors = drivers.motorsRoveComm.Motors()
+
+WIDTH           = 640  # pixels
+FIELD_OF_VIEW   = 40   # degrees
+TARGET_DISTANCE = 1.0  # meters
+RADIUS          = .063 # meters
+SCALING_FACTOR  = 10.0 # pixel-meters
+
+while True:
+    ball_in_frame, center, radius = tracker.track_ball()
+    if ball_in_frame:
+        angle_to_ball = FIELD_OF_VIEW * ((center.x - (WIDTH / 2)) / WIDTH)
+        distance = SCALING_FACTOR / radius
+        print "Distance: %f" % distance
+        if distance > TARGET_DISTANCE:
+            print "Moving forward: %f" % angle_to_ball
+            #motors.move(10, angle_to_ball)
+        if distance < TARGET_DISTANCE:
+            print "Moving backward: %f" % angle_to_ball
+            #motors.move(-10, angle_to_ball)
+    else:
+        print "no ball detected"
