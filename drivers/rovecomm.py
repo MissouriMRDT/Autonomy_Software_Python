@@ -2,7 +2,6 @@ import socket
 import struct
 import threading
 import logging
-import time
 
 PORT          = 11000
 VERSION       = 1
@@ -22,14 +21,11 @@ ACK               = 6
 class RoveComm(object):
     """
     RoveComm message sender and receiver
-
     Example:
-
         from rovecomm import RoveComm
         import struct
         import time
         import random
-
         def set_speed_handler(contents):
             # Contents are typically C style structs
             # ">HH" is a format code for two uint16_t
@@ -38,21 +34,16 @@ class RoveComm(object):
             # And working with C style structs from python
             speed_left, speed_right = struct.unpack(">HH", contents)
             print "Speed set to %d, %d" % (speed_left, speed_right)
-
         def add_waypoint_handler(contents):
             latitude, longitude = struct.unpack(">dd")
             print "Added waypoint (%f, %f) " % (latitude, longitude)
-
         rovecomm_node = RoveComm()
-
         # use RoveComm.callbacks to define what code should
         # run when a message is received.
         # Here we assign data id 138 to set_speed_handler
         # and data id 267 to add_waypoint_handler
-
         rovecomm_node.callbacks[138] = set_speed_handler
         rovecomm_node.callbacks[267] = add_waypoint_handler
-
         # Now you can do the rest of your program
         while True:
             my_telemetry = random.random()
@@ -68,7 +59,7 @@ class RoveComm(object):
 
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self._socket.bind(("127.0.0.1", PORT))
+            self._socket.bind(("", PORT))
         except socket.error:
             raise Exception("Error: Could not claim port. "
                             "Either another program or another copy or rovecomm"
@@ -82,7 +73,6 @@ class RoveComm(object):
     def send(self, data_id, contents):
         """
         Send a RoveComm formatted message to everyone subscribed
-
         Parameters
         -----------
             data_id        : RoveComm Data ID. 16-bit integer.
@@ -106,51 +96,47 @@ class RoveComm(object):
     def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
         """
         Send a RoveComm formatted message to a specific address
-
         Used internally
-
         Parameters
         -----------
             data_id        : RoveComm Data ID. 16-bit integer.
             contents           : bytes to send
             destination_ip : IP address to send to. String formatted like "192.168.1.1"
-
             The following parameters are optional and not commonly used:
-
             seq_num        : 16 bit sequence number. Not commonly used.
             port           : Port number. 2 byte unsigned integer
             flags          : Bit addressable field. OR all ack flags together
         """
-
+        
         packet_size = len(contents)
-        header = struct.pack(self.header_format,
-                             RoveComm.version,
+        header = struct.pack(HEADER_FORMAT,
+                             VERSION,
                              seq_num,
                              flags,
                              data_id,
                              packet_size)
-        msgbuffer = header + contents
-        self._socket.sendto(msgbuffer, (destination_ip, port))
+        msgbuffer = bytes(header) + bytes(contents)
+        self._socket.sendto(bytes(msgbuffer), (destination_ip, port))
 
     def _listen_thread(self):
         while True:
             packet, sender = self._socket.recvfrom(1024)
-            logging.debug("Packet received: ", packet)
+            logging.debug("Packet received: %s" % packet)
 
             # Parse the message header
-            header_length = struct.calcsize(self.header_format)
+            header_length = struct.calcsize(HEADER_FORMAT)
             header_bytes = packet[0:header_length]
             content_bytes = packet[header_length:]
-            (header_format, version, seq_num, flags, data_id, size) = struct.unpack(self.header_format, header_bytes)
+            (version, seq_num, flags, data_id, size) = struct.unpack(HEADER_FORMAT, header_bytes)
 
             # Check for special features, like pings and acknowledgements
             if flags & ACK_FLAG:
-                self._send_to(ACK, data=data_id, destination_ip=sender)
+                self._send_to(ACK, contents=data_id, destination_ip=sender)
 
             if data_id == PING:
-                self._send_to(PING_REPLY, data=struct.pack(">H", seq_num), destination_ip=sender)
+                self._send_to(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
             elif data_id == SUBSCRIBE:
-                self.subscribers.append(sender)
+                self.subscribers.append(sender[0])
             elif data_id == UNSUBSCRIBE:
                 try:
                     self.subscribers.remove(sender)
