@@ -34,7 +34,7 @@ autonomy_enabled = False
 rovecomm_node = drivers.rovecomm.RoveComm()
 
 gps = drivers.navboard_gps.GPS(rovecomm_node)
-compass = drivers.compass_rovecomm.Compass(rovecomm_node)
+compass = drivers.Magnetometer_rovecomm.Compass(rovecomm_node)
 motors = drivers.motors_rovecomm.Motors(rovecomm_node)
 
 autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
