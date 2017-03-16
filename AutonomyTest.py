@@ -1,49 +1,68 @@
 import drivers.rovecomm
+import algorithms.objecttracking
+import algorithms.autonomy
+import drivers.gps_rovecomm
+import drivers.motors_rovecomm
+import drivers.navboard_gps
 import time
-import binascii
 import Queue
 import struct
 import drivers.navboard_gps
 
+# ---------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------
 # Range at which we switch from GPS to optical tracking
-VISION_RANGE = 7 # Meters
+VISION_RANGE = 7  # Meters
 
+# RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
 DISABLE_AUTONOMY = 2577
 ADD_WAYPOINT = 2578
 CLEAR_WAYPOINTS = 2579
 WAYPOINT_REACHED = 2590
 
-rove_comm = drivers.rovecomm.RoveComm()
+# -------------
+# State
+# -------------
 waypoints = Queue.Queue()
-
 autonomy_enabled = False
 
-gps = drivers.navboard_gps.GPS(rove_comm)
-while True:
-    print("gps location is")
-    print(gps.location())
-    time.sleep(3)
+# ---------------------------------------------------------
+# Connect to hardware
+#
+# ---------------------------------------------------------
+rovecomm_node = drivers.rovecomm.RoveComm()
+gps = drivers.navboard_gps.GPS(rovecomm_node)
+compass = drivers.compass_rovecomm.Compass(rovecomm_node)
+motors = drivers.motors_rovecomm.Motors(rovecomm_node)
 
-def addWaypointHandler(packet_contents):
-
+# Assign callbacks for incoming messages
+def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack(">dd", packet_contents)
     waypoint = (latitude, longitude)
     waypoints.put(waypoint)
 
-def enableAutonomy(packet_contents):
+
+def enable_autonomy(packet_contents):
+    global autonomy_enabled
     autonomy_enabled = True
 
-def disableAutonomy(packet_contents):
+
+def disable_autonomy(packet_contents):
+    global autonomy_enabled
     autonomy_enabled = False
 
-def clearWaypointHandler(packet_contents):
+
+def clear_waypoint_handler(packet_contents):
+    global waypoints
     waypoints = Queue.Queue()
 
-rove_comm.callbacks[ENABLE_AUTONOMY] = enableAutonomy
-rove_comm.callbacks[DISABLE_AUTONOMY] = disableAutonomy
-rove_comm.callbacks[ADD_WAYPOINT] = addWaypointHandler
-rove_comm.callbacks[CLEAR_WAYPOINTS] = clearWaypointHandler
+
+rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy
+rovecomm_node.callbacks[DISABLE_AUTONOMY] = disable_autonomy
+rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
+rovecomm_node.callbacks[CLEAR_WAYPOINTS] = clear_waypoint_handler
 
 state = 'idle'
 current_goal = None
@@ -60,10 +79,10 @@ while state != 'shutdown':
             print(current_goal)
             time.sleep(3)
             state = 'vision_navigate'
-            #if distance to current_goal < VISION_RANGE:
+            # if distance to current_goal < VISION_RANGE:
             #    if ball visible in camera:
             #        state = 'vision_navigate'
-            #else:
+            # else:
             #    state = 'gps_navigate'
 
         elif state == 'vision_navigate':
@@ -71,15 +90,16 @@ while state != 'shutdown':
             print(current_goal)
             time.sleep(2)
             state = 'waypoint_reached'
-            #if goal reached:
+            # if goal reached:
             #    state = 'waypoint reached'
-            #elif lost sight of ball:
+            # elif lost sight of ball:
             #    state = 'gps_navigate'
-            #else:
+            # else:
             #    state = 'vision_navigate'
 
         elif state == 'waypoint reached':
-            rove_comm.send(WAYPOINT_REACHED, contents="")
+            rovecomm_node.send(WAYPOINT_REACHED, contents="")
+            node = waypoints.get_nowait()
             state = 'idle'
 
         elif state == 'error':
@@ -88,4 +108,3 @@ while state != 'shutdown':
         print("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:
         pass
-

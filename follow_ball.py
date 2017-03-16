@@ -1,14 +1,14 @@
 import algorithms.objecttracking
-import drivers.motorsRoveComm
+import drivers.motors_rovecomm
 
 tracker = algorithms.objecttracking.ObjectTracker()
-motors = drivers.motorsRoveComm.Motors()
+motors = drivers.motors_rovecomm.Motors()
 
 WIDTH           = 640.0  # pixels
 FIELD_OF_VIEW   = 40.0   # degrees
-TARGET_DISTANCE = 0.4  # meters
-RADIUS          = .063 # meters
-SCALING_FACTOR  = 10.0 # pixel-meters
+TARGET_DISTANCE = 0.4    # meters
+RADIUS          = .063   # meters
+SCALING_FACTOR  = 10.0   # pixel-meters
 POWER           = 20
 
 while True:

@@ -26,6 +26,7 @@ class RoveComm(object):
         import struct
         import time
         import random
+
         def set_speed_handler(contents):
             # Contents are typically C style structs
             # ">HH" is a format code for two uint16_t
@@ -34,16 +35,20 @@ class RoveComm(object):
             # And working with C style structs from python
             speed_left, speed_right = struct.unpack(">HH", contents)
             print "Speed set to %d, %d" % (speed_left, speed_right)
+
         def add_waypoint_handler(contents):
             latitude, longitude = struct.unpack(">dd")
             print "Added waypoint (%f, %f) " % (latitude, longitude)
+
         rovecomm_node = RoveComm()
+
         # use RoveComm.callbacks to define what code should
         # run when a message is received.
         # Here we assign data id 138 to set_speed_handler
         # and data id 267 to add_waypoint_handler
         rovecomm_node.callbacks[138] = set_speed_handler
         rovecomm_node.callbacks[267] = add_waypoint_handler
+
         # Now you can do the rest of your program
         while True:
             my_telemetry = random.random()
