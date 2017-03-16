@@ -3,6 +3,7 @@ import time
 import binascii
 import Queue
 import struct
+import drivers.navboard_gps
 
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 7 # Meters
@@ -17,6 +18,12 @@ rove_comm = drivers.rovecomm.RoveComm()
 waypoints = Queue.Queue()
 
 autonomy_enabled = False
+
+gps = drivers.navboard_gps.GPS(rove_comm)
+while True:
+    print("gps location is")
+    print(gps.location())
+    time.sleep(3)
 
 def addWaypointHandler(packet_contents):
 
