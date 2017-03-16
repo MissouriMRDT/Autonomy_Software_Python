@@ -37,7 +37,7 @@ gps = drivers.navboard_gps.GPS(rovecomm_node)
 compass = drivers.Magnetometer.Compass(rovecomm_node)
 #motors = drivers.motors_rovecomm.Motors(rovecomm_node)
 
-autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
+#autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
