@@ -8,6 +8,7 @@ MAG_DATA_ID = 1312
 
 class Compass:
     def __init__(self, rovecomm):
+        self._coordinates = (None, None, None)
         self.rovecomm_node = rovecomm
         # subscribe to device
         self.rovecomm_node.subscribe(MAG_IP_ADDRESS)
