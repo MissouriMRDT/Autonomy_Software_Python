@@ -32,4 +32,10 @@ class GPS:
     def location(self):
         # returns most recent reported location
         return self._location
-        
+
+if __name__ == '__main__':
+    rovecomm_node = RoveComm()
+    gps = GPS(rovecomm_node)
+    while(True):
+        print gps.location()
+        time.sleep(1)
