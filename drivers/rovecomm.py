@@ -85,13 +85,13 @@ class RoveComm(object):
         """
         Ask to receive messages from another device
         """
-        self._send_to(SUBSCRIBE, None, destination_ip)
+        self._send_to(SUBSCRIBE, "", destination_ip)
 
     def unsubscribe(self, destination_ip):
         """
         Stop receiving messages from another device
         """
-        self._send_to(UNSUBSCRIBE, None, destination_ip)
+        self._send_to(UNSUBSCRIBE, "", destination_ip)
 
     def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
         """
