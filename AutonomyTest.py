@@ -1,7 +1,6 @@
 import drivers.rovecomm
 import algorithms.objecttracking
 import algorithms.autonomy
-import drivers.gps_rovecomm
 import drivers.motors_rovecomm
 import drivers.navboard_gps
 import time
@@ -33,9 +32,12 @@ autonomy_enabled = False
 #
 # ---------------------------------------------------------
 rovecomm_node = drivers.rovecomm.RoveComm()
+
 gps = drivers.navboard_gps.GPS(rovecomm_node)
 compass = drivers.compass_rovecomm.Compass(rovecomm_node)
 motors = drivers.motors_rovecomm.Motors(rovecomm_node)
+
+autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
