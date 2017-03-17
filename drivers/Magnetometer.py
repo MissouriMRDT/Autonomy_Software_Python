@@ -3,7 +3,7 @@ import struct
 import time
 
 MAG_IP_ADDRESS = '192.168.1.133'
-MAG_DATA_ID = 1312
+MAG_DATA_ID = 1316
 
 
 class Compass:
@@ -18,7 +18,7 @@ class Compass:
     # I'm not sure if this will cause an error
     def process_mag_data(self, raw_data):
         # The GPS sends data as two doubles
-        x, y, z = struct.unpack("dd", raw_data)
+        x, y, z = struct.unpack("fff", raw_data)
         self._coordinates = (x, y, z)
 
     def heading(self):
