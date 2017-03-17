@@ -19,7 +19,7 @@ ENABLE_AUTONOMY = 2576
 DISABLE_AUTONOMY = 2577
 ADD_WAYPOINT = 2578
 CLEAR_WAYPOINTS = 2579
-WAYPOINT_REACHED = 2590
+WAYPOINT_REACHED = 2580
 
 # -------------
 # State
@@ -41,7 +41,7 @@ compass = drivers.Magnetometer.Compass(rovecomm_node)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
-    latitude, longitude = struct.unpack(">dd", packet_contents)
+    latitude, longitude = struct.unpack("<dd", packet_contents)
     waypoint = (latitude, longitude)
     waypoints.put(waypoint)
 
@@ -71,6 +71,7 @@ current_goal = None
 while state != 'shutdown':
     if autonomy_enabled:
         if state == 'idle':
+            time.sleep(1)
             if not waypoints.empty():
                 state = 'gps_navigate'
                 current_goal = waypoints.get()
@@ -99,10 +100,14 @@ while state != 'shutdown':
             # else:
             #    state = 'vision_navigate'
 
-        elif state == 'waypoint reached':
+        elif state == 'waypoint_reached':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
-            node = waypoints.get_nowait()
-            state = 'idle'
+            if not waypoints.empty():
+                current_goal = waypoints.get_nowait()
+                state = 'gps_navigate'
+            else:
+                current_goal = None
+                state = 'idle'
 
         elif state == 'error':
             print("Call Owen for a good time")
