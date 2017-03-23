@@ -87,19 +87,7 @@ class Motors:
         
     def _updateThreadFxn(self):
         while 1:
-            r = 4 # Response speed.
-            
-            if(self._actualSpdLeft < (self._targetSpdLeft - 2*r)):
-                self._actualSpdLeft += r
-            elif(self._actualSpdLeft > (self._targetSpdRight + 2*r)):
-                self._actualSpdLeft -= r
-            
-            if(self._actualSpdRight < (self._targetSpdRight - 2*r)):
-                self._actualSpdRight += r
-            elif(self._actualSpdRight > (self._targetSpdRight + 2*r)):
-                self._actualSpdRight -= r
-            
-            sendMotorCommand(self._actualSpdLeft, self._actualSpdRight)
+            sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
             time.sleep(0.01)
     
     def disable(self):
@@ -146,7 +134,7 @@ def get(motors):
                 motors.move(speed, -180)
         elif k == ' ': # Space
             print "space"
-            motors.move(0,0)
+            motors.disable()
         elif k == '\x03': # Ctrl-C
             motors.disable()
             quit()
