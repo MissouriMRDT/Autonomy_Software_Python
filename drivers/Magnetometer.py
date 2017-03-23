@@ -20,8 +20,8 @@ class Compass:
         try:
             with open(calibration_file) as calfile:
                 self._calibration = json.load(calfile)
-                self.x_range = [self._calibration['min_x'],self._calibration['max_x']
-                self.y_range = [self._calibration['min_y'],self._calibration['max_y']
+                self.x_range = [self._calibration['min_x'],self._calibration['max_x']]
+                self.y_range = [self._calibration['min_y'],self._calibration['max_y']]
         except IOError:
             print "Error: No calibration data available"
         except ValueError:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     rovecomm_node.callbacks[1315] = do_nothing
     rovecomm_node.callbacks[1296] = do_nothing
     mag = Compass(rovecomm_node)
-    x_meas, y_meas = [], []
+    x_meas, y_meas, z_meas = [], [], []
     done_measuring = False
 
 
@@ -71,7 +71,9 @@ if __name__ == '__main__':
             reading = mag.raw_xyz()
             print("Measured %s" % (reading,))
             x_meas.append(reading[0])
+            z_meas.append(reading[2])
             y_meas.append(reading[1])
+
             time.sleep(0.3)
 
     choice = raw_input("Calibrate the magnetometer (y/n)?")
