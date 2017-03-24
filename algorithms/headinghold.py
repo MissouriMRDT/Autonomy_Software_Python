@@ -1,7 +1,7 @@
 import sys
 
 from algorithms.PIDcontroller import *
-from drivers import hmc5883l as magnetometer
+from drivers.Magnetometer import Compass
 from drivers.motors_rovecomm import Motors
 
 pid = PIDcontroller(Kp=8, Ki=0, Kd=0, wraparound=360)

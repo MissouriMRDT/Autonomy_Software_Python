@@ -22,6 +22,7 @@ class Compass:
                 self._calibration = json.load(calfile)
                 self.x_range = [self._calibration['min_x'],self._calibration['max_x']]
                 self.y_range = [self._calibration['min_y'],self._calibration['max_y']]
+                self.offset = self._calibration['due_north_offset']
         except IOError:
             print "Error: No calibration data available"
         except ValueError:
@@ -40,7 +41,7 @@ class Compass:
         x_adj = interp(x, self.x_range, [-1,1])
         y_adj = interp(y, self.y_range, [-1,1])
         heading = math.degrees(math.atan2(y_adj, x_adj))
-        heading = heading + 360 if heading < 0 else heading
+        heading = (heading - self.offset) % 360
         return heading
 
     def raw_xyz(self):
