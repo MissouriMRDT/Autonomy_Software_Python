@@ -3,3 +3,6 @@
 
 # Mac Temp Files
 .DS_Store
+
+# Python temp files
+*.pyc
