@@ -4,9 +4,6 @@ import time
 
 import geomath
 from headinghold import headinghold
-from drivers import hmc5883l as magnetometer
-from drivers.gps_nmea import GPS
-from drivers.motors_rovecomm import Motors
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 3.0  # Meters
@@ -54,7 +51,7 @@ class Autonomy:
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
         self.goal = goal_coordinate
-        print "Moving from ", self.startpoint, " to ", waypoint
+        print "Moving from ", self.startpoint, " to ", goal_coordinate
 
     def update_controls(self):
         """
@@ -82,7 +79,7 @@ class Autonomy:
             # Crosstrack correction as PID
             # xte_correction = self.xte_pid.update(setpoint=0, real_position=xte_bearing)
 
-            goal_heading = geomath.weighted_angle_average(
+            goal_heading = geomath.weighted_average_angles(
                 [target_heading, xte_bearing],
                 [1 - XTE_STRENGTH, XTE_STRENGTH])
             ## I think this code isn't needed -
@@ -118,6 +115,10 @@ class Autonomy:
 
 
 if __name__ == "__main__":
+    from drivers import hmc5883l as magnetometer
+    from drivers.gps_nmea import GPS
+    from drivers.motors_rovecomm import Motors
+
     # Hardware Setup
     motors = Motors()
     gps = GPS("/dev/ttyS0")

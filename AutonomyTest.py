@@ -1,7 +1,8 @@
 import drivers.rovecomm
-#import algorithms.objecttracking
-#import algorithms.autonomy
-#import drivers.motors_rovecomm
+import algorithms.objecttracking
+import algorithms.autonomy
+import algorithms.geomath
+import drivers.motors_rovecomm
 import drivers.navboard_gps
 import time
 import Queue
@@ -35,14 +36,14 @@ rovecomm_node = drivers.rovecomm.RoveComm()
 
 gps = drivers.navboard_gps.GPS(rovecomm_node)
 compass = drivers.Magnetometer.Compass(rovecomm_node)
-#motors = drivers.motors_rovecomm.Motors(rovecomm_node)
+motors = drivers.motors_rovecomm.Motors()
 
-#autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
+autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
-    waypoint = (latitude, longitude)
+    waypoint = algorithms.geomath.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
 
 
@@ -74,14 +75,16 @@ while state != 'shutdown':
             time.sleep(1)
             if not waypoints.empty():
                 state = 'gps_navigate'
-                current_goal = waypoints.get()
+                current_goal = waypoints.get_nowait()
+                autonomy_algorithm.setWaypoint(current_goal)
             else:
                 pass
 
         elif state == 'gps_navigate':
             print(current_goal)
-            time.sleep(3)
-            state = 'vision_navigate'
+            reached_goal = autonomy_algorithm.update_controls()
+            if reached_goal:
+                state = 'waypoint_reached'
             # if distance to current_goal < VISION_RANGE:
             #    if ball visible in camera:
             #        state = 'vision_navigate'
@@ -104,6 +107,7 @@ while state != 'shutdown':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
             if not waypoints.empty():
                 current_goal = waypoints.get_nowait()
+                autonomy_algorithm.setWaypoint(current_goal)
                 state = 'gps_navigate'
             else:
                 current_goal = None
