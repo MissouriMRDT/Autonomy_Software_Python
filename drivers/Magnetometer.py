@@ -3,11 +3,16 @@ import struct
 import time
 import json
 import math
-from numpy import interp
+#from numpy import interp
 
 MAG_IP_ADDRESS = '192.168.1.133'
 MAG_DATA_ID = 1316
 
+def interp(x, inrange, outrange):
+    inspan = inrange[1] - inrange[0]
+    outspan = outrange[1] - outrange[0]
+    scaled = (x - inrange[0]) / inspan
+    return (scaled * outspan) + outrange[0]
 
 class Compass:
     def __init__(self, rovecomm,  calibration_file="mag_calibration.json"):
@@ -17,6 +22,7 @@ class Compass:
         self.rovecomm_node.subscribe(MAG_IP_ADDRESS)
         # Tell rovecomm where to put the data when it comes in
         self.rovecomm_node.callbacks[MAG_DATA_ID] = self.process_mag_data
+        self._heading = 0
         try:
             with open(calibration_file) as calfile:
                 self._calibration = json.load(calfile)
@@ -34,15 +40,19 @@ class Compass:
         # The GPS sends data as two doubles
         x, y, z = struct.unpack("fff", raw_data)
         self._coordinates = (x, y, z)
-
-    def heading(self):
-        x, y, z = self._coordinates
         cal = self._calibration
         x_adj = interp(x, self.x_range, [-1,1])
         y_adj = interp(y, self.y_range, [-1,1])
         heading = math.degrees(math.atan2(y_adj, x_adj))
         heading = (heading - self.offset) % 360
-        return heading
+        #print("Data received. Raw = %s, Heading = %f" % ([x_adj, y_adj], heading))
+        self._heading = heading
+        
+
+    def heading(self):
+        x, y, z = self._coordinates
+        
+        return self._heading
 
     def raw_xyz(self):
         return self._coordinates
