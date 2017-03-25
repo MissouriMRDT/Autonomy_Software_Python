@@ -1,4 +1,5 @@
 from rovecomm import RoveComm
+from collections import namedtuple
 import struct
 import time
 
@@ -6,6 +7,7 @@ import time
 # 3/4/2017
 # written by Ashley Painter
 
+Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
 # the ip address and data id of the gps
 # ip address may not be correct
@@ -15,7 +17,7 @@ gps_data_id = 1297
 
 class GPS:
     def __init__(self, rovecomm):
-        self._location = (None, None)
+        self._location = (0, 0)
         self.location_history = []
         self.rovecomm_node = rovecomm
         # subscribe to device
@@ -31,7 +33,7 @@ class GPS:
 
     def location(self):
         # returns most recent reported location
-        return self._location
+        return Coordinate(*self._location)
 
 if __name__ == '__main__':
     rovecomm_node = RoveComm()

@@ -46,8 +46,6 @@ def sendMotorCommand(speed_left, speed_right):
     
     assert(-1000 < speed_left < 1000)
     assert(-1000 < speed_right < 1000)
-    if(speed_left == 0 and speed_right == 0):
-        print "Zero'd"
     
     left_packet = struct.pack(drive_packet_format, speed_left)
     right_packet = struct.pack(drive_packet_format, speed_right)

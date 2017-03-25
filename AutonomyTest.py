@@ -1,8 +1,8 @@
 import drivers.rovecomm
 import algorithms.objecttracking
-import algorithms.autonomy
+import autonomy
 import algorithms.geomath
-import drivers.motors_rovecomm
+import drivers.motorsRoveComm
 import drivers.navboard_gps
 import time
 import Queue
@@ -36,9 +36,9 @@ rovecomm_node = drivers.rovecomm.RoveComm()
 
 gps = drivers.navboard_gps.GPS(rovecomm_node)
 compass = drivers.Magnetometer.Compass(rovecomm_node)
-motors = drivers.motors_rovecomm.Motors()
+motors = drivers.motorsRoveComm.Motors()
 
-autonomy_algorithm = algorithms.autonomy.Autonomy(gps, compass, motors)
+autonomy_algorithm = autonomy.Autonomy(gps, compass, motors)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
@@ -54,18 +54,32 @@ def enable_autonomy(packet_contents):
 
 def disable_autonomy(packet_contents):
     global autonomy_enabled
+    global motors
     autonomy_enabled = False
+    motors.disable()
 
 
 def clear_waypoint_handler(packet_contents):
     global waypoints
+    global state
+    print("Clearing all waypoints")
     waypoints = Queue.Queue()
+    motors.disable()
+    state = "idle"
 
+def do_nothing(packet_contents):
+    pass
 
 rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy
 rovecomm_node.callbacks[DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[CLEAR_WAYPOINTS] = clear_waypoint_handler
+#debug
+rovecomm_node.callbacks[1313] = do_nothing
+rovecomm_node.callbacks[1314] = do_nothing
+rovecomm_node.callbacks[1315] = do_nothing
+rovecomm_node.callbacks[1316] = do_nothing
+rovecomm_node.callbacks[1296] = do_nothing
 
 state = 'idle'
 current_goal = None
@@ -113,8 +127,8 @@ while state != 'shutdown':
                 current_goal = None
                 state = 'idle'
 
-        elif state == 'error':
-            print("Call Owen for a good time")
+        else:
+            print("Invalid state detected")
 
         print("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:
