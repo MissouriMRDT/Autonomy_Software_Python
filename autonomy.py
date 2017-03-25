@@ -1,7 +1,7 @@
 # System support
 import json
 import time
-
+import logging
 import algorithms.geomath as geomath
 from headinghold import headinghold
 
@@ -51,7 +51,7 @@ class Autonomy:
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
         self.goal = goal_coordinate
-        print "Moving from ", self.startpoint, " to ", goal_coordinate
+        logging.info("Moving from %s to %s" % (self.startpoint, goal_coordinate))
 
     def update_controls(self):
         """
@@ -99,18 +99,19 @@ class Autonomy:
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
-                print "Target Distance \t:", target_distance
-                print "Target Heading  \t:", target_heading
-                print "Crosstrack Error\t:", xte_dist
-                print "Crosstrack Hdg  \t:", xte_bearing
-                print "Measured Heading\t:", current_heading
+                logging.info("\n\tTarget Distance \t: %f\n"
+                             "\tTarget Heading  \t: %d\n"
+                             "\tCrosstrack Error\t: %f\n"
+                             "\tCrosstrack Hdg  \t: %d\n"
+                             "\tMeasured Heading\t: %f\n" %
+                             (target_distance, target_heading, xte_dist, 
+                              xte_bearing, current_heading))
 
             # Adjust path
             headinghold(goal_heading, current_heading, self.motors, SPEED)
-            time.sleep(0.01)
             return False
         else:
-            print "WAYPOINT REACHED"
+            logging.info("WAYPOINT REACHED")
             return True
 
 

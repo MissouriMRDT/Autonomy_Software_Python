@@ -126,7 +126,7 @@ class RoveComm(object):
     def _listen_thread(self):
         while True:
             packet, sender = self._socket.recvfrom(1024)
-            logging.debug("Packet received: %s" % packet)
+            #logging.debug("Packet received: %s" % packet)
 
             # Parse the message header
             header_length = struct.calcsize(HEADER_FORMAT)
@@ -153,4 +153,5 @@ class RoveComm(object):
                 try:
                     self.callbacks[data_id](content_bytes)
                 except KeyError:
-                    print "Warning: no callback assigned for data id %d", data_id
+                    pass
+                    #logging.debug("No callback assigned for data id %d" % data_id)

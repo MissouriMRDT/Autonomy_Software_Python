@@ -4,13 +4,16 @@ from algorithms.PIDcontroller import *
 from drivers.rovecomm import RoveComm
 from drivers.Magnetometer import Compass
 from drivers.motorsRoveComm import Motors
+import logging
 import time
+
+logger = logging.getLogger(__name__)
 
 pid = PIDcontroller(Kp=10, Ki=2, Kd=0, wraparound=360)
         
 def headinghold(goal, actual_heading, motors, speed):
     correction = pid.update(goal, actual_heading)
-    print("Correction : %f "% correction)
+    logger.debug("Correction : %f "% correction)
     clamp(correction, -180, 180)
     motors.move(speed,  correction)
     

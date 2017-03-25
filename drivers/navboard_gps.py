@@ -28,7 +28,9 @@ class GPS:
     # I'm not sure if this will cuase an error
     def process_gps_data(self, raw_data):
         # The GPS sends data as two doubles
-        lat, lon = struct.unpack("dd", raw_data)
+        lon, lat = struct.unpack("<ll", raw_data)
+        lat = lat * 1e-7
+        lon = -lon * 1e-7
         self._location=(lat, lon)
 
     def location(self):

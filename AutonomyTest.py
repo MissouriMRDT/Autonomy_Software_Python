@@ -8,6 +8,7 @@ import time
 import Queue
 import struct
 import drivers.Magnetometer
+import logging
 
 # ---------------------------------------------------------
 # Configuration
@@ -21,6 +22,14 @@ DISABLE_AUTONOMY = 2577
 ADD_WAYPOINT = 2578
 CLEAR_WAYPOINTS = 2579
 WAYPOINT_REACHED = 2580
+
+logging.basicConfig(filename='autonomy.log', 
+                    format='%(asctime)s %(name)s\t: %(levelname)s\t%(message)s',
+                    level=logging.INFO)
+console = logging.StreamHandler()
+formatter = logging.Formatter('%(name)s\t: %(levelname)s\t%(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 
 # -------------
 # State
@@ -45,24 +54,27 @@ def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
     waypoint = algorithms.geomath.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
+    logging.info("Added waypoint %s" % (waypoint,))
 
 
 def enable_autonomy(packet_contents):
     global autonomy_enabled
     autonomy_enabled = True
+    logging.info("Autonomy Enabled")
 
 
 def disable_autonomy(packet_contents):
     global autonomy_enabled
     global motors
     autonomy_enabled = False
+    logging.info("Autonomy Disabled")
     motors.disable()
 
 
 def clear_waypoint_handler(packet_contents):
     global waypoints
     global state
-    print("Clearing all waypoints")
+    logging.info("Waypoints Cleared")
     waypoints = Queue.Queue()
     motors.disable()
     state = "idle"
@@ -78,7 +90,6 @@ rovecomm_node.callbacks[CLEAR_WAYPOINTS] = clear_waypoint_handler
 rovecomm_node.callbacks[1313] = do_nothing
 rovecomm_node.callbacks[1314] = do_nothing
 rovecomm_node.callbacks[1315] = do_nothing
-rovecomm_node.callbacks[1316] = do_nothing
 rovecomm_node.callbacks[1296] = do_nothing
 
 state = 'idle'
@@ -86,7 +97,7 @@ current_goal = None
 while state != 'shutdown':
     if autonomy_enabled:
         if state == 'idle':
-            time.sleep(1)
+            time.sleep(0.2)
             if not waypoints.empty():
                 state = 'gps_navigate'
                 current_goal = waypoints.get_nowait()
@@ -95,8 +106,8 @@ while state != 'shutdown':
                 pass
 
         elif state == 'gps_navigate':
-            print(current_goal)
             reached_goal = autonomy_algorithm.update_controls()
+            time.sleep(0.01)
             if reached_goal:
                 state = 'waypoint_reached'
             # if distance to current_goal < VISION_RANGE:
@@ -107,7 +118,6 @@ while state != 'shutdown':
 
         elif state == 'vision_navigate':
             # Update machine vision algorithm here
-            print(current_goal)
             time.sleep(2)
             state = 'waypoint_reached'
             # if goal reached:
@@ -128,8 +138,8 @@ while state != 'shutdown':
                 state = 'idle'
 
         else:
-            print("Invalid state detected")
+            logging.error("Invalid state detected")
 
-        print("Current state: %s\t Current Goal: %s" % (state, current_goal))
+        logging.debug("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:
-        pass
+        time.sleep(0.2)
