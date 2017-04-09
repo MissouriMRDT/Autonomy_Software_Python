@@ -9,6 +9,7 @@ import Queue
 import struct
 import drivers.Magnetometer
 import logging
+import follow_ball
 
 # ---------------------------------------------------------
 # Configuration
@@ -109,26 +110,30 @@ while state != 'shutdown':
             reached_goal = autonomy_algorithm.update_controls()
             time.sleep(0.01)
             if reached_goal:
-                state = 'waypoint_reached'
-            # if distance to current_goal < VISION_RANGE:
-            #    if ball visible in camera:
-            #        state = 'vision_navigate'
-            # else:
-            #    state = 'gps_navigate'
+                #state = 'vision_navigate'
+             if distance to current_goal < VISION_RANGE:
+                if ball visible in camera:
+                    state = 'vision_navigate'
+             else:
+                state = 'gps_navigate'
 
         elif state == 'vision_navigate':
-            # Update machine vision algorithm here
-            time.sleep(2)
-            state = 'waypoint_reached'
-            # if goal reached:
-            #    state = 'waypoint reached'
-            # elif lost sight of ball:
-            #    state = 'gps_navigate'
-            # else:
-            #    state = 'vision_navigate'
+            # Update machine vision algorithm below
+            reached_vision_goal = follow_ball
+            time.sleep(.01)
+            #if reached_vision_goal:
+             #   state = 'waypoint_reached'
+            if reached_vision_goal:
+                state = 'waypoint reached'
+             elif lost sight of ball:
+                state = 'gps_navigate'
+             else:
+                state = 'vision_navigate'
 
         elif state == 'waypoint_reached':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
+            motors.disable()
+            time.sleep(1)
             if not waypoints.empty():
                 current_goal = waypoints.get_nowait()
                 autonomy_algorithm.setWaypoint(current_goal)

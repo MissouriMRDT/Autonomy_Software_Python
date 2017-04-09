@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import time
+import threading
 
 GREEN_LOWER = np.array(cv2.cv.Scalar(29, 86, 6))
 GREEN_UPPER = np.array(cv2.cv.Scalar(64, 255, 255))
@@ -15,9 +17,20 @@ class ObjectTracker(object):
         except:
             raise Exception("Could not connect to camera")
         pass
-
+        grabbed, self.framebuffer = self.camera.read()
+        if not grabbed:
+            print "Frame capture failed"
+    
+        fourcc = cv2.cv.CV_FOURCC(*'XVID')
+        video_filename = '../logs/objtracker_%s.avi' % time.strftime("%Y%m%d-%H%M%S")
+        print(video_filename)
+        self.video_out = cv2.VideoWriter(video_filename, fourcc, 60, (640, 480))
+        assert(self.video_out.isOpened())
+        self.recording_thread = threading.Thread(target=self._record_thread)
+    
     def __del__(self):
         self.camera.release()
+        self.video_out.release()
 
     def track_ball(self):
         ball_in_frame = False
@@ -27,7 +40,6 @@ class ObjectTracker(object):
         (grabbed, frame) = self.camera.read()
         if not grabbed:
             print "Frame capture failed"
-        frame = cv2.flip(frame, 1)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
@@ -48,6 +60,14 @@ class ObjectTracker(object):
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
         return ball_in_frame, center, radius
+    
+    def _record_thread(self):
+        while(True):
+            (grabbed, frame) = camera.read()
+            if not grabbed:
+                print "Frame capture failed"
+            self.framebuffer = frame
+            self.video_out.write(frame)
 
 if __name__ == '__main__':
     tracker = ObjectTracker()
