@@ -9,7 +9,7 @@ DRIVE_DATA_ID    = {'left':100, 'right':101}
 ROVECOMM_VERSION = 1
 ROVECOMM_PORT    = 11000
 
-SPEED_LIMIT = 100
+SPEED_LIMIT = 300
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Todo: Extract
         

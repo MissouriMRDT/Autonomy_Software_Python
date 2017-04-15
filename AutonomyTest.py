@@ -9,13 +9,20 @@ import Queue
 import struct
 import drivers.Magnetometer
 import logging
-import follow_ball
 
 # ---------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------
 # Range at which we switch from GPS to optical tracking
-VISION_RANGE = 7  # Meters
+VISION_RANGE = 0.007  # Kilometers
+
+# Local navigation parameters
+WIDTH           = 640.0  # pixels
+FIELD_OF_VIEW   = 40.0   # degrees
+TARGET_DISTANCE = 0.4    # meters
+RADIUS          = .063   # meters
+SCALING_FACTOR  = 10.0   # pixel-meters
+POWER           = 10     # Percent
 
 # RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
@@ -47,6 +54,7 @@ rovecomm_node = drivers.rovecomm.RoveComm()
 gps = drivers.navboard_gps.GPS(rovecomm_node)
 compass = drivers.Magnetometer.Compass(rovecomm_node)
 motors = drivers.motorsRoveComm.Motors()
+tracker = algorithms.objecttracking.ObjectTracker()
 
 autonomy_algorithm = autonomy.Autonomy(gps, compass, motors)
 
@@ -109,26 +117,36 @@ while state != 'shutdown':
         elif state == 'gps_navigate':
             reached_goal = autonomy_algorithm.update_controls()
             time.sleep(0.01)
+            
             if reached_goal:
-                #state = 'vision_navigate'
-             if distance to current_goal < VISION_RANGE:
-                if ball visible in camera:
+                state = 'waypoint reached'
+            #state = 'vision_navigate'
+            if autonomy_algorithm.distance_to_goal < VISION_RANGE:
+                logging.info('In vision range, searching')
+                ball_in_frame, center, radius = tracker.track_ball()
+                if ball_in_frame:
+                    logging.info('Ball seen, locking on')
                     state = 'vision_navigate'
-             else:
+                else:
+                    state = 'gps_navigate'
+            else:
                 state = 'gps_navigate'
 
         elif state == 'vision_navigate':
-            # Update machine vision algorithm below
-            reached_vision_goal = follow_ball
-            time.sleep(.01)
-            #if reached_vision_goal:
-             #   state = 'waypoint_reached'
-            if reached_vision_goal:
-                state = 'waypoint reached'
-             elif lost sight of ball:
+            ball_in_frame, center, radius = tracker.track_ball()
+            if ball_in_frame:
+                angle_to_ball = FIELD_OF_VIEW * ((center[0] - (WIDTH / 2)) / WIDTH)
+                distance = SCALING_FACTOR / radius
+                logging.info("Distance: %f" % distance)
+                if distance > TARGET_DISTANCE:
+                    logging.info("Moving forward: %f" % angle_to_ball)
+                    motors.move(POWER, angle_to_ball)
+                if distance <= TARGET_DISTANCE:
+                    state = 'waypoint_reached'
+                    motors.move(-POWER, angle_to_ball)
+            else:
+                logging.info("Visual lock lost")
                 state = 'gps_navigate'
-             else:
-                state = 'vision_navigate'
 
         elif state == 'waypoint_reached':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
@@ -137,8 +155,10 @@ while state != 'shutdown':
             if not waypoints.empty():
                 current_goal = waypoints.get_nowait()
                 autonomy_algorithm.setWaypoint(current_goal)
+                logging.info('Moving to next waypoint')
                 state = 'gps_navigate'
             else:
+                logging.info('All waypoints reached, going into idle')
                 current_goal = None
                 state = 'idle'
 

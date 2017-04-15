@@ -47,6 +47,7 @@ class Autonomy:
         # self.xte_pid = PIDcontroller(Kp=0.1, Ki=0.01, Kd=0)
 
         self._decimation = 0
+        self.distance_to_goal = 0
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -69,6 +70,8 @@ class Autonomy:
             (target_heading, target_distance) = geomath.haversine(
                 self.location.lat, self.location.lon,
                 self.goal.lat, self.goal.lon)
+                
+            self.distance_to_goal = target_distance
 
             # Crosstrack Correction as linear
             (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
@@ -99,12 +102,13 @@ class Autonomy:
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
-                logging.info("\n\tTarget Distance \t: %f\n"
+                logging.info("\n\tLocation \t: %s\n"
+                             "\n\tTarget Distance \t: %f\n"
                              "\tTarget Heading  \t: %d\n"
                              "\tCrosstrack Error\t: %f\n"
                              "\tCrosstrack Hdg  \t: %d\n"
                              "\tMeasured Heading\t: %f\n" %
-                             (target_distance, target_heading, xte_dist, 
+                             (self.location, target_distance, target_heading, xte_dist, 
                               xte_bearing, current_heading))
 
             # Adjust path
