@@ -9,6 +9,8 @@ DRIVE_DATA_ID    = {'left':100, 'right':101}
 ROVECOMM_VERSION = 1
 ROVECOMM_PORT    = 11000
 
+SPEED_LIMIT = 300
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Todo: Extract
         
 def roveComm_SendMsgTo(dataID, data, dest_ip, port=ROVECOMM_PORT, seqNum=0x0F49, flags=0x00):
@@ -44,8 +46,6 @@ def sendMotorCommand(speed_left, speed_right):
     
     assert(-1000 < speed_left < 1000)
     assert(-1000 < speed_right < 1000)
-    if(speed_left == 0 and speed_right == 0):
-        print "Zero'd"
     
     left_packet = struct.pack(drive_packet_format, speed_left)
     right_packet = struct.pack(drive_packet_format, speed_right)
@@ -82,24 +82,12 @@ class Motors:
         elif(angle < 0):
             speed_left = speed_left * (1 + (angle / 180.0))
         
-        self._targetSpdLeft  = _clamp(1000.0 * speed_left, -700, 700)
-        self._targetSpdRight = _clamp(1000.0 * speed_right, -700, 700)
+        self._targetSpdLeft  = _clamp(1000.0 * speed_left, -SPEED_LIMIT, SPEED_LIMIT)
+        self._targetSpdRight = _clamp(1000.0 * speed_right, -SPEED_LIMIT, SPEED_LIMIT)
         
     def _updateThreadFxn(self):
         while 1:
-            r = 4 # Response speed.
-            
-            if(self._actualSpdLeft < (self._targetSpdLeft - 2*r)):
-                self._actualSpdLeft += r
-            elif(self._actualSpdLeft > (self._targetSpdRight + 2*r)):
-                self._actualSpdLeft -= r
-            
-            if(self._actualSpdRight < (self._targetSpdRight - 2*r)):
-                self._actualSpdRight += r
-            elif(self._actualSpdRight > (self._targetSpdRight + 2*r)):
-                self._actualSpdRight -= r
-            
-            sendMotorCommand(self._actualSpdLeft, self._actualSpdRight)
+            sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
             time.sleep(0.01)
     
     def disable(self):
@@ -131,7 +119,7 @@ def get(motors):
         if k == '\x1b': # Arrow Key
             k=inkey() # Arrow keys are thee characters
             k=inkey() # Clear out buffer
-            speed = 25
+            speed = 10
             if k=='A':
                 print "up"
                 motors.move(speed, 0)
@@ -146,7 +134,7 @@ def get(motors):
                 motors.move(speed, -180)
         elif k == ' ': # Space
             print "space"
-            motors.move(0,0)
+            motors.disable()
         elif k == '\x03': # Ctrl-C
             motors.disable()
             quit()

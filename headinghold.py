@@ -1,19 +1,27 @@
 import sys
 
 from algorithms.PIDcontroller import *
+from drivers.rovecomm import RoveComm
 from drivers.Magnetometer import Compass
-from drivers.motors_rovecomm import Motors
+from drivers.motorsRoveComm import Motors
+import logging
+import time
 
-pid = PIDcontroller(Kp=8, Ki=0, Kd=0, wraparound=360)
+logger = logging.getLogger(__name__)
+
+pid = PIDcontroller(Kp=5, Ki=0.2, Kd=0, wraparound=360)
         
 def headinghold(goal, actual_heading, motors, speed):
     correction = pid.update(goal, actual_heading)
+    logger.debug("Correction : %f "% correction)
     clamp(correction, -180, 180)
     motors.move(speed,  correction)
     
 if __name__ == "__main__":
+    rovecomm_node = RoveComm()
     motor_ctl = Motors()
-    mag = magnetometer.hmc5883l(gauss = 1.3, declination = (-175,0))
+    mag = Compass(rovecomm_node)
+    time.sleep(0.5) # Let the magnetometer lock
     
     try:
         goal = float(sys.argv[1])
@@ -25,7 +33,11 @@ if __name__ == "__main__":
         quit()
     
     print "Starting heading hold routine. Goal: ", goal, " degrees"
+    prevheading = None
     while(True):
-        headinghold(goal, mag.heading(), motor_ctl, speed)
-        
+        heading = mag.heading()
+        if heading != prevheading:
+            headinghold(goal, heading, motor_ctl, speed)
+            prevheading = heading
+        print("\tGoal: %f \tHeading: %f" % (goal, mag.heading()))
         time.sleep(0.01)

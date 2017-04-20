@@ -1,17 +1,17 @@
 # System support
 import json
 import time
-import logging
-import algorithms.geomath as geomath
+
+import geomath
 from headinghold import headinghold
 
 # User definable constants
-WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
+WAYPOINT_DISTANCE_THRESHOLD = 3.0  # Meters
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
-SPEED = 20  # Percent
+SPEED = 40  # Percent
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
-XTE_STRENGTH = 0.1  # Crosstrack Correction strength (0.0 - 1.0)
+XTE_STRENGTH = 0.2  # Crosstrack Correction strength (0.0 - 1.0)
 
 
 def reached_goal(goal, location, start):
@@ -47,12 +47,11 @@ class Autonomy:
         # self.xte_pid = PIDcontroller(Kp=0.1, Ki=0.01, Kd=0)
 
         self._decimation = 0
-        self.distance_to_goal = 0
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
         self.goal = goal_coordinate
-        logging.info("Moving from %s to %s" % (self.startpoint, goal_coordinate))
+        print "Moving from ", self.startpoint, " to ", goal_coordinate
 
     def update_controls(self):
         """
@@ -65,18 +64,16 @@ class Autonomy:
 
             # Get location
             self.last_location = self.location
-            self.location = self.gps.location()
+            self.location = gps.location()
 
             (target_heading, target_distance) = geomath.haversine(
                 self.location.lat, self.location.lon,
-                self.goal.lat, self.goal.lon)
-                
-            self.distance_to_goal = target_distance
+                waypoint.lat, waypoint.lon)
 
             # Crosstrack Correction as linear
             (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
                 self.startpoint,
-                self.goal,
+                waypoint,
                 self.location)
 
             # Crosstrack correction as PID
@@ -98,24 +95,22 @@ class Autonomy:
             # current_heading = gps_weight * gps_heading + (1.0 - gps_weight) * mag.heading()
 
             # Skip the filtering, trust the magnetometer
-            current_heading = self.magnetometer.heading()
+            current_heading = mag.heading()
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
-                logging.info("\n\tLocation \t: %s\n"
-                             "\n\tTarget Distance \t: %f\n"
-                             "\tTarget Heading  \t: %d\n"
-                             "\tCrosstrack Error\t: %f\n"
-                             "\tCrosstrack Hdg  \t: %d\n"
-                             "\tMeasured Heading\t: %f\n" %
-                             (self.location, target_distance, target_heading, xte_dist, 
-                              xte_bearing, current_heading))
+                print "Target Distance \t:", target_distance
+                print "Target Heading  \t:", target_heading
+                print "Crosstrack Error\t:", xte_dist
+                print "Crosstrack Hdg  \t:", xte_bearing
+                print "Measured Heading\t:", current_heading
 
             # Adjust path
             headinghold(goal_heading, current_heading, self.motors, SPEED)
+            time.sleep(0.01)
             return False
         else:
-            logging.info("WAYPOINT REACHED")
+            print "WAYPOINT REACHED"
             return True
 
 
