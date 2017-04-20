@@ -70,7 +70,7 @@ def enable_autonomy(packet_contents):
     global autonomy_enabled
     autonomy_enabled = True
     logging.info("Autonomy Enabled")
-
+    motors.enable()
 
 def disable_autonomy(packet_contents):
     global autonomy_enabled
