@@ -63,12 +63,12 @@ class Motors:
         self._targetSpdRight = 0
         self._actualSpdLeft  = 0
         self._actualSpdRight = 0
+        self._is_enabled = True
         
         self.updateThread = threading.Thread(target=self._updateThreadFxn) 
         self.updateThread.setDaemon(True) # Automatically kill the thread when the program finishes
         self.updateThread.start()
-
-        self._is_enabled = True
+        
     def __del__(self):
         self.disable()
         
@@ -140,7 +140,7 @@ def get(motors):
             elif k=='D':
                 print "left"
                 motors.move(speed, -180)
-        elif k == 'E':
+        elif k == 'e':
             print "enable"
             motors.enable()
         elif k == ' ': # Space
