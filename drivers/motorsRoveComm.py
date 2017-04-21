@@ -63,11 +63,12 @@ class Motors:
         self._targetSpdRight = 0
         self._actualSpdLeft  = 0
         self._actualSpdRight = 0
+        self._is_enabled = True
         
         self.updateThread = threading.Thread(target=self._updateThreadFxn) 
         self.updateThread.setDaemon(True) # Automatically kill the thread when the program finishes
         self.updateThread.start()
-            
+        
     def __del__(self):
         self.disable()
         
@@ -86,12 +87,19 @@ class Motors:
         self._targetSpdRight = _clamp(1000.0 * speed_right, -SPEED_LIMIT, SPEED_LIMIT)
         
     def _updateThreadFxn(self):
-        while 1:
-            sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
-            time.sleep(0.01)
+            while 1:
+                if self._is_enabled:
+                    sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
+                time.sleep(0.01)
     
+
     def disable(self):
+        self._is_enabled = False
         self.move(0, 0)
+
+    def enable(self):
+        self._is_enabled = True
+
         
 ############################################
 # Interactive testing mode
@@ -132,6 +140,9 @@ def get(motors):
             elif k=='D':
                 print "left"
                 motors.move(speed, -180)
+        elif k == 'e':
+            print "enable"
+            motors.enable()
         elif k == ' ': # Space
             print "space"
             motors.disable()
