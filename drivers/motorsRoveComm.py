@@ -140,6 +140,9 @@ def get(motors):
             elif k=='D':
                 print "left"
                 motors.move(speed, -180)
+        elif k == 'E':
+            print "enable"
+            motors.enable()
         elif k == ' ': # Space
             print "space"
             motors.disable()
