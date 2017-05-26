@@ -11,7 +11,7 @@ BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
 SPEED = 20  # Percent
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
-XTE_STRENGTH = 0.1  # Crosstrack Correction strength (0.0 - 1.0)
+XTE_STRENGTH = 0.20  # Crosstrack Correction strength (0.0 - 1.0)
 
 
 def reached_goal(goal, location, start):
