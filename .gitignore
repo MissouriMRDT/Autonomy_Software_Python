@@ -6,3 +6,9 @@
 
 # Python temp files
 *.pyc
+
+#Our Log Files
+*/logs/
+logs/
+*.log
+*.avi
