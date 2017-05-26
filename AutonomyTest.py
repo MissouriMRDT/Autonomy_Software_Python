@@ -120,12 +120,11 @@ while state != 'shutdown':
             
             if reached_goal:
                 state = 'waypoint reached'
-            #state = 'vision_navigate'
-            if autonomy_algorithm.distance_to_goal < VISION_RANGE:
+            elif autonomy_algorithm.distance_to_goal < VISION_RANGE:
                 logging.info('In vision range, searching')
                 ball_in_frame, center, radius = tracker.track_ball()
                 if ball_in_frame:
-                    logging.info('Ball seen, locking on')
+                    logging.info('Ball seen at (%i, %i) with r=%i, locking on' % (center.x, center.y, radius))
                     state = 'vision_navigate'
                 else:
                     state = 'gps_navigate'
@@ -156,6 +155,7 @@ while state != 'shutdown':
                 current_goal = waypoints.get_nowait()
                 autonomy_algorithm.setWaypoint(current_goal)
                 logging.info('Moving to next waypoint')
+                motors.enable()
                 state = 'gps_navigate'
             else:
                 logging.info('All waypoints reached, going into idle')
