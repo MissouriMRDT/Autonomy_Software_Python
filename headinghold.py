@@ -8,8 +8,8 @@ import logging
 import time
 
 logger = logging.getLogger(__name__)
-
-pid = PIDcontroller(Kp=5, Ki=0.2, Kd=0, wraparound=360)
+#kp=5, ki=.2 kd=0
+pid = PIDcontroller(Kp=5.5, Ki=0.1, Kd=0, wraparound=360)
         
 def headinghold(goal, actual_heading, motors, speed):
     correction = pid.update(goal, actual_heading)
