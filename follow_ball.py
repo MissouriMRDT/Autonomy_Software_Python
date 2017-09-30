@@ -1,8 +1,8 @@
 import algorithms.objecttracking
-import drivers.motors_rovecomm
+import drivers.motorsRoveComm
 
 tracker = algorithms.objecttracking.ObjectTracker()
-motors = drivers.motors_rovecomm.Motors()
+motors = drivers.motorsRoveComm()
 
 WIDTH           = 640.0  # pixels
 FIELD_OF_VIEW   = 40.0   # degrees

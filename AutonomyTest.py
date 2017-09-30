@@ -14,6 +14,7 @@ import logging
 # Configuration
 # ---------------------------------------------------------
 # Range at which we switch from GPS to optical tracking
+VISION_ENABLED = False
 VISION_RANGE = 0.007  # Kilometers
 
 # Local navigation parameters
@@ -22,7 +23,7 @@ FIELD_OF_VIEW   = 40.0   # degrees
 TARGET_DISTANCE = 0.4    # meters
 RADIUS          = .063   # meters
 SCALING_FACTOR  = 10.0   # pixel-meters
-POWER           = 10     # Percent
+POWER           = 35     # Percent
 
 # RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
@@ -119,12 +120,12 @@ while state != 'shutdown':
             time.sleep(0.01)
             
             if reached_goal:
-                state = 'waypoint reached'
-            elif autonomy_algorithm.distance_to_goal < VISION_RANGE:
+                state = 'waypoint_reached'
+            elif VISION_ENABLED and autonomy_algorithm.distance_to_goal < VISION_RANGE and waypoints.empty():
                 logging.info('In vision range, searching')
                 ball_in_frame, center, radius = tracker.track_ball()
                 if ball_in_frame:
-                    logging.info('Ball seen at (%i, %i) with r=%i, locking on' % (center.x, center.y, radius))
+                    logging.info('Ball seen at %s with r=%i, locking on' % (center, radius))
                     state = 'vision_navigate'
                 else:
                     state = 'gps_navigate'
@@ -163,7 +164,7 @@ while state != 'shutdown':
                 state = 'idle'
 
         else:
-            logging.error("Invalid state detected")
+            logging.error("Invalid state detected: %s" % state)
 
         logging.debug("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:

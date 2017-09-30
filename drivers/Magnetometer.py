@@ -90,9 +90,9 @@ if __name__ == '__main__':
     def do_nothing(packet_contents):
         pass
 		
-	ignored_data_ids = [1313, 1314, 1315, 1296, 1297, 1298, 1299, 1300, 1301, 1313, 1314, 1315]
-	for id in ignored_data_ids:
-		rovecomm_node.callbacks[id] = do_nothing
+        ignored_data_ids = [1313, 1314, 1315, 1296, 1297, 1298, 1299, 1300, 1301, 1313, 1314, 1315]
+        for id in ignored_data_ids:
+             rovecomm_node.callbacks[id] = do_nothing
 	
     mag = Compass(rovecomm_node)
     x_meas, y_meas, z_meas = [], [], []
