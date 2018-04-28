@@ -132,14 +132,15 @@ class Autonomy:
 
 if __name__ == "__main__":
     from drivers import hmc5883l as magnetometer
-    from drivers.gps_nmea import GPS
+    from drivers.navboard_gps import GPS
+    from drivers.rovecomm import RoveComm
     from drivers.motorsRoveComm import Motors
     from algorithms.lidar import LiDAR
 
     # Hardware Setup
     motors = Motors()
-    print("TEST THIS SUCKER")
-    gps = GPS("/dev/ttyS0")
+    rovecomm_node = RoveComm()
+    gps = GPS(rovecomm_node)
     lidar = LiDAR()
 
     # Using magnetic declination to compensate for how the compass is mounted.
