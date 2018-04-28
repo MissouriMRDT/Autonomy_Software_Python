@@ -34,11 +34,12 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 
 class Autonomy:
-    def __init__(self, gps, magnetometer, motors):
+    def __init__(self, gps, magnetometer, motors, lidar):
         print("Starting Init")
         self.gps = gps
         self.magnetometer = magnetometer
         self.motors = motors
+        self.lidar = lidar
 
         self.goal = None
         self.location = gps.location()
@@ -133,17 +134,19 @@ if __name__ == "__main__":
     from drivers import hmc5883l as magnetometer
     from drivers.gps_nmea import GPS
     from drivers.motorsRoveComm import Motors
+    from algorithms.lidar import LiDAR
 
     # Hardware Setup
     motors = Motors()
     print("TEST THIS SUCKER")
     gps = GPS("/dev/ttyS0")
+    lidar = LiDAR()
 
     # Using magnetic declination to compensate for how the compass is mounted.
     # TODO: This feels like the wrong way to do things
     mag = magnetometer.hmc5883l(gauss=1.3, declination=(-175, 0))
 
-    autonomy = Autonomy(gps, mag, motors)
+    autonomy = Autonomy(gps, mag, motors, lidar)
 
     with open('waypoints.json', 'rb') as waypointfile:
         autonomy.waypoints = json.load(waypointfile)
