@@ -1,4 +1,4 @@
-from rovecomm import RoveComm
+from drivers.rovecomm import RoveComm
 import struct
 import time
 import json

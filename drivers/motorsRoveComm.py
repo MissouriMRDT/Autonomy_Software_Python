@@ -122,39 +122,39 @@ def get(motors):
     inkey = _Getch()
     prev = False
     while(1):
-        print "Waiting for key"
+        print ("Waiting for key")
         k=inkey()
         if k == '\x1b': # Arrow Key
             k=inkey() # Arrow keys are thee characters
             k=inkey() # Clear out buffer
             speed = 10
             if k=='A':
-                print "up"
+                print ("up")
                 motors.move(speed, 0)
             elif k=='B':
-                print "down"
+                print ("down")
                 motors.move(-speed, 0)
             elif k=='C':
-                print "right"
+                print ("right")
                 motors.move(speed, 180)
             elif k=='D':
-                print "left"
+                print ("left")
                 motors.move(speed, -180)
         elif k == 'e':
-            print "enable"
+            print ("enable")
             motors.enable()
         elif k == ' ': # Space
-            print "space"
+            print ("space")
             motors.disable()
         elif k == '\x03': # Ctrl-C
             motors.disable()
             quit()
         else:
-            print "Unexpected key ", k
+            print ("Unexpected key ", k)
 
 if __name__=='__main__':
     motors = Motors()
-    print "Starting motor tester"
+    print ("Starting motor tester")
     while True:
         get(motors)
     motors.disable()

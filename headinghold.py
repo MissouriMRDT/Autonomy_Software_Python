@@ -32,7 +32,7 @@ if __name__ == "__main__":
               \n<speed>: Percentage of full speed to go")
         quit()
     
-    print "Starting heading hold routine. Goal: ", goal, " degrees"
+    print ("Starting heading hold routine. Goal: ", goal, " degrees")
     prevheading = None
     while(True):
         heading = mag.heading()

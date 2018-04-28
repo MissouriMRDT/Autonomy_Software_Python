@@ -2,7 +2,7 @@ import sys
 
 from algorithms.PIDcontroller import *
 from drivers.Magnetometer import Compass
-from drivers.motors_rovecomm import Motors
+from drivers.motorsRoveComm import Motors
 
 pid = PIDcontroller(Kp=8, Ki=0, Kd=0, wraparound=360)
         
@@ -24,7 +24,7 @@ if __name__ == "__main__":
               \n<speed>: Percentage of full speed to go")
         quit()
     
-    print "Starting heading hold routine. Goal: ", goal, " degrees"
+    print ("Starting heading hold routine. Goal: ", goal, " degrees")
     while(True):
         headinghold(goal, mag.heading(), motor_ctl, speed)
         

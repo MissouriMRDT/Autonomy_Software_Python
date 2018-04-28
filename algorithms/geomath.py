@@ -159,7 +159,7 @@ def vector_project(vector1, vector2):
 
 if __name__ == "__main__":
 
-    print "Starting self test"
+    print ("Starting self test")
 
     def almost_equal(x, y, tolerance=0.0001):
         return (abs(x-y) < tolerance)
@@ -173,15 +173,15 @@ if __name__ == "__main__":
     
     precalculated_crosstrack_error = 3.619 #kilometers
 
-    print "Expected Distance  : ", precalculated_crosstrack_error
+    print ("Expected Distance  : ", precalculated_crosstrack_error)
 
     (cd_bearing, cd_distance) = haversine(c.lat, c.lon, d.lat, d.lon)
     (xte_bearing, xte_dist) = crosstrack_error_vector(a,b,c)
 
-    print "Haversine Distance : ", cd_distance
-    print "Haversine bearing  : ", cd_bearing
-    print "XTE Dist           : ", xte_dist
-    print "xte_bearing        : ", xte_bearing
+    print ("Haversine Distance : ", cd_distance)
+    print ("Haversine bearing  : ", cd_bearing)
+    print ("XTE Dist           : ", xte_dist)
+    print ("xte_bearing        : ", xte_bearing)
 
     assert (almost_equal(cd_distance, precalculated_crosstrack_error, tolerance=0.2))
     assert (almost_equal(xte_dist   , precalculated_crosstrack_error, tolerance=0.2))
@@ -196,4 +196,4 @@ if __name__ == "__main__":
     assert(h == 0)
     assert(almost_equal(i, 10, tolerance=0.01))
 
-    print "Self test passed"
+    print ("Self test passed")

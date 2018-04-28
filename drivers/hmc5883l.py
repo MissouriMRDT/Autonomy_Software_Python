@@ -9,7 +9,7 @@
 # but uses smbus rather than quick2wire and sets some different init
 # params.
 
-import smbus
+import smbus2 as smbus
 import math
 import time
 import sys
@@ -117,6 +117,6 @@ if __name__ == "__main__":
         sys.stdout.write("\rHeading: " + str(compass.heading()) + "     ")
         sys.stdout.flush()
         time.sleep(0.5)
-	print "Raw:", (raw_x, raw_y)       
-    	print "Calibration min(x,y), max(x,y): ", (min_x, min_y), (max_x, max_y)
+    print ("Raw:", (raw_x, raw_y))
+    print ("Calibration min(x,y), max(x,y): ", (min_x, min_y), (max_x, max_y))
 

@@ -34,11 +34,11 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 
 class Autonomy:
-    def __init__(self, gps, magnetometer, motors):
+    def __init__(self, gps, magnetometer, motors, lidar):
         self.gps = gps
         self.magnetometer = magnetometer
         self.motors = motors
-
+        self.lidar = lidar
         self.goal = None
         self.location = gps.location()
         self.last_location = self.location
@@ -51,7 +51,7 @@ class Autonomy:
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
         self.goal = goal_coordinate
-        print "Moving from ", self.startpoint, " to ", goal_coordinate
+        print ("Moving from ", self.startpoint, " to ", goal_coordinate)
 
     def update_controls(self):
         """
@@ -99,35 +99,37 @@ class Autonomy:
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
-                print "Target Distance \t:", target_distance
-                print "Target Heading  \t:", target_heading
-                print "Crosstrack Error\t:", xte_dist
-                print "Crosstrack Hdg  \t:", xte_bearing
-                print "Measured Heading\t:", current_heading
+                print("Target Distance \t:", target_distance)
+                print("Target Heading  \t:", target_heading)
+                print("Crosstrack Error\t:", xte_dist)
+                print("Crosstrack Hdg  \t:", xte_bearing)
+                print("Measured Heading\t:", current_heading)
 
             # Adjust path
             headinghold(goal_heading, current_heading, self.motors, SPEED)
             time.sleep(0.01)
             return False
         else:
-            print "WAYPOINT REACHED"
+            print ("WAYPOINT REACHED")
             return True
 
 
 if __name__ == "__main__":
     from drivers import hmc5883l as magnetometer
     from drivers.gps_nmea import GPS
-    from drivers.motors_rovecomm import Motors
+    from drivers.motorsRoveComm import Motors
+    from algorithms.lidar import LiDAR
 
     # Hardware Setup
     motors = Motors()
     gps = GPS("/dev/ttyS0")
+    lidar = LiDAR()
 
     # Using magnetic declination to compensate for how the compass is mounted.
     # TODO: This feels like the wrong way to do things
     mag = magnetometer.hmc5883l(gauss=1.3, declination=(-175, 0))
 
-    autonomy = Autonomy(gps, mag, motors)
+    autonomy = Autonomy(gps, mag, motors, lidar)
 
     with open('waypoints.json', 'rb') as waypointfile:
         autonomy.waypoints = json.load(waypointfile)
