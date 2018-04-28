@@ -5,7 +5,7 @@ import algorithms.geomath
 import drivers.motorsRoveComm
 import drivers.navboard_gps
 import time
-import Queue
+import queue
 import struct
 import drivers.Magnetometer
 import logging
@@ -43,7 +43,7 @@ logging.getLogger('').addHandler(console)
 # -------------
 # State
 # -------------
-waypoints = Queue.Queue()
+waypoints = queue.Queue()
 autonomy_enabled = False
 
 # ---------------------------------------------------------
@@ -85,7 +85,7 @@ def clear_waypoint_handler(packet_contents):
     global waypoints
     global state
     logging.info("Waypoints Cleared")
-    waypoints = Queue.Queue()
+    waypoints = queue.Queue()
     motors.disable()
     state = "idle"
 
@@ -169,3 +169,4 @@ while state != 'shutdown':
         logging.debug("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:
         time.sleep(0.2)
+ `

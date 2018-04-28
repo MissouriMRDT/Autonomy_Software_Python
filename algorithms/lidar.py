@@ -13,7 +13,7 @@ class LiDAR:
     MIN_SAFE_DIST = 1  # meters because i can
     Y_TOL = .05  # meters
     MAX_Y_UP = 1.00  # meters
-    MIN_Y_DOWN = 1.00  # meters, separate to change on the fly if needed
+    MIN_Y_DOWN = .75  # meters, separate to change on the fly if needed
 
     # will mess with the sweeping when main part works
 

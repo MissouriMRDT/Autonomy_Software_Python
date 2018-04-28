@@ -1,4 +1,6 @@
-
+import sys
+import tty
+import termios
 import struct
 import socket
 import threading
@@ -104,8 +106,7 @@ class Motors:
 ############################################
 # Interactive testing mode
 ############################################    
-    
-import sys,tty,termios
+
 
 class _Getch:
     def __call__(self):
@@ -129,32 +130,33 @@ def get(motors):
             k=inkey() # Clear out buffer
             speed = 10
             if k=='A':
-                print ("up")
+                print("up")
                 motors.move(speed, 0)
             elif k=='B':
-                print ("down")
+                print("down")
                 motors.move(-speed, 0)
             elif k=='C':
-                print ("right")
+                print("right")
                 motors.move(speed, 180)
             elif k=='D':
-                print ("left")
+                print("left")
                 motors.move(speed, -180)
         elif k == 'e':
-            print ("enable")
+            print("enable")
             motors.enable()
         elif k == ' ': # Space
-            print ("space")
+            print("space")
             motors.disable()
         elif k == '\x03': # Ctrl-C
             motors.disable()
             quit()
         else:
-            print ("Unexpected key ", k)
+            print("Unexpected key ", k)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     motors = Motors()
-    print ("Starting motor tester")
+    print("Starting motor tester")
     while True:
         get(motors)
     motors.disable()

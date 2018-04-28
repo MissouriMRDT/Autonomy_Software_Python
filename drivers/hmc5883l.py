@@ -19,10 +19,10 @@ class hmc5883l:
     # TODO: Let the user set this
     # Source for these values: followed the procedure at 
     # http://blog.bitify.co.uk/2013/11/connecting-and-calibrating-hmc5883l.html
-    __x_offset =  -161.0
-    __y_offset =  164.0
-    __x_scale  =  226.0
-    __y_scale  =  215.0
+    __x_offset = -161.0
+    __y_offset = 164.0
+    __x_scale  = 226.0
+    __y_scale  = 215.0
     
     __scales = {
         0.88: [0, 0.73],
@@ -117,6 +117,6 @@ if __name__ == "__main__":
         sys.stdout.write("\rHeading: " + str(compass.heading()) + "     ")
         sys.stdout.flush()
         time.sleep(0.5)
-    print ("Raw:", (raw_x, raw_y))
-    print ("Calibration min(x,y), max(x,y): ", (min_x, min_y), (max_x, max_y))
+    print("Raw:", (raw_x, raw_y))
+    print("Calibration min(x,y), max(x,y): ", (min_x, min_y), (max_x, max_y))
 

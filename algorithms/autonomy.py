@@ -2,7 +2,7 @@
 import json
 import time
 
-import geomath
+import algorithms.geomath
 from headinghold import headinghold
 
 # User definable constants
@@ -66,12 +66,12 @@ class Autonomy:
             self.last_location = self.location
             self.location = gps.location()
 
-            (target_heading, target_distance) = geomath.haversine(
+            (target_heading, target_distance) = algorithms.geomath.haversine(
                 self.location.lat, self.location.lon,
                 waypoint.lat, waypoint.lon)
 
             # Crosstrack Correction as linear
-            (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
+            (xte_bearing, xte_dist) = algorithms.geomath.crosstrack_error_vector(
                 self.startpoint,
                 waypoint,
                 self.location)
@@ -79,7 +79,7 @@ class Autonomy:
             # Crosstrack correction as PID
             # xte_correction = self.xte_pid.update(setpoint=0, real_position=xte_bearing)
 
-            goal_heading = geomath.weighted_average_angles(
+            goal_heading = algorithms.geomath.weighted_average_angles(
                 [target_heading, xte_bearing],
                 [1 - XTE_STRENGTH, XTE_STRENGTH])
             ## I think this code isn't needed -

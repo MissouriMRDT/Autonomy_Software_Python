@@ -40,7 +40,7 @@ class ObjectTracker(object):
 
         (grabbed, frame) = self.camera.read()
         if not grabbed:
-            print "Frame capture failed"
+            print ("Frame capture failed")
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         mask = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
@@ -78,6 +78,6 @@ if __name__ == '__main__':
     while True:
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            print "Ball found at %s, distance %s" % (center, 1.0/radius)
+            print ("Ball found at %s, distance %s" % (center, 1.0/radius))
         else:
-            print "No ball found"
+            print ("No ball found")

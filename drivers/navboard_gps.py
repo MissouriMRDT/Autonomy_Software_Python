@@ -1,4 +1,4 @@
-from rovecomm import RoveComm
+from drivers.rovecomm import RoveComm
 from collections import namedtuple
 import struct
 import time
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     rovecomm_node = RoveComm()
     gps = GPS(rovecomm_node)
     while(True):
-        print gps.location()
+        print(gps.location())
         time.sleep(1)

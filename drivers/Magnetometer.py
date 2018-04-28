@@ -4,14 +4,16 @@ import time
 import json
 import math
 import logging
-#from numpy import interp
+
+# from numpy import interp
 
 MAG_IP_ADDRESS = '192.168.1.133'
 MAG_DATA_ID = 1316
 FILTER_COEFFICIENT = 0.25
 
+
 class AveragingLowpassFilter(object):
-    def __init__(self, coefficient, init_val = 0):
+    def __init__(self, coefficient, init_val=0):
         """
         coefficient: Multiplier for new data. 
                      Higher number = faster reaction. 
@@ -20,9 +22,11 @@ class AveragingLowpassFilter(object):
         self.c_new = coefficient
         self.c_old = 1 - coefficient
         self.val = init_val
+
     def update(self, raw_data):
         self.val = (self.val * self.c_old) + raw_data * self.c_new
         return self.val
+
 
 def interp(x, inrange, outrange):
     inspan = inrange[1] - inrange[0]
@@ -30,8 +34,9 @@ def interp(x, inrange, outrange):
     scaled = (x - inrange[0]) / inspan
     return (scaled * outspan) + outrange[0]
 
+
 class Compass:
-    def __init__(self, rovecomm,  calibration_file="mag_calibration.json"):
+    def __init__(self, rovecomm, calibration_file="mag_calibration.json"):
         self._coordinates = (0, 0, 0)
         self.rovecomm_node = rovecomm
         # subscribe to device
@@ -39,7 +44,7 @@ class Compass:
         # Tell rovecomm where to put the data when it comes in
         self.rovecomm_node.callbacks[MAG_DATA_ID] = self.process_mag_data
         self._heading = 0
-        
+
         # Initialize filters
         self._filter_x = AveragingLowpassFilter(FILTER_COEFFICIENT)
         self._filter_y = AveragingLowpassFilter(FILTER_COEFFICIENT)
@@ -47,8 +52,8 @@ class Compass:
         try:
             with open(calibration_file) as calfile:
                 self._calibration = json.load(calfile)
-                self.x_range = [self._calibration['min_x'],self._calibration['max_x']]
-                self.y_range = [self._calibration['min_y'],self._calibration['max_y']]
+                self.x_range = [self._calibration['min_x'], self._calibration['max_x']]
+                self.y_range = [self._calibration['min_y'], self._calibration['max_y']]
                 self.offset = self._calibration['due_north_offset']
         except IOError:
             logging.critical("No calibration data available")
@@ -57,22 +62,21 @@ class Compass:
 
     def process_mag_data(self, raw_data):
         x, y, z = struct.unpack("fff", raw_data)
-        
+
         # Apply the moving average filter to reduce noise in the data
         x = self._filter_x.update(x)
         y = self._filter_y.update(y)
         z = self._filter_z.update(z)
         self._coordinates = (x, y, z)
         cal = self._calibration
-        x_adj = interp(x, self.x_range, [-1,1])
-        y_adj = interp(y, self.y_range, [-1,1])
+        x_adj = interp(x, self.x_range, [-1, 1])
+        y_adj = interp(y, self.y_range, [-1, 1])
         heading = math.degrees(math.atan2(y_adj, x_adj))
         heading = (heading - self.offset) % 360
-        #logging.info("Data received. Raw = %s, Heading = %f" % ([x_adj, y_adj], heading))
+        # logging.info("Data received. Raw = %s, Heading = %f" % ([x_adj, y_adj], heading))
         self._heading = heading
-        
 
-    def heading(self):        
+    def heading(self):
         return self._heading
 
     def raw_xyz(self):
@@ -86,14 +90,18 @@ if __name__ == '__main__':
 
     import thread
     import numpy
+
     rovecomm_node = RoveComm()
+
+
     def do_nothing(packet_contents):
         pass
-		
+
         ignored_data_ids = [1313, 1314, 1315, 1296, 1297, 1298, 1299, 1300, 1301, 1313, 1314, 1315]
         for id in ignored_data_ids:
-             rovecomm_node.callbacks[id] = do_nothing
-	
+            rovecomm_node.callbacks[id] = do_nothing
+
+
     mag = Compass(rovecomm_node)
     x_meas, y_meas, z_meas = [], [], []
     done_measuring = False
@@ -109,9 +117,11 @@ if __name__ == '__main__':
 
             time.sleep(0.3)
 
+
     choice = raw_input("Calibrate the magnetometer (y/n)?")
-    if(choice == 'y'):
-        print("Press enter to start calibration. Press enter again when facing due north after turning at least 360 degrees")
+    if (choice == 'y'):
+        print(
+            "Press enter to start calibration. Press enter again when facing due north after turning at least 360 degrees")
         raw_input()
         thread.start_new_thread(sample_magnetometer, (x_meas, y_meas))
         raw_input()
@@ -130,10 +140,10 @@ if __name__ == '__main__':
 
         print("Calibration completed.")
         print("Press enter to display heading, ctrl-c to exit\n")
-        raw_input()
+        input()
 
     mag = Compass(rovecomm_node)
 
-    while(True):
+    while (True):
         print("Heading: %.02f " % mag.heading())
         time.sleep(0.2)

@@ -35,6 +35,7 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 class Autonomy:
     def __init__(self, gps, magnetometer, motors):
+        print("Starting Init")
         self.gps = gps
         self.magnetometer = magnetometer
         self.motors = motors
@@ -48,6 +49,7 @@ class Autonomy:
 
         self._decimation = 0
         self.distance_to_goal = 0
+        printnl("Init Complete\n")
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -130,10 +132,11 @@ class Autonomy:
 if __name__ == "__main__":
     from drivers import hmc5883l as magnetometer
     from drivers.gps_nmea import GPS
-    from drivers.motors_rovecomm import Motors
+    from drivers.motorsRoveComm import Motors
 
     # Hardware Setup
     motors = Motors()
+    print("TEST THIS SUCKER")
     gps = GPS("/dev/ttyS0")
 
     # Using magnetic declination to compensate for how the compass is mounted.
