@@ -1,6 +1,6 @@
 import json
 
-from drivers.gps_nmea import GPS
+from drivers.gps.gpsNmea import GPS
 
 gps = GPS("/dev/ttyS0")
 waypoints = []

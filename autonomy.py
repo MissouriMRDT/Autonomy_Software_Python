@@ -167,7 +167,7 @@ class Autonomy:
 
 if __name__ == "__main__":
     from drivers.Magnetometer import Compass
-    from drivers.navboard_gps import GPS
+    from drivers.gps.gpsNavboard import GPS
     from drivers.rovecomm import RoveComm
     from drivers.driveBoard import DriveBoard
     from algorithms.lidar import LiDAR
