@@ -42,7 +42,6 @@ def roveComm_SendMsgTo(dataID, data, dest_ip, port=ROVECOMM_PORT, seqNum=0x0F49,
     sock.sendto(msgbuffer, (dest_ip, port))
 
 def sendMotorCommand(speed_left, speed_right):
-    #print "Moving motors: Left ", speed_left, " Right", speed_right
 
     drive_packet_format = "<i" # Signed Int16
     
@@ -65,7 +64,7 @@ class Motors:
         self._targetSpdRight = 0
         self._actualSpdLeft  = 0
         self._actualSpdRight = 0
-        self._is_enabled = True
+        self._is_enabled = False
         
         self.updateThread = threading.Thread(target=self._updateThreadFxn) 
         self.updateThread.setDaemon(True) # Automatically kill the thread when the program finishes
@@ -91,13 +90,13 @@ class Motors:
     def _updateThreadFxn(self):
             while 1:
                 if self._is_enabled:
-                    sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
+                    sendMotorCommand(int(self._targetSpdLeft), int(self._targetSpdRight))
                 time.sleep(0.01)
     
 
     def disable(self):
-        self._is_enabled = False
         self.move(0, 0)
+        self._is_enabled = False
 
     def enable(self):
         self._is_enabled = True

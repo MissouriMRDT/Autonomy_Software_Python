@@ -2,8 +2,12 @@
 import json
 import time
 import logging
+import struct
 import algorithms.geomath as geomath
+from collections import namedtuple
 from headinghold import headinghold
+
+Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
@@ -34,17 +38,22 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 
 class Autonomy:
-    
+
     def handleNewWaypoint(self, data):
+        
+        print()
         self.startpoint = self.location
-        self.goal.lat = data[0:16]
-        self.goal.lon = data[16:32]
-        logging.info("Moving from %s to %s" % (self.startpoint, goal))
+        self.goal = Coordinate(struct.unpack('d', data[0:8])[0], struct.unpack('d', data[8:16])[0])
+        print("Moving from %s to %s" % (self.startpoint, self.goal))
+        print()
 
     def enableAutonomy(self, data):
+        print("Enabling Autonomy")
         self.stop = False
+        self.start()
 
     def stopAutonomy(self, data):
+        print("Stopping Autonomy")
         self.stop = True
 
     def __init__(self, rovecomm_node, gps, magnetometer, motors, lidar):
@@ -54,7 +63,7 @@ class Autonomy:
         self.lidar = lidar
         self.rovecomm_node = rovecomm_node
 
-        self.goal = None
+        self.goal = gps.location()
         self.location = gps.location()
         self.last_location = self.location
         self.startpoint = self.location
@@ -66,9 +75,9 @@ class Autonomy:
 
         self.stop = False
 
-        rovecomm_node.callbacks[2578] = handleNewWaypoint
-        rovecomm_ndoe.callbacks[2576] = enableAutonomy
-        rovecomm_ndoe.callbacks[2577] = stopAutonomy
+        rovecomm_node.callbacks[2578] = self.handleNewWaypoint
+        rovecomm_node.callbacks[2576] = self.enableAutonomy
+        rovecomm_node.callbacks[2577] = self.stopAutonomy
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -123,7 +132,7 @@ class Autonomy:
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
-                logging.info("\n\tLocation \t: %s\n"
+                print("\n\tLocation \t: %s\n"
                              "\n\tTarget Distance \t: %f\n"
                              "\tTarget Heading  \t: %d\n"
                              "\tCrosstrack Error\t: %f\n"
@@ -148,13 +157,12 @@ class Autonomy:
             return True
 
     def start(self):
-        while True:
-            while self.stop:
-                while not self.stop:
-                    stop = update_controls()
-                    sleep(.1)
-                sleep(.1)
-            sleep(1)
+        print("Starting Autonomy")
+        self.motors.enable()
+        while not self.update_controls():
+            time.sleep(.25)
+        self.motors.disable()
+        print("Autonomy has ended")
 
 
 if __name__ == "__main__":
@@ -173,4 +181,6 @@ if __name__ == "__main__":
     mag = Compass(rovecomm_node)
 
     autonomy = Autonomy(rovecomm_node, gps, mag, motors, lidar)
-    autonomy.start()
+
+    while True:
+        time.sleep(100000)
