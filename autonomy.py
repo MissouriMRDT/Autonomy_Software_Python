@@ -66,9 +66,9 @@ class Autonomy:
 
         self.stop = False
 
-        rovecomm_node.callbacks[2578] = handleNewWaypoint
-        rovecomm_ndoe.callbacks[2576] = enableAutonomy
-        rovecomm_ndoe.callbacks[2577] = stopAutonomy
+        rovecomm_node.callbacks[2578] = self.handleNewWaypoint
+        rovecomm_node.callbacks[2576] = self.enableAutonomy
+        rovecomm_node.callbacks[2577] = self.stopAutonomy
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -152,9 +152,9 @@ class Autonomy:
             while self.stop:
                 while not self.stop:
                     stop = update_controls()
-                    sleep(.1)
-                sleep(.1)
-            sleep(1)
+                    time.sleep(.5)
+                time.sleep(.5)
+            time.sleep(2)
 
 
 if __name__ == "__main__":
