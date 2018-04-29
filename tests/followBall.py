@@ -1,6 +1,6 @@
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
-from algorithms.objecttracking import ObjectTracker
+from algorithms.objectTracking import ObjectTracker
 
 tracker = ObjectTracker()
 drive = DriveBoard(RoveComm())

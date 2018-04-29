@@ -8,10 +8,10 @@ from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 
-from algorithms.objecttracking import ObjectTracker
+from algorithms.objectTracking import ObjectTracker
 from algorithms.gpsNavigate import GPSNavigate
 from algorithms.lidar import LiDAR
-import algorithms.geomath
+import algorithms.geoMath as GeoMath
 
 # ---------------------------------------------------------
 # Configuration
@@ -67,7 +67,7 @@ gpsNavigation = GPSNavigate(gps, compass, drive, lidar)
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
-    waypoint = algorithms.geomath.Coordinate(latitude, longitude)
+    waypoint = GeoMath.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
     logging.info("Added waypoint %s" % (waypoint,))
 

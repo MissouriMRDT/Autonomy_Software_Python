@@ -2,9 +2,9 @@
 import json
 import time
 import logging
-import algorithms.geomath as geomath
+import algorithms.geoMath as GeoMath
 from collections import namedtuple
-from algorithms.headinghold import headinghold
+from algorithms.headingHold import headingHold
 
 Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
@@ -18,8 +18,8 @@ XTE_STRENGTH = 0.25  # Crosstrack Correction strength (0.0 - 1.0)
 
 
 def reached_goal(goal, location, start):
-    (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
-    (c_bearing, c_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
+    (s_bearing, s_distance) = GeoMath.haversine(start.lat, start.lon, goal.lat, goal.lon)
+    (c_bearing, c_distance) = GeoMath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
     distanceMeters = c_distance * 1000.0
     close_enough = distanceMeters < WAYPOINT_DISTANCE_THRESHOLD
@@ -68,14 +68,14 @@ class GPSNavigate:
             self.last_location = self.location
             self.location = self.gps.location()
 
-            (target_heading, target_distance) = geomath.haversine(
+            (target_heading, target_distance) = GeoMath.haversine(
                 self.location.lat, self.location.lon,
                 self.goal.lat, self.goal.lon)
                 
             self.distance_to_goal = target_distance
 
             # Crosstrack Correction as linear
-            (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
+            (xte_bearing, xte_dist) = GeoMath.crosstrack_error_vector(
                 self.startpoint,
                 self.goal,
                 self.location)
@@ -83,13 +83,13 @@ class GPSNavigate:
             # Crosstrack correction as PID
             # xte_correction = self.xte_pid.update(setpoint=0, real_position=xte_bearing)
 
-            goal_heading = geomath.weighted_average_angles(
+            goal_heading = GeoMath.weighted_average_angles(
                 [target_heading, xte_bearing],
                 [1 - XTE_STRENGTH, XTE_STRENGTH])
             ## I think this code isn't needed -
             ## Magnetometer correction should show up in the integral term
             ## in the cross track correction PID loop
-            # (gps_heading, dist_moved) = geomath.haversine(self.last_location.lat, self.last_location.lon, self.location.lat, self.location.lon)
+            # (gps_heading, dist_moved) = GeoMath.haversine(self.last_location.lat, self.last_location.lon, self.location.lat, self.location.lon)
             # # The GPS refreshes more slowly than the control loop
             # # Speed can only be calculated when the GPS updates
             # if(dist_moved > 0):
@@ -113,7 +113,7 @@ class GPSNavigate:
                               xte_bearing, current_heading))
 
             # Adjust path
-            headinghold(goal_heading, current_heading, self.motors, SPEED)
+            headingHold(goal_heading, current_heading, self.motors, SPEED)
             return False
         else:
             logging.info("WAYPOINT REACHED")

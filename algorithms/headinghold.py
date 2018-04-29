@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 #kp=5, ki=.2 kd=0
 pid = PIDcontroller(Kp=5.5, Ki=0.15, Kd=0, wraparound=360)
         
-def headinghold(goal, actual_heading, drive, speed):
+def headingHold(goal, actual_heading, drive, speed):
     correction = pid.update(goal, actual_heading)
     logger.debug("Correction : %f "% correction)
     clamp(correction, -180, 180)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     while(True):
         heading = mag.heading()
         if heading != prevheading:
-            headinghold(goal, heading, drive_ctl, speed)
+            headingHold(goal, heading, drive_ctl, speed)
             prevheading = heading
         print("\tGoal: %f \tHeading: %f" % (goal, mag.heading()))
         time.sleep(0.01)
