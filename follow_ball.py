@@ -1,8 +1,11 @@
 import algorithms.objecttracking
-import drivers.motorsRoveComm
+
+
+from drivers.rovecomm import RoveComm
+from drivers.driveBoard import DriveBoard
 
 tracker = algorithms.objecttracking.ObjectTracker()
-motors = drivers.motorsRoveComm()
+drive = DriveBoard(RoveComm())
 
 WIDTH           = 640.0  # pixels
 FIELD_OF_VIEW   = 40.0   # degrees
@@ -19,9 +22,9 @@ while True:
         print "Distance: %f" % distance
         if distance > TARGET_DISTANCE:
             print "Moving forward: %f" % angle_to_ball
-            motors.move(POWER, angle_to_ball)
+            drive.move(POWER, angle_to_ball)
         if distance < TARGET_DISTANCE:
             print "Moving backward: %f" % angle_to_ball
-            motors.move(-POWER, angle_to_ball)
+            drive.move(-POWER, angle_to_ball)
     else:
         print "no ball detected"

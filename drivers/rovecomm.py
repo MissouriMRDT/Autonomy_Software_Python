@@ -84,21 +84,21 @@ class RoveComm(object):
             contents       : bytes to send
         """
         for subscriber in self.subscribers:
-            self._send_to(data_id, contents, subscriber)
+            self.sendTo(data_id, contents, subscriber)
 
     def subscribe(self, destination_ip):
         """
         Ask to receive messages from another device
         """
-        self._send_to(SUBSCRIBE, "", destination_ip)
+        self.sendTo(SUBSCRIBE, "", destination_ip)
 
     def unsubscribe(self, destination_ip):
         """
         Stop receiving messages from another device
         """
-        self._send_to(UNSUBSCRIBE, "", destination_ip)
+        self.sendTo(UNSUBSCRIBE, "", destination_ip)
 
-    def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
+    def sendTo(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
         """
         Send a RoveComm formatted message to a specific address
         Used internally
@@ -136,10 +136,10 @@ class RoveComm(object):
 
             # Check for special features, like pings and acknowledgements
             if flags & ACK_FLAG:
-                self._send_to(ACK, contents=data_id, destination_ip=sender)
+                self.sendTo(ACK, contents=data_id, destination_ip=sender)
 
             if data_id == PING:
-                self._send_to(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
+                self.sendTo(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
             elif data_id == SUBSCRIBE:
                 self.subscribers.append(sender[0])
             elif data_id == UNSUBSCRIBE:

@@ -169,18 +169,17 @@ if __name__ == "__main__":
     from drivers.Magnetometer import Compass
     from drivers.navboard_gps import GPS
     from drivers.rovecomm import RoveComm
-    from drivers.motorsRoveComm import Motors
+    from drivers.driveBoard import DriveBoard
     from algorithms.lidar import LiDAR
 
     # Hardware Setup
-    motors = Motors()
     rovecomm_node = RoveComm()
+    drive = DriveBoard(rovecomm_node)
     gps = GPS(rovecomm_node)
+    mag = Compass(rovecomm_node)
     lidar = LiDAR()
 
-    mag = Compass(rovecomm_node)
-
-    autonomy = Autonomy(rovecomm_node, gps, mag, motors, lidar)
+    autonomy = Autonomy(rovecomm_node, gps, mag, drive, lidar)
 
     while True:
         time.sleep(100000)

@@ -1,14 +1,15 @@
-import drivers.rovecomm
 import algorithms.objecttracking
 import autonomy
 import algorithms.geomath
-import drivers.motorsRoveComm
-import drivers.navboard_gps
 import time
 import queue
 import struct
-import drivers.Magnetometer
 import logging
+
+from drivers.Magnetometer import Compass
+from drivers.navboard_gps import GPS
+from drivers.rovecomm import RoveComm
+from drivers.driveBoard import DriveBoard
 
 # ---------------------------------------------------------
 # Configuration
@@ -50,14 +51,14 @@ autonomy_enabled = False
 # Connect to hardware
 #
 # ---------------------------------------------------------
-rovecomm_node = drivers.rovecomm.RoveComm()
+rovecomm_node = RoveComm()
 
-gps = drivers.navboard_gps.GPS(rovecomm_node)
-compass = drivers.Magnetometer.Compass(rovecomm_node)
-motors = drivers.motorsRoveComm.Motors()
+gps = GPS(rovecomm_node)
+compass = Compass(rovecomm_node)
+drive = DriveBoard(rovecomm_node)
+
 tracker = algorithms.objecttracking.ObjectTracker()
-
-autonomy_algorithm = autonomy.Autonomy(gps, compass, motors)
+autonomy_algorithm = autonomy.Autonomy(gps, compass, drive)
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
@@ -71,14 +72,14 @@ def enable_autonomy(packet_contents):
     global autonomy_enabled
     autonomy_enabled = True
     logging.info("Autonomy Enabled")
-    motors.enable()
+    drive.enable()
 
 def disable_autonomy(packet_contents):
     global autonomy_enabled
-    global motors
+    global drive
     autonomy_enabled = False
     logging.info("Autonomy Disabled")
-    motors.disable()
+    drive.disable()
 
 
 def clear_waypoint_handler(packet_contents):
@@ -86,7 +87,7 @@ def clear_waypoint_handler(packet_contents):
     global state
     logging.info("Waypoints Cleared")
     waypoints = queue.Queue()
-    motors.disable()
+    drive.disable()
     state = "idle"
 
 def do_nothing(packet_contents):
@@ -140,23 +141,23 @@ while state != 'shutdown':
                 logging.info("Distance: %f" % distance)
                 if distance > TARGET_DISTANCE:
                     logging.info("Moving forward: %f" % angle_to_ball)
-                    motors.move(POWER, angle_to_ball)
+                    drive.move(POWER, angle_to_ball)
                 if distance <= TARGET_DISTANCE:
                     state = 'waypoint_reached'
-                    motors.move(-POWER, angle_to_ball)
+                    drive.move(-POWER, angle_to_ball)
             else:
                 logging.info("Visual lock lost")
                 state = 'gps_navigate'
 
         elif state == 'waypoint_reached':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
-            motors.disable()
+            drive.disable()
             time.sleep(1)
             if not waypoints.empty():
                 current_goal = waypoints.get_nowait()
                 autonomy_algorithm.setWaypoint(current_goal)
                 logging.info('Moving to next waypoint')
-                motors.enable()
+                drive.enable()
                 state = 'gps_navigate'
             else:
                 logging.info('All waypoints reached, going into idle')
@@ -169,4 +170,3 @@ while state != 'shutdown':
         logging.debug("Current state: %s\t Current Goal: %s" % (state, current_goal))
     else:
         time.sleep(0.2)
- `

@@ -4,7 +4,9 @@ from sweeppy import Sweep as sweep
 from sweeppy import Sample
 import math
 import itertools
-from drivers.motorsRoveComm import Motors
+
+from drivers.rovecomm import RoveComm
+from drivers.driveBoard import DriveBoard
 
 
 class LiDAR:
@@ -20,7 +22,7 @@ class LiDAR:
     def __init__(self):
         self.lidar = "/dev/ttyUSB0"
         self.scan = None
-        self.motors = Motors()
+        self.drive = DriveBoard(RoveComm())
         self.discont = False
         # self.servo = "i'll figure this out later"
 
@@ -42,18 +44,18 @@ class LiDAR:
            # print("servo angle is:", self.th2)
         #return self.th2
 
-        def jumps(self):
-            for p in self.slope_arr:
-                while p != 0:
-                    y_diff = self.slope_arr[p] - self.slope_arr[p - 1]
-                    if math.fabs(y_diff) > self.Y_TOL:
-                        if self.MIN_Y_DOWN > y_diff < 0:
-                            self.motors.move(15, 15)
-                            self.discont = True
-                        elif self.MAX_Y_UP < y_diff > 0:
-                            self.motors.move(15, -15)
-                            self.discont = True
-            return self.discont
+    def jumps(self):
+        for p in self.slope_arr:
+            while p != 0:
+                y_diff = self.slope_arr[p] - self.slope_arr[p - 1]
+                if math.fabs(y_diff) > self.Y_TOL:
+                    if self.MIN_Y_DOWN > y_diff < 0:
+                        self.drive.move(15, 15)
+                        self.discont = True
+                    elif self.MAX_Y_UP < y_diff > 0:
+                        self.drive.move(15, -15)
+                        self.discont = True
+        return self.discont
 
 
     # essentially determines what data goes into the array to compare slopes
@@ -69,7 +71,7 @@ class LiDAR:
                 while 190.00 < th1 < 340.00:
                     if tot_mag > self.MIN_SAFE_DIST:
                         lidar_arr.append(tot_mag, y_mag, th1)
-                        self.discont = jumps()
+                        self.discont = self.jumps()
                     elif tot_mag < self.MIN_SAFE_DIST:
-                        self.motors.move(15, 15)
+                        self.drive.move(15, 15)
         return lidar_arr
