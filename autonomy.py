@@ -34,6 +34,19 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 
 class Autonomy:
+    
+    def handleNewWaypoint(self, data):
+        self.startpoint = self.location
+        self.goal.lat = data[0:16]
+        self.goal.lon = data[16:32]
+        logging.info("Moving from %s to %s" % (self.startpoint, goal))
+
+    def enableAutonomy(self, data):
+        self.stop = False
+
+    def stopAutonomy(self, data):
+        self.stop = True
+
     def __init__(self, rovecomm_node, gps, magnetometer, motors, lidar):
         self.gps = gps
         self.magnetometer = magnetometer
@@ -56,18 +69,6 @@ class Autonomy:
         rovecomm_node.callbacks[2578] = handleNewWaypoint
         rovecomm_ndoe.callbacks[2576] = enableAutonomy
         rovecomm_ndoe.callbacks[2577] = stopAutonomy
-
-    def handleNewWaypoint(self, data):
-        self.startpoint = self.location
-        self.goal.lat = data[0:16]
-        self.goal.lon = data[16:32]
-        logging.info("Moving from %s to %s" % (self.startpoint, goal))
-
-    def enableAutonomy(self, data):
-        self.stop = False
-
-    def stopAutonomy(self, data):
-        self.stop = True
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
