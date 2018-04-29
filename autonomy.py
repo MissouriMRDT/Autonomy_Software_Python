@@ -34,11 +34,12 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 
 class Autonomy:
-    def __init__(self, gps, magnetometer, motors, lidar):
+    def __init__(self, rovecomm_node, gps, magnetometer, motors, lidar):
         self.gps = gps
         self.magnetometer = magnetometer
         self.motors = motors
         self.lidar = lidar
+        self.rovecomm_node = rovecomm_node
 
         self.goal = None
         self.location = gps.location()
@@ -49,6 +50,24 @@ class Autonomy:
 
         self._decimation = 0
         self.distance_to_goal = 0
+
+        self.stop = False
+
+        rovecomm_node.callbacks[2578] = handleNewWaypoint
+        rovecomm_ndoe.callbacks[2576] = enableAutonomy
+        rovecomm_ndoe.callbacks[2577] = stopAutonomy
+
+    def handleNewWaypoint(self, data):
+        self.startpoint = self.location
+        self.goal.lat = data[0:16]
+        self.goal.lon = data[16:32]
+        logging.info("Moving from %s to %s" % (self.startpoint, goal))
+
+    def enableAutonomy(self, data):
+        self.stop = False
+
+    def stopAutonomy(self, data):
+        self.stop = True
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -127,6 +146,15 @@ class Autonomy:
             #              xte_bearing, current_heading))
             return True
 
+    def start(self):
+        while True:
+            while self.stop:
+                while not self.stop:
+                    stop = update_controls()
+                    sleep(.1)
+                sleep(.1)
+            sleep(1)
+
 
 if __name__ == "__main__":
     from drivers.Magnetometer import Compass
@@ -143,9 +171,5 @@ if __name__ == "__main__":
 
     mag = Compass(rovecomm_node)
 
-    autonomy = Autonomy(gps, mag, motors, lidar)
-
-    with open('waypoints.json', 'rb') as waypointfile:
-        autonomy.waypoints = json.load(waypointfile)
-
+    autonomy = Autonomy(rovecomm_node, gps, mag, motors, lidar)
     autonomy.start()
