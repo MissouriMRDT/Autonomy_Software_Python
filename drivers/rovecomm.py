@@ -120,7 +120,7 @@ class RoveComm(object):
                              flags,
                              data_id,
                              packet_size)
-        msgbuffer = bytes(header) + bytes(contents)
+        msgbuffer = bytes(header) + bytearray(contents, 'utf8')
         self._socket.sendto(bytes(msgbuffer), (destination_ip, port))
 
     def _listen_thread(self):

@@ -42,7 +42,7 @@ class LiDAR:
            # print("servo angle is:", self.th2)
         #return self.th2
 
-       def jumps(self):
+        def jumps(self):
             for p in self.slope_arr:
                 while p != 0:
                     y_diff = self.slope_arr[p] - self.slope_arr[p - 1]

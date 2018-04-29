@@ -35,7 +35,6 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 class Autonomy:
     def __init__(self, gps, magnetometer, motors, lidar):
-        print("Starting Init")
         self.gps = gps
         self.magnetometer = magnetometer
         self.motors = motors
@@ -50,7 +49,6 @@ class Autonomy:
 
         self._decimation = 0
         self.distance_to_goal = 0
-        printnl("Init Complete\n")
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
@@ -131,7 +129,7 @@ class Autonomy:
 
 
 if __name__ == "__main__":
-    from drivers import hmc5883l as magnetometer
+    from drivers.Magnetometer import Compass
     from drivers.navboard_gps import GPS
     from drivers.rovecomm import RoveComm
     from drivers.motorsRoveComm import Motors
@@ -143,9 +141,7 @@ if __name__ == "__main__":
     gps = GPS(rovecomm_node)
     lidar = LiDAR()
 
-    # Using magnetic declination to compensate for how the compass is mounted.
-    # TODO: This feels like the wrong way to do things
-    mag = magnetometer.hmc5883l(gauss=1.3, declination=(-175, 0))
+    mag = Compass(rovecomm_node)
 
     autonomy = Autonomy(gps, mag, motors, lidar)
 
