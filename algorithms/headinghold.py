@@ -1,7 +1,7 @@
 import sys
 
 from algorithms.PIDcontroller import *
-from drivers.Magnetometer import Compass
+from drivers.mag.compass import Compass
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 
