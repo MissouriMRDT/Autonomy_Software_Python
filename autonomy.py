@@ -5,7 +5,7 @@ import logging
 import struct
 import algorithms.geomath as geomath
 from collections import namedtuple
-from headinghold import headinghold
+from algorithms.headinghold import headinghold
 
 Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
