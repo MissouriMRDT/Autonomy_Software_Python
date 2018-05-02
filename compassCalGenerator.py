@@ -44,7 +44,7 @@ if (choice == 'y'):
 
     print("Calibration completed.")
     print("Press enter to display heading, ctrl-c to exit\n")
-    input()
+    raw_input()
 
 mag = Compass(rovecomm_node)
 

@@ -4,7 +4,7 @@ import json
 import math
 import logging
 
-# from numpy import interp
+from numpy import interp
 
 MAG_IP_ADDRESS = '192.168.1.133'
 MAG_DATA_ID = 1316
@@ -25,13 +25,6 @@ class AveragingLowpassFilter(object):
     def update(self, raw_data):
         self.val = (self.val * self.c_old) + raw_data * self.c_new
         return self.val
-
-
-def interp(x, inrange, outrange):
-    inspan = inrange[1] - inrange[0]
-    outspan = outrange[1] - outrange[0]
-    scaled = (x - inrange[0]) / inspan
-    return (scaled * outspan) + outrange[0]
 
 
 class Compass:
@@ -70,7 +63,7 @@ class Compass:
         y = self._filter_y.update(y)
         z = self._filter_z.update(z)
         self._coordinates = (x, y, z)
-        
+
         x_adj = interp(x, self.x_range, [-1, 1])
         y_adj = interp(y, self.y_range, [-1, 1])
         heading = math.degrees(math.atan2(y_adj, x_adj))
