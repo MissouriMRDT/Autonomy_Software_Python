@@ -3,8 +3,8 @@ import cv2
 import time
 import threading
 
-GREEN_LOWER = np.array(cv2.cv.Scalar(77, 92, 14))
-GREEN_UPPER = np.array(cv2.cv.Scalar(255, 254, 202))
+GREEN_LOWER = ( 77, 92, 14 )
+GREEN_UPPER = ( 255, 254, 202 )
 MIN_RADIUS  = 20
 FRAME_RATE  = 10
 
@@ -12,17 +12,17 @@ FRAME_RATE  = 10
 class ObjectTracker(object):
     def __init__(self, camera=0):
         try:
-            self.camera = cv2.VideoCapture(camera)
-            self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
-            self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+            self.camera = cv2.VideoCapture(0)
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         except:
             raise Exception("Could not connect to camera")
         pass
         grabbed, self.framebuffer = self.camera.read()
         if not grabbed:
-            print "Frame capture failed"
+            print ("Frame capture failed")
 
-        fourcc = cv2.cv.CV_FOURCC(*'XVID')
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
         video_filename = 'logs/objtracker_%s.avi' % time.strftime("%Y%m%d-%H%M%S")
         print(video_filename)
         self.video_out = cv2.VideoWriter(video_filename, fourcc, FRAME_RATE, (640, 480))
