@@ -47,17 +47,16 @@ class DriveBoard:
         self._targetSpdRight = int(clamp(1000.0 * speed_right, -SPEED_LIMIT, SPEED_LIMIT))
 
     def sendMotorCommand(self, speed_left, speed_right):
-  
-        drive_packet_format = "<i" # Signed Int16
     
         assert(-1000 < speed_left < 1000)
         assert(-1000 < speed_right < 1000)
+
+        print(len(bytes(speed_left)))
+        leftHeader = self.rovecomm_node.header(DRIVE_DATA_ID['left'], len(bytes(speed_left)))
+        rightHeader = self.rovecomm_node.header(DRIVE_DATA_ID['right'], len(bytes(speed_right)))
     
-        left_packet = struct.pack(drive_packet_format, speed_left)
-        right_packet = struct.pack(drive_packet_format, speed_right)
-    
-        self.rovecomm_node.sendTo(DRIVE_DATA_ID['left'], left_packet, DRIVE_BOARD_IP)
-        self.rovecomm_node.sendTo(DRIVE_DATA_ID['right'], right_packet, DRIVE_BOARD_IP)
+        self.rovecomm_node.sendToBytes(leftHeader + bytes(speed_left), DRIVE_BOARD_IP)
+        self.rovecomm_node.sendToBytes(rightHeader + bytes(speed_right), DRIVE_BOARD_IP)
         
     def _updateThreadFxn(self):
         while 1:

@@ -19,10 +19,10 @@ class LiDAR:
 
     # will mess with the sweeping when main part works
 
-    def __init__(self):
+    def __init__(self, rovecomm):
         self.lidar = "/dev/ttyUSB0"
         self.scan = None
-        self.drive = DriveBoard(RoveComm())
+        self.drive = DriveBoard(rovecomm)
         self.discont = False
         # self.servo = "i'll figure this out later"
 

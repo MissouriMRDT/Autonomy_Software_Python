@@ -114,14 +114,20 @@ class RoveComm(object):
         """
         
         packet_size = len(contents)
-        header = struct.pack(HEADER_FORMAT,
+        header = self.header(packet_size, seq_num, flags)
+        msgbuffer = bytes(header) + bytearray(contents, 'utf8')
+        self.sendToBytes(msgbuffer, destination_ip, port)
+
+    def header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
+        return struct.pack(HEADER_FORMAT,
                              VERSION,
                              seq_num,
                              flags,
                              data_id,
                              packet_size)
-        msgbuffer = bytes(header) + bytearray(contents, 'utf8')
-        self._socket.sendto(bytes(msgbuffer), (destination_ip, port))
+
+    def sendToBytes(self, data, destination_ip, port=PORT):
+        self._socket.sendto(data, (destination_ip, port))
 
     def _listen_thread(self):
         while True:

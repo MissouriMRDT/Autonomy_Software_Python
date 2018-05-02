@@ -38,6 +38,15 @@ def interp(x, inrange, outrange):
 class Compass:
     def __init__(self, rovecomm, calibration_file="mag_calibration.json"):
         self._coordinates = (0, 0, 0)
+
+        # Initialize filters
+        self._filter_x = AveragingLowpassFilter(FILTER_COEFFICIENT)
+        self._filter_y = AveragingLowpassFilter(FILTER_COEFFICIENT)
+        self._filter_z = AveragingLowpassFilter(FILTER_COEFFICIENT)
+        self.x_range = [0.006895000115036964, 0.006895000115036965]
+        self.y_range = [0.02649500034749508, 0.02649500034749509]
+        self.offset = 45.0
+
         self.rovecomm_node = rovecomm
         # subscribe to device
         self.rovecomm_node.subscribe(MAG_IP_ADDRESS)
@@ -45,20 +54,19 @@ class Compass:
         self.rovecomm_node.callbacks[MAG_DATA_ID] = self.process_mag_data
         self._heading = 0
 
-        # Initialize filters
-        self._filter_x = AveragingLowpassFilter(FILTER_COEFFICIENT)
-        self._filter_y = AveragingLowpassFilter(FILTER_COEFFICIENT)
-        self._filter_z = AveragingLowpassFilter(FILTER_COEFFICIENT)
-        try:
-            with open(calibration_file) as calfile:
-                self._calibration = json.load(calfile)
-                self.x_range = [self._calibration['min_x'], self._calibration['max_x']]
-                self.y_range = [self._calibration['min_y'], self._calibration['max_y']]
-                self.offset = self._calibration['due_north_offset']
-        except IOError:
-            logging.critical("No calibration data available")
-        except ValueError:
-            logging.critical("Error: Calibration data corrupted. Try recalibrating")
+        
+        
+        #try:
+         #   with open(calibration_file) as calfile:
+                #{"due_north_offset": 45.0, "min_x": 0.006895000115036964, "min_y": 0.02649500034749508, "max_x": 0.006895000115036964, "max_y": 0.02649500034749508}
+          #      self._calibration = json.load(calfile)
+           #     self.x_range = [0.006895000115036964, 0.006895000115036964]
+            #    self.y_range = [0.02649500034749508, 0.02649500034749508]
+             #   self.offset = 45.0
+        #except IOError:
+         #   logging.critical("No calibration data available")
+        #except ValueError:
+         #   logging.critical("Error: Calibration data corrupted. Try recalibrating")
 
     def process_mag_data(self, raw_data):
         x, y, z = struct.unpack("fff", raw_data)
@@ -68,7 +76,7 @@ class Compass:
         y = self._filter_y.update(y)
         z = self._filter_z.update(z)
         self._coordinates = (x, y, z)
-        cal = self._calibration
+        #cal = self._calibration
         x_adj = interp(x, self.x_range, [-1, 1])
         y_adj = interp(y, self.y_range, [-1, 1])
         heading = math.degrees(math.atan2(y_adj, x_adj))

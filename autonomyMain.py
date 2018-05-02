@@ -61,7 +61,7 @@ compass = Compass(rovecomm_node)
 drive = DriveBoard(rovecomm_node)
 
 tracker = ObjectTracker()
-lidar = LiDAR()
+lidar = LiDAR(rovecomm_node)
 gpsNavigation = GPSNavigate(gps, compass, drive, lidar)
 
 # Assign callbacks for incoming messages

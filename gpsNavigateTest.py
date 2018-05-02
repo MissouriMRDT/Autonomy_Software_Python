@@ -3,18 +3,17 @@ from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from algorithms.lidar import LiDAR
+from algorithms.gpsNavigate import GPSNavigate
+import algorithms.geomath
+
+import time, struct
 
 # Hardware Setup
 rovecomm_node = RoveComm()
-
-rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy
-rovecomm_node.callbacks[DISABLE_AUTONOMY] = disable_autonomy
-rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
-
 drive = DriveBoard(rovecomm_node)
 gps = GPS(rovecomm_node)
 mag = Compass(rovecomm_node)
-lidar = LiDAR()
+lidar = LiDAR(rovecomm_node)
 
 navigate = GPSNavigate(gps, mag, drive, lidar)
 
@@ -25,11 +24,12 @@ ADD_WAYPOINT = 2578
 CLEAR_WAYPOINTS = 2579
 WAYPOINT_REACHED = 2580
 
+autonomy_enabled = False
+
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
-    navigate.setWaypoint(GeoMath.Coordinate(latitude, longitude))
-    print("Added waypoint %s" % (waypoint,))
+    navigate.setWaypoint(algorithms.geomath.Coordinate(latitude, longitude))
 
 def enable_autonomy(packet_contents):
     global autonomy_enabled
@@ -43,6 +43,12 @@ def disable_autonomy(packet_contents):
     autonomy_enabled = False
     print("Autonomy Disabled :(")
     drive.disable()
+
+    
+
+rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy
+rovecomm_node.callbacks[DISABLE_AUTONOMY] = disable_autonomy
+rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
 
 # Set waypoint to use and use a while loop for update thread
 

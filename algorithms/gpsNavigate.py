@@ -2,9 +2,9 @@
 import json
 import time
 import logging
-import algorithms.geoMath as GeoMath
+import algorithms.geomath as GeoMath
 from collections import namedtuple
-from algorithms.headingHold import headingHold
+from algorithms.headinghold import headingHold
 
 Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
