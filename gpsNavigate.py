@@ -2,9 +2,9 @@
 import json
 import time
 import logging
-import algorithms.geomath as GeoMath
+import algorithms.geoMath as GeoMath
 from collections import namedtuple
-from algorithms.headinghold import headingHold
+from headinghold import headingHold
 
 Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
@@ -133,14 +133,14 @@ if __name__ == "__main__":
     from drivers.gps.gpsNavboard import GPS
     from drivers.rovecomm import RoveComm
     from drivers.driveBoard import DriveBoard
-    from algorithms.lidar import LiDAR
+    from drivers.lidar import LiDAR
 
     # Hardware Setup
     rovecomm_node = RoveComm()
     drive = DriveBoard(rovecomm_node)
     gps = GPS(rovecomm_node)
     mag = Compass(rovecomm_node)
-    lidar = LiDAR()
+    lidar = LiDAR(rovecomm_node)
 
     navigate = GPSNavigate(gps, mag, drive, lidar)
 

@@ -2,9 +2,9 @@ from drivers.mag.compass import Compass
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
-from algorithms.lidar import LiDAR
-from algorithms.gpsNavigate import GPSNavigate
-import algorithms.geomath
+from drivers.lidar import LiDAR
+from gpsNavigate import GPSNavigate
+from algorithms.geoMath import Coordinate
 
 import time, struct
 
@@ -29,7 +29,7 @@ autonomy_enabled = False
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
-    navigate.setWaypoint(algorithms.geomath.Coordinate(latitude, longitude))
+    navigate.setWaypoint(Coordinate(latitude, longitude))
 
 def enable_autonomy(packet_contents):
     global autonomy_enabled

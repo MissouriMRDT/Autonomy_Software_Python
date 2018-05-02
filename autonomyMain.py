@@ -10,7 +10,7 @@ from drivers.driveBoard import DriveBoard
 from drivers.lidar import LiDAR
 
 from algorithms.objectTracking import ObjectTracker
-from algorithms.gpsNavigate import GPSNavigate
+from gpsNavigate import GPSNavigate
 import algorithms.geoMath as GeoMath
 
 # ---------------------------------------------------------
