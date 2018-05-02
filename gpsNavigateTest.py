@@ -33,6 +33,7 @@ def add_waypoint_handler(packet_contents):
 
 def enable_autonomy(packet_contents):
     global autonomy_enabled
+    global drive
     autonomy_enabled = True
     print("Autonomy Enabled")
     drive.enable()
@@ -54,10 +55,12 @@ rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
 
 while True:
     while autonomy_enabled:
+        print('.', end='')
         if navigate.update_controls():
             autonomy_enabled = False
             drive.disable()
             print("Autonomy Finished! :)")
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
-        time.sleep(.1)
-    time.sleep(2)
+        time.sleep(.5)
+    print("Autonomy in holding pattern...")
+    time.sleep(5)
