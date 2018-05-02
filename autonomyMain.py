@@ -7,10 +7,10 @@ from drivers.mag.compass import Compass
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
+from drivers.lidar import LiDAR
 
 from algorithms.objectTracking import ObjectTracker
 from algorithms.gpsNavigate import GPSNavigate
-from algorithms.lidar import LiDAR
 import algorithms.geoMath as GeoMath
 
 # ---------------------------------------------------------
