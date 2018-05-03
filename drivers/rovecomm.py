@@ -18,6 +18,9 @@ UNSUBSCRIBE       = 4
 FORCE_UNSUBSCRIBE = 5
 ACK               = 6
 
+DRIVE_BOARD_IP   = "192.168.1.130"
+DRIVE_DATA_ID    = {'left':100, 'right':101}
+
 class RoveComm(object):
     """
     RoveComm message sender and receiver
@@ -114,11 +117,19 @@ class RoveComm(object):
         """
         
         packet_size = len(contents)
-        header = self.header(packet_size, seq_num, flags)
+        header = self._header(packet_size, seq_num, flags)
         msgbuffer = bytes(header) + bytearray(contents, 'utf8')
-        self.sendToBytes(msgbuffer, destination_ip, port)
+        self._sendToBytes(msgbuffer, destination_ip, port)
 
-    def header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
+    def sendDriveCommand(self, speed_left, speed_right):
+        
+        leftHeader = self._header(DRIVE_DATA_ID['left'], len(bytes(speed_left)))
+        rightHeader = self._header(DRIVE_DATA_ID['right'], len(bytes(speed_right)))
+
+        self._sendToBytes(leftHeader + bytes(speed_left), DRIVE_BOARD_IP)
+        self._sendToBytes(rightHeader + bytes(speed_right), DRIVE_BOARD_IP)
+
+    def _header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
         return struct.pack(HEADER_FORMAT,
                              VERSION,
                              seq_num,
@@ -126,7 +137,7 @@ class RoveComm(object):
                              data_id,
                              packet_size)
 
-    def sendToBytes(self, data, destination_ip, port=PORT):
+    def _sendToBytes(self, data, destination_ip, port=PORT):
         self._socket.sendto(data, (destination_ip, port))
 
     def _listen_thread(self):

@@ -2,14 +2,10 @@ import sys
 import tty
 import termios
 import struct
-import socket
 import threading
 import time
 
 from drivers.rovecomm import RoveComm
-
-DRIVE_BOARD_IP   = "192.168.1.130"
-DRIVE_DATA_ID    = {'left':100, 'right':101}
 
 SPEED_LIMIT = 300
 
@@ -46,22 +42,13 @@ class DriveBoard:
         self._targetSpdLeft  = int(clamp(1000.0 * speed_left, -SPEED_LIMIT, SPEED_LIMIT))
         self._targetSpdRight = int(clamp(1000.0 * speed_right, -SPEED_LIMIT, SPEED_LIMIT))
 
-    def sendMotorCommand(self, speed_left, speed_right):
-    
-        assert(-1000 < speed_left < 1000)
-        assert(-1000 < speed_right < 1000)
-
-        print(len(bytes(speed_left)))
-        leftHeader = self.rovecomm_node.header(DRIVE_DATA_ID['left'], len(bytes(speed_left)))
-        rightHeader = self.rovecomm_node.header(DRIVE_DATA_ID['right'], len(bytes(speed_right)))
-    
-        self.rovecomm_node.sendToBytes(leftHeader + bytes(speed_left), DRIVE_BOARD_IP)
-        self.rovecomm_node.sendToBytes(rightHeader + bytes(speed_right), DRIVE_BOARD_IP)
-        
     def _updateThreadFxn(self):
         while 1:
             if self._is_enabled:
-                self.sendMotorCommand(self._targetSpdLeft, self._targetSpdRight)
+                assert(-1000 < self._targetSpdLeft < 1000)
+                assert(-1000 < self._targetSpdRight < 1000)
+                self.rovecomm_node.sendDriveCommand(self._targetSpdLeft, self._targetSpdRight)
+
             time.sleep(0.01)
 
     def disable(self):
