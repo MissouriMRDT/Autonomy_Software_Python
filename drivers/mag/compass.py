@@ -57,6 +57,7 @@ class Compass:
 
     def process_mag_data(self, raw_data):
         x, y, z = struct.unpack("fff", raw_data)
+        #print("Exact data recieved: %f, %f, %f", x, y, z)
 
         # Apply the moving average filter to reduce noise in the data
         x = self._filter_x.update(x)
@@ -68,7 +69,7 @@ class Compass:
         y_adj = interp(y, self.y_range, [-1, 1])
         heading = math.degrees(math.atan2(y_adj, x_adj))
         heading = (heading - self.offset) % 360
-        # logging.info("Data received. Raw = %s, Heading = %f" % ([x_adj, y_adj], heading))
+        #print("Data received. Raw = %s, Heading = %f" % ([x_adj, y_adj], heading))
         self._heading = heading
 
     def heading(self):

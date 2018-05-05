@@ -1,4 +1,4 @@
-import thread
+import threading
 import numpy
 import time
 import json
@@ -12,8 +12,14 @@ mag = Compass(rovecomm_node)
 x_meas, y_meas, z_meas = [], [], []
 done_measuring = False
 
-def sample_magnetometer(x_meas, y_meas):
-    while not done_measuring:
+
+choice = input("Calibrate the magnetometer (y/n)?")
+if (choice == 'y'):
+    print("Press enter to start calibration. You have 10 seconds to face due north after turning at least 360 degrees")
+    input()
+
+    timeUp = time.time() + 10
+    while time.time() < timeUp:
         reading = mag.raw_xyz()
         print("Measured %s" % (reading,))
         x_meas.append(reading[0])
@@ -22,13 +28,9 @@ def sample_magnetometer(x_meas, y_meas):
 
         time.sleep(0.3)
 
-choice = raw_input("Calibrate the magnetometer (y/n)?")
-if (choice == 'y'):
-    print("Press enter to start calibration. Press enter again when facing due north after turning at least 360 degrees")
-    raw_input()
-    thread.start_new_thread(sample_magnetometer, (x_meas, y_meas))
-    raw_input()
-    done_measuring = True
+
+
+    # Calculate the file
 
     cal = {"min_x": min(x_meas), "max_x": max(x_meas),
            "min_y": min(y_meas), "max_y": max(y_meas)}
@@ -44,10 +46,11 @@ if (choice == 'y'):
 
     print("Calibration completed.")
     print("Press enter to display heading, ctrl-c to exit\n")
-    raw_input()
+    input()
 
 mag = Compass(rovecomm_node)
 
 while (True):
     print("Heading: %.02f " % mag.heading())
+    print("Raw: %.02f, %.02f, %.02f" % mag.raw_xyz())
     time.sleep(0.2)

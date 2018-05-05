@@ -59,6 +59,7 @@ while True:
         if navigate.update_controls():
             autonomy_enabled = False
             drive.disable()
+            print()
             print("Autonomy Finished! :)")
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
         time.sleep(.5)

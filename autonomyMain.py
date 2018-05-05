@@ -9,7 +9,7 @@ from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.lidar import LiDAR
 
-from algorithms.objectTracking import ObjectTracker
+from algorithms.objecttracking import ObjectTracker
 from gpsNavigate import GPSNavigate
 import algorithms.geoMath as GeoMath
 

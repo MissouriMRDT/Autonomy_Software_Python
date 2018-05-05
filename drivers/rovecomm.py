@@ -117,7 +117,7 @@ class RoveComm(object):
         """
         
         packet_size = len(contents)
-        header = self._header(packet_size, seq_num, flags)
+        header = self._header(data_id, packet_size, seq_num, flags)
         msgbuffer = bytes(header) + bytearray(contents, 'utf8')
         self._sendToBytes(msgbuffer, destination_ip, port)
 
