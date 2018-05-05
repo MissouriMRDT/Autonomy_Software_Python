@@ -24,6 +24,8 @@ class LiDAR:
         self.scan = None
         self.drive = DriveBoard(rovecomm)
         self.discont = False
+        self.sweep = Sweep()
+        self.sample = Sample()
         # self.servo = "i'll figure this out later"
 
     def connection(self):
