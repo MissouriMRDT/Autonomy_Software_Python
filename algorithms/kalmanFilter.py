@@ -57,7 +57,7 @@ class KalmanFilter:
         self.pitch = 0
         self.roll = 0
         self.accXnorm = 0
-        self.accYnorm = 0
+        self.accZnorm = 0
 
         self.loopStart = datetime.datetime.now()
 
@@ -217,12 +217,12 @@ class KalmanFilter:
             ####################################################################
             # Normalize accelerometer raw values.
             self.accXnorm = ACCx/math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
-            self.accYnorm = ACCy/math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
+            self.accZnorm = ACCz/math.sqrt(ACCx * ACCx + ACCy * ACCy + ACCz * ACCz)
 
             # Calculate pitch and roll
             # Use these two lines when the IMU is up the right way. Skull logo is facing down
-            self.pitch = math.asin(self.accXnorm)
-            self.roll = -math.asin(self.accYnorm/math.cos(self.pitch))
+            self.roll = math.asin(self.accXnorm)
+            self.pitch = math.asin(self.accZnorm/math.cos(self.roll))
 
             # Us these four lines when the IMU is upside down. Skull logo is facing up
             # accXnorm = -accXnorm				#flip Xnorm as the IMU is upside down
