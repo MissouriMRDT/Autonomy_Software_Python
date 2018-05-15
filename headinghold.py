@@ -1,6 +1,7 @@
 import sys
 
 from algorithms.PIDcontroller import *
+from algorithms.quaternion import Quaternion
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.navBoard import NavBoard
@@ -22,6 +23,7 @@ if __name__ == "__main__":
     driveBoard = DriveBoard(rovecomm_node)
     navBoard = NavBoard(rovecomm_node)
     time.sleep(1) # Let the magnetometer lock
+    quaternion = Quaternion(navBoard)
     
     try:
         goal = float(sys.argv[1])
@@ -35,9 +37,9 @@ if __name__ == "__main__":
     print ("Starting heading hold routine. Goal: ", goal, " degrees")
     prevheading = None
     while(True):
-        heading = mag.heading()
+        heading = quaternion.heading
         if heading != prevheading:
             headingHold(goal, heading, driveBoard, speed)
             prevheading = heading
-        print("\tGoal: %f \tHeading: %f" % (goal, mag.heading()))
+        print("\tGoal: %f \tHeading: %f" % (goal, quaternion.heading)
         time.sleep(0.1)
