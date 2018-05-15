@@ -2,8 +2,8 @@ import sys
 
 from algorithms.PIDcontroller import *
 from drivers.rovecomm import RoveComm
-from drivers.mag.compass import Compass
 from drivers.driveBoard import DriveBoard
+from drivers.navBoard import NavBoard
 import logging
 import time
 
@@ -19,9 +19,9 @@ def headingHold(goal, actual_heading, drive, speed):
     
 if __name__ == "__main__":
     rovecomm_node = RoveComm()
-    drive_ctl = DriveBoard(rovecomm_node)
-    mag = Compass(rovecomm_node)
-    time.sleep(0.5) # Let the magnetometer lock
+    driveBoard = DriveBoard(rovecomm_node)
+    navBoard = NavBoard(rovecomm_node)
+    time.sleep(1) # Let the magnetometer lock
     
     try:
         goal = float(sys.argv[1])
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     while(True):
         heading = mag.heading()
         if heading != prevheading:
-            headingHold(goal, heading, drive_ctl, speed)
+            headingHold(goal, heading, driveBoard, speed)
             prevheading = heading
         print("\tGoal: %f \tHeading: %f" % (goal, mag.heading()))
-        time.sleep(0.01)
+        time.sleep(0.1)
