@@ -34,9 +34,9 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 class GPSNavigate:
 
-    def __init__(self, gps, magnetometer, motors, lidar):
+    def __init__(self, gps, headingRef, motors, lidar):
         self.gps = gps
-        self.magnetometer = magnetometer
+        self.headingRef = headingRef
         self.motors = motors
         self.lidar = lidar
 
@@ -86,31 +86,17 @@ class GPSNavigate:
             goal_heading = GeoMath.weighted_average_angles(
                 [target_heading, xte_bearing],
                 [1 - XTE_STRENGTH, XTE_STRENGTH])
-            ## I think this code isn't needed -
-            ## Magnetometer correction should show up in the integral term
-            ## in the cross track correction PID loop
-            # (gps_heading, dist_moved) = GeoMath.haversine(self.last_location.lat, self.last_location.lon, self.location.lat, self.location.lon)
-            # # The GPS refreshes more slowly than the control loop
-            # # Speed can only be calculated when the GPS updates
-            # if(dist_moved > 0):
-            #     dt = time.time() - gps.lastFixTime
-            #     speed_m_s = 1000.0 * (dist_moved / dt)
-            #     gps_weight = clamp((speed_m_s / GPS_TRUST_SPEED), 0.0, 1.0)
-            # current_heading = gps_weight * gps_heading + (1.0 - gps_weight) * mag.heading()
 
             # Skip the filtering, trust the magnetometer
-            current_heading = self.magnetometer.heading()
+            current_heading = self.headingRef.heading
 
             self._decimation += 1
             if (self._decimation % 20) == 0:
                 print("\n\tLocation \t: %s\n"
                              "\n\tTarget Distance \t: %f\n"
                              "\tTarget Heading  \t: %d\n"
-                             "\tCrosstrack Error\t: %f\n"
-                             "\tCrosstrack Hdg  \t: %d\n"
                              "\tMeasured Heading\t: %f\n" %
-                             (self.location, target_distance, target_heading, xte_dist, 
-                              xte_bearing, current_heading))
+                             (self.location, target_distance, target_heading, current_heading))
 
             # Adjust path
             headingHold(goal_heading, current_heading, self.motors, SPEED)
@@ -126,22 +112,3 @@ class GPSNavigate:
             #             (self.location, target_distance, target_heading, xte_dist, 
             #              xte_bearing, current_heading))
             return True
-
-
-if __name__ == "__main__":
-    from drivers.mag.compass import Compass
-    from drivers.gps.gpsNavboard import GPS
-    from drivers.rovecomm import RoveComm
-    from drivers.driveBoard import DriveBoard
-    from drivers.lidar import LiDAR
-
-    # Hardware Setup
-    rovecomm_node = RoveComm()
-    drive = DriveBoard(rovecomm_node)
-    gps = GPS(rovecomm_node)
-    mag = Compass(rovecomm_node)
-    lidar = LiDAR(rovecomm_node)
-
-    navigate = GPSNavigate(gps, mag, drive, lidar)
-
-    # Set waypoint to use and use a while loop for update thread

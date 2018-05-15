@@ -1,10 +1,11 @@
-from drivers.mag.compass import Compass
+from drivers.navBoard import NavBoard
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.lidar import LiDAR
 from gpsNavigate import GPSNavigate
 from algorithms.geoMath import Coordinate
+from algorithms.quaternion import Quaternion
 
 import time, struct
 
@@ -12,10 +13,11 @@ import time, struct
 rovecomm_node = RoveComm()
 drive = DriveBoard(rovecomm_node)
 gps = GPS(rovecomm_node)
-mag = Compass(rovecomm_node)
+navBoard = NavBoard(rovecomm_node)
+quaternion = Quaternion(navBoard)
 lidar = LiDAR(rovecomm_node)
 
-navigate = GPSNavigate(gps, mag, drive, lidar)
+navigate = GPSNavigate(gps, quaternion, drive, lidar)
 
 # RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
