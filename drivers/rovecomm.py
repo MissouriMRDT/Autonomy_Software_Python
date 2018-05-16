@@ -124,7 +124,8 @@ class RoveComm(object):
     def sendDriveCommand(self, speed_left, speed_right):
         
         header = self._header(DRIVE_DATA_ID, 4)
-        self._sendToBytes(header + struct.pack(">hh", speed_left, speed_right), DRIVE_BOARD_IP)
+        data = struct.pack("<hh", speed_left, speed_right)
+        self._sendToBytes(header + data, DRIVE_BOARD_IP)
 
     def _header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
         return struct.pack(HEADER_FORMAT,

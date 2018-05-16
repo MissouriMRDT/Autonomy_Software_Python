@@ -14,6 +14,7 @@ rovecomm_node = RoveComm()
 drive = DriveBoard(rovecomm_node)
 gps = GPS(rovecomm_node)
 navBoard = NavBoard(rovecomm_node)
+time.sleep(1)
 quaternion = Quaternion(navBoard)
 lidar = "hi" #LiDAR(rovecomm_node)
 
