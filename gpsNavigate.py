@@ -11,7 +11,7 @@ Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
-SPEED = 20  # Percent
+SPEED = .1  # Percent
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
 XTE_STRENGTH = 0.25  # Crosstrack Correction strength (0.0 - 1.0)
@@ -91,7 +91,7 @@ class GPSNavigate:
             current_heading = self.headingRef.heading
 
             self._decimation += 1
-            if (self._decimation % 20) == 0:
+            if (self._decimation % 10) == 0:
                 print("\n\tLocation \t: %s\n"
                              "\n\tTarget Distance \t: %f\n"
                              "\tTarget Heading  \t: %d\n"
@@ -99,7 +99,7 @@ class GPSNavigate:
                              (self.location, target_distance, target_heading, current_heading))
 
             # Adjust path
-            headingHold(goal_heading, current_heading, self.motors, SPEED)
+            headingHold(goal_heading, self.headingRef, self.motors, SPEED)
             return False
         else:
             logging.info("WAYPOINT REACHED")

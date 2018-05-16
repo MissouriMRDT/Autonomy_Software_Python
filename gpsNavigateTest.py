@@ -15,7 +15,7 @@ drive = DriveBoard(rovecomm_node)
 gps = GPS(rovecomm_node)
 navBoard = NavBoard(rovecomm_node)
 quaternion = Quaternion(navBoard)
-lidar = LiDAR(rovecomm_node)
+lidar = "hi" #LiDAR(rovecomm_node)
 
 navigate = GPSNavigate(gps, quaternion, drive, lidar)
 

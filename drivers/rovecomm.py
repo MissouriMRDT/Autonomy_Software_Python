@@ -19,7 +19,7 @@ FORCE_UNSUBSCRIBE = 5
 ACK               = 6
 
 DRIVE_BOARD_IP   = "192.168.1.130"
-DRIVE_DATA_ID    = {'left':100, 'right':101}
+DRIVE_DATA_ID    = 528
 
 class RoveComm(object):
     """
@@ -123,11 +123,8 @@ class RoveComm(object):
 
     def sendDriveCommand(self, speed_left, speed_right):
         
-        leftHeader = self._header(DRIVE_DATA_ID['left'], len(bytes(speed_left)))
-        rightHeader = self._header(DRIVE_DATA_ID['right'], len(bytes(speed_right)))
-
-        self._sendToBytes(leftHeader + bytes(speed_left), DRIVE_BOARD_IP)
-        self._sendToBytes(rightHeader + bytes(speed_right), DRIVE_BOARD_IP)
+        header = self._header(DRIVE_DATA_ID, 4)
+        self._sendToBytes(header + struct.pack(">hh", speed_left, speed_right), DRIVE_BOARD_IP)
 
     def _header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
         return struct.pack(HEADER_FORMAT,
@@ -172,3 +169,7 @@ class RoveComm(object):
                 except KeyError:
                     pass
                     #logging.debug("No callback assigned for data id %d" % data_id)
+
+if __name__ == '__main__':
+    rovecomm_node = RoveComm()
+    rovecomm_node.sendDriveCommand(-100, 0)
