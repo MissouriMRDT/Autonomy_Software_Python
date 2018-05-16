@@ -11,7 +11,7 @@ Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
-SPEED = .1  # Percent
+SPEED = 100  # Percent
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
 XTE_STRENGTH = 0.25  # Crosstrack Correction strength (0.0 - 1.0)
