@@ -4,7 +4,7 @@ import time
 import threading
 
 GREEN_LOWER = ( 77, 92, 14 )
-GREEN_UPPER = ( 255, 254, 202 )
+GREEN_UPPER = ( 53, 249, 4 )
 MIN_RADIUS  = 20
 FRAME_RATE  = 10
 
