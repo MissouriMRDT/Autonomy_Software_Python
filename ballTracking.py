@@ -30,8 +30,8 @@ args = vars(ap.parse_args())
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
 # list of tracked points
-greenLower = np.array(cv2.cv.Scalar(29, 86, 6))
-greenUpper = np.array(cv2.cv.Scalar(64, 255, 255))
+greenLower = np.array(cv2.Scalar(29, 86, 6))
+greenUpper = np.array(cv2.Scalar(64, 255, 255))
 minRadius  = 20
 pts = deque(maxlen=args["buffer"])
 
@@ -39,15 +39,15 @@ pts = deque(maxlen=args["buffer"])
 # to the webcam
 if not args.get("video", False):
     camera = cv2.VideoCapture(0)
-    camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
-    camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     
 # otherwise, grab a reference to the video file
 else:
     camera = cv2.VideoCapture(args["video"])
 
 # grab an output video file
-fourcc = cv2.cv.CV_FOURCC(*'XVID')
+fourcc = cv2.FOURCC(*'XVID')
 out = cv2.VideoWriter('video.avi', fourcc, 20, (640, 480))
 assert(out.isOpened())
 
