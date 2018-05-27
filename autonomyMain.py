@@ -8,6 +8,7 @@ from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.lidar import LiDAR
+from drivers.notify import Notify
 
 from algorithms.objecttracking import ObjectTracker
 from gpsNavigate import GPSNavigate
@@ -59,6 +60,7 @@ rovecomm_node = RoveComm()
 gps = GPS(rovecomm_node)
 compass = Compass(rovecomm_node)
 drive = DriveBoard(rovecomm_node)
+notify = Notify(rovecomm_node)
 
 tracker = ObjectTracker()
 lidar = LiDAR(rovecomm_node)
@@ -155,6 +157,7 @@ while state != 'shutdown':
 
         elif state == 'waypoint_reached':
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
+            notify.notifyFinish()
             drive.disable()
             time.sleep(1)
             if not waypoints.empty():

@@ -3,6 +3,7 @@ from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.lidar import LiDAR
+from drivers.notify import Notify
 from gpsNavigate import GPSNavigate
 from algorithms.geoMath import Coordinate
 from algorithms.quaternion import Quaternion
@@ -17,6 +18,7 @@ navBoard = NavBoard(rovecomm_node)
 time.sleep(1)
 quaternion = Quaternion(navBoard)
 lidar = "hi" #LiDAR(rovecomm_node)
+notify = Notify(rovecomm_node)
 
 navigate = GPSNavigate(gps, quaternion, drive, lidar)
 
@@ -65,6 +67,7 @@ while True:
             print()
             print("Autonomy Finished! :)")
             rovecomm_node.send(WAYPOINT_REACHED, contents="")
+            notify.notifyFinsih()
         time.sleep(.5)
     print("Autonomy in holding pattern...")
     time.sleep(5)
