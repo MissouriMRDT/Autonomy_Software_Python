@@ -21,6 +21,7 @@ class Quaternion(object):
         self.beta = sqrt(3.0 / 4.0) * GyroMeasError  # compute beta
         self.pitch = 0
         self.heading = 0
+        self.headingOffset = 0
         self.roll = 0
         self.deltat = .005
         self.calibrate()
@@ -34,6 +35,7 @@ class Quaternion(object):
         magmax = [0.5223399996757507, 0.6645799875259399, 0.4537400007247925]
         magmin = [-0.42965999245643616, -0.2641800045967102, -0.5138000249862671]
         self.magbias = tuple(map(lambda a, b: (a +b)/2, magmin, magmax))
+        self.headingOffset = 90
 
     def calculateLoop(self):     # 3-tuples (x, y, z) for accel, gyro and mag data
         while True:
@@ -127,8 +129,11 @@ class Quaternion(object):
             q4 += qDot4 * self.deltat
             norm = 1 / sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4)    # normalise quaternion
             self.q = q1 * norm, q2 * norm, q3 * norm, q4 * norm
-            self.heading = self.declination + degrees(atan2(2.0 * (self.q[1] * self.q[2] + self.q[0] * self.q[3]),
+
+            tempHeading = self.declination + degrees(atan2(2.0 * (self.q[1] * self.q[2] + self.q[0] * self.q[3]),
                     self.q[0] * self.q[0] + self.q[1] * self.q[1] - self.q[2] * self.q[2] - self.q[3] * self.q[3]))
+            self.heading = (tempHeading + headingOffset) % 360
+
             self.roll = -degrees(-asin(2.0 * (self.q[1] * self.q[3] - self.q[0] * self.q[2])))
             self.pitch = self.pitchAdjust + degrees(atan2(2.0 * (self.q[0] * self.q[1] + self.q[2] * self.q[3]),
                     self.q[0] * self.q[0] - self.q[1] * self.q[1] - self.q[2] * self.q[2] + self.q[3] * self.q[3]))
