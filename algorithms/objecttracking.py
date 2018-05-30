@@ -7,8 +7,8 @@ import threading
 
 class ObjectTracker(object):
     def __init__(self):
-        self.GREEN_LOWER = np.array((77, 145, 14))
-        self.GREEN_UPPER = np.array((244, 253, 111))
+        self.GREEN_LOWER = np.array((77, 92, 14))
+        self.GREEN_UPPER = np.array((255, 204, 202))
         self.MIN_RADIUS = 20
         self.FRAME_RATE = 10
         self.ball_in_frame = None
@@ -44,7 +44,7 @@ class ObjectTracker(object):
 
         (grabbed, frame) = self.camera.read()
         if grabbed:
-                time.sleep(.2)
+                time.sleep(.1008)
         if not grabbed:
             print("Frame capture failed")
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
