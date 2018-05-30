@@ -44,7 +44,7 @@ class ObjectTracker(object):
 
         (grabbed, frame) = self.camera.read()
         if grabbed:
-                time.sleep(.1008)
+                cv2.waitKey()
         if not grabbed:
             print("Frame capture failed")
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
