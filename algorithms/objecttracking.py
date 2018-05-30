@@ -7,8 +7,8 @@ import threading
 
 class ObjectTracker(object):
     def __init__(self):
-        self.GREEN_LOWER = np.array((77, 92, 14))
-        self.GREEN_UPPER = np.array((255, 254, 202))
+        self.GREEN_LOWER = np.array((77, 145, 14))
+        self.GREEN_UPPER = np.array((244, 253, 111))
         self.MIN_RADIUS = 20
         self.FRAME_RATE = 10
         self.ball_in_frame = None
