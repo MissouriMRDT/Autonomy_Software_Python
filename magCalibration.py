@@ -1,6 +1,7 @@
 import sys,signal,os
 import time
 import math
+import json
 
 import datetime
 
@@ -16,6 +17,11 @@ def handle_ctrl_c(signal, frame):
     print("magXmax = ",  magXmax)
     print("magYmax = ",  magYmax)
     print("magZmax = ",  magZmax)
+    
+    calibration = {"min_x": magXmin, "max_x": magXmax, "min_y": magYmin, "max_y": magYmax, "min_z": magZmin, "max_z": magZmax}
+    with open('mag_calibration.json', 'w') as calfile:
+        json.dump(cal, calfile)
+
     sys.exit(130) # 130 is standard exit code for ctrl-c
 
 rovecomm_node = RoveComm()

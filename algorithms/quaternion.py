@@ -13,7 +13,7 @@ class Quaternion(object):
     '''
     declination = 180                         # Optional offset for true north. A +ve value adds to heading
     pitchAdjust = 90
-    def __init__(self, navBoardRef):
+    def __init__(self, navBoardRef, magCalFile="mag_calibration.json", gpsCalFile="gps_calibration.json"):
         self.navBoard = navBoardRef
         self.magbias = (0, 0, 0)            # local magnetic bias factors: set from calibration
         self.q = [1.0, 0.0, 0.0, 0.0]       # vector to hold quaternion
@@ -24,18 +24,20 @@ class Quaternion(object):
         self.headingOffset = 0
         self.roll = 0
         self.deltat = .005
-        self.calibrate()
 
+        with open(magCalFile) as calfile:
+            self._calibration = json.load(calfile)
+            magmax = [self._calibration["min_x"], self._calibration["min_y"], self._calibration["min_z"]]
+            magmin = [self._calibration["max_x"], self._calibration["max_y"], self._calibration["max_z"]]
+            self.magbias = tuple(map(lambda a, b: (a +b)/2, magmin, magmax))
+
+        with open(gpsCalFile) as calfile:
+            self.headingOffset = json.load(calfile)["gps_offset"]
+        
         # start a thread to update this in the background
         self.calcThread = threading.Thread(target=self.calculateLoop)
         self.calcThread.daemon = True
         self.calcThread.start()
-
-    def calibrate(self):
-        magmax = [0.5223399996757507, 0.6645799875259399, 0.4537400007247925]
-        magmin = [-0.42965999245643616, -0.2641800045967102, -0.5138000249862671]
-        self.magbias = tuple(map(lambda a, b: (a +b)/2, magmin, magmax))
-        self.headingOffset = 90
 
     def calculateLoop(self):     # 3-tuples (x, y, z) for accel, gyro and mag data
         while True:
