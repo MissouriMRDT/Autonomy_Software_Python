@@ -18,6 +18,9 @@ UNSUBSCRIBE       = 4
 FORCE_UNSUBSCRIBE = 5
 ACK               = 6
 
+DRIVE_BOARD_IP   = "192.168.1.130"
+DRIVE_DATA_ID    = 528
+
 class RoveComm(object):
     """
     RoveComm message sender and receiver
@@ -84,21 +87,21 @@ class RoveComm(object):
             contents       : bytes to send
         """
         for subscriber in self.subscribers:
-            self._send_to(data_id, contents, subscriber)
+            self.sendTo(data_id, contents, subscriber)
 
     def subscribe(self, destination_ip):
         """
         Ask to receive messages from another device
         """
-        self._send_to(SUBSCRIBE, "", destination_ip)
+        self.sendTo(SUBSCRIBE, "", destination_ip)
 
     def unsubscribe(self, destination_ip):
         """
         Stop receiving messages from another device
         """
-        self._send_to(UNSUBSCRIBE, "", destination_ip)
+        self.sendTo(UNSUBSCRIBE, "", destination_ip)
 
-    def _send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
+    def sendTo(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
         """
         Send a RoveComm formatted message to a specific address
         Used internally
@@ -114,14 +117,26 @@ class RoveComm(object):
         """
         
         packet_size = len(contents)
-        header = struct.pack(HEADER_FORMAT,
+        header = self._header(data_id, packet_size, seq_num, flags)
+        msgbuffer = bytes(header) + bytearray(contents, 'utf8')
+        self._sendToBytes(msgbuffer, destination_ip, port)
+
+    def sendDriveCommand(self, speed_left, speed_right):
+        
+        header = self._header(DRIVE_DATA_ID, 4)
+        data = struct.pack("<hh", speed_left, speed_right)
+        self._sendToBytes(header + data, DRIVE_BOARD_IP)
+
+    def _header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
+        return struct.pack(HEADER_FORMAT,
                              VERSION,
                              seq_num,
                              flags,
                              data_id,
                              packet_size)
-        msgbuffer = bytes(header) + bytearray(contents, 'utf8')
-        self._socket.sendto(bytes(msgbuffer), (destination_ip, port))
+
+    def _sendToBytes(self, data, destination_ip, port=PORT):
+        self._socket.sendto(data, (destination_ip, port))
 
     def _listen_thread(self):
         while True:
@@ -136,10 +151,10 @@ class RoveComm(object):
 
             # Check for special features, like pings and acknowledgements
             if flags & ACK_FLAG:
-                self._send_to(ACK, contents=data_id, destination_ip=sender)
+                self.sendTo(ACK, contents=data_id, destination_ip=sender)
 
             if data_id == PING:
-                self._send_to(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
+                self.sendTo(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
             elif data_id == SUBSCRIBE:
                 self.subscribers.append(sender[0])
             elif data_id == UNSUBSCRIBE:
@@ -155,3 +170,7 @@ class RoveComm(object):
                 except KeyError:
                     pass
                     #logging.debug("No callback assigned for data id %d" % data_id)
+
+if __name__ == '__main__':
+    rovecomm_node = RoveComm()
+    rovecomm_node.sendDriveCommand(-100, 0)
