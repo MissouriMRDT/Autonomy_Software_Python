@@ -1,9 +1,7 @@
 import numpy as np
 import cv2
-# import time
 import threading
-# import StereoVision
-
+import time
 
 class ObjectTracker(object):
     def __init__(self):
@@ -15,10 +13,9 @@ class ObjectTracker(object):
         self.center = None
         self.radius = None
 
+        # connects cameras, creates file
         try:
-            self.left = 0
-            self.right = 1
-            self.camera = cv2.VideoCapture(self.left)
+            self.camera = cv2.VideoCapture(0)
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         except:
@@ -29,7 +26,8 @@ class ObjectTracker(object):
             print("Frame capture failed")
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video_filename = "whatever.avi"  # "'logs/objtracker_%s.avi'" % time.strftime("%Y%m%d-%H%M%S")
+        video_filename = "objtracker.avi"
+        # "'logs/objtracker_%s.avi'" % time.strftime("%Y%m%d-%H%M%S") -- logs name, logs created in main
         print(video_filename)
         self.video_out = cv2.VideoWriter(video_filename, fourcc, self.FRAME_RATE, (640, 480))
         assert(self.video_out.isOpened())
@@ -44,7 +42,6 @@ class ObjectTracker(object):
 
         (grabbed, frame) = self.camera.read()
         if grabbed:
-            # cv2.imshow("ball tracking camera", frame)
             cv2.waitKey()
 
         if not grabbed:
