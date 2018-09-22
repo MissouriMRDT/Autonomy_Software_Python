@@ -103,7 +103,7 @@ while not exit_flag:
             cv2.circle(frame, (int(x), int(y)), int(radius),
                 (0, 255, 255), 2)
             cv2.circle(frame, center, 5, (0, 0, 255), -1)
-            print("Ball Detected at (%d,%d), radius %d" % (x,y,radius))
+            print("Ball Detected at (%d,%d), radius %d" % (x, y, radius))
             
     # update the points queue
     pts.appendleft(center)
