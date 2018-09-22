@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import time
+# import time
 import threading
 # import StereoVision
 
@@ -44,8 +44,9 @@ class ObjectTracker(object):
 
         (grabbed, frame) = self.camera.read()
         if grabbed:
-                cv2.waitKey()
-                # cv2.imshow("ball tracking camera", frame)
+            # cv2.imshow("ball tracking camera", frame)
+            cv2.waitKey()
+
         if not grabbed:
             print("Frame capture failed")
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
