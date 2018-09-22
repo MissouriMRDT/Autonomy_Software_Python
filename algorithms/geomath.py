@@ -105,7 +105,7 @@ def weighted_average_angles(angles, weights):
     vectors = [vec * weights[i] for i, vec in enumerate(vectors)]
     x = sum([vec[0] for vec in vectors])
     y = sum([vec[1] for vec in vectors])
-    result = degrees(atan2(y,x))
+    result = degrees(atan2(y, x))
     result = (result + 360) % 360
     return result
 
