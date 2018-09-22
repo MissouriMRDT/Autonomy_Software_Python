@@ -2,13 +2,14 @@ from drivers.navBoard import NavBoard
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
-from drivers.lidar import LiDAR
+# from drivers.lidar import LiDAR
 from drivers.notify import Notify
 from gpsNavigate import GPSNavigate
 from algorithms.geoMath import Coordinate
 from algorithms.quaternion import Quaternion
 
-import time, struct
+import time
+import struct
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -17,10 +18,10 @@ gps = GPS(rovecomm_node)
 navBoard = NavBoard(rovecomm_node)
 time.sleep(1)
 quaternion = Quaternion(navBoard)
-lidar = "hi" #LiDAR(rovecomm_node)
+# lidar = LiDAR(rovecomm_node)
 notify = Notify(rovecomm_node)
 
-navigate = GPSNavigate(gps, quaternion, drive, lidar)
+navigate = GPSNavigate(gps, quaternion, drive, """lidar""")
 
 # RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
@@ -31,10 +32,12 @@ WAYPOINT_REACHED = 2580
 
 autonomy_enabled = False
 
+
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
     navigate.setWaypoint(Coordinate(latitude, longitude))
+
 
 def enable_autonomy(packet_contents):
     global autonomy_enabled
@@ -43,13 +46,13 @@ def enable_autonomy(packet_contents):
     print("Autonomy Enabled")
     drive.enable()
 
+
 def disable_autonomy(packet_contents):
     global autonomy_enabled
     global drive
     autonomy_enabled = False
     print("Autonomy Disabled :(")
     drive.disable()
-
     
 
 rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy

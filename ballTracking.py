@@ -9,7 +9,7 @@ import argparse
 import cv2
 
 import signal
-import sys
+# import sys
 
 # Allow safe exit on ctrl-c
 exit_flag = False
@@ -30,8 +30,8 @@ args = vars(ap.parse_args())
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
 # list of tracked points
-greenLower = np.array(cv2.Scalar(29, 86, 6))
-greenUpper = np.array(cv2.Scalar(64, 255, 255))
+greenLower = np.array((77, 92, 14))
+greenUpper = np.array((255, 204, 202))
 minRadius  = 20
 pts = deque(maxlen=args["buffer"])
 
@@ -56,7 +56,7 @@ while not exit_flag:
     # grab the current frame
     (grabbed, frame) = camera.read()
     if not grabbed:
-        print "Frame capture failed"
+        print("Frame capture failed")
     frame = cv2.flip(frame, 1)
     #cv2.imshow("Frame", frame) 
 
@@ -103,7 +103,7 @@ while not exit_flag:
             cv2.circle(frame, (int(x), int(y)), int(radius),
                 (0, 255, 255), 2)
             cv2.circle(frame, center, 5, (0, 0, 255), -1)
-            print "Ball Detected at (%d,%d), radius %d" % (x,y,radius) 
+            print("Ball Detected at (%d,%d), radius %d" % (x,y,radius))
             
     # update the points queue
     pts.appendleft(center)

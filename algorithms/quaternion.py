@@ -1,4 +1,3 @@
-
 # https://github.com/micropython-IMU/micropython-fusion/blob/master/fusion.py
 
 import time
@@ -7,13 +6,15 @@ import threading
 
 from math import sqrt, atan2, asin, degrees, radians
 
+
 class Quaternion(object):
-    '''
-    Class provides sensor fusion allowing heading, pitch and roll to be extracted. This uses the Madgwick algorithm.
-    The update method must be called peiodically. The calculations take 1.6mS on the Pyboard.
-    '''
+
+    # Class provides sensor fusion allowing heading, pitch and roll to be extracted. This uses the Madgwick algorithm.
+    # The update method must be called peiodically. The calculations take 1.6mS on the Pyboard.
+
     declination = 180                         # Optional offset for true north. A +ve value adds to heading
     pitchAdjust = 90
+
     def __init__(self, navBoardRef, magCalFile="mag_calibration.json", gpsCalFile="gps_calibration.json"):
         self.navBoard = navBoardRef
         self.magbias = (0, 0, 0)            # local magnetic bias factors: set from calibration
@@ -31,7 +32,7 @@ class Quaternion(object):
             self._calibration = json.load(calfile)
             magmax = [self._calibration["min_x"], self._calibration["min_y"], self._calibration["min_z"]]
             magmin = [self._calibration["max_x"], self._calibration["max_y"], self._calibration["max_z"]]
-            self.magbias = tuple(map(lambda a, b: (a +b)/2, magmin, magmax))
+            self.magbias = tuple(map(lambda a, b: (a + b)/2, magmin, magmax))
 
         with open(gpsCalFile) as calfile:
             print("Setting offset!")
@@ -46,7 +47,7 @@ class Quaternion(object):
     def calculateLoop(self):     # 3-tuples (x, y, z) for accel, gyro and mag data
         while True:
             mag = self.navBoard.magnetometerXYZ()
-            mx, my, mz = (mag[x] - self.magbias[x] for x in range(3)) # Units irrelevant (normalised)
+            mx, my, mz = (mag[x] - self.magbias[x] for x in range(3))  # Units irrelevant (normalised)
             ax, ay, az = self.navBoard.accelerometerXYZ()             # Units irrelevant (normalised)
             gx, gy, gz = (radians(x) for x in self.navBoard.gyroscopeXYZ())     # Units deg/s
             q1, q2, q3, q4 = (self.q[x] for x in range(4))   # short name local variable for readability
@@ -70,8 +71,8 @@ class Quaternion(object):
 
             # Normalise accelerometer measurement
             norm = sqrt(ax * ax + ay * ay + az * az)
-            if (norm == 0):
-                return # handle NaN
+            if norm == 0:
+                return  # handle NaN
             norm = 1 / norm                     # use reciprocal for division
             ax *= norm
             ay *= norm
@@ -79,7 +80,7 @@ class Quaternion(object):
 
             # Normalise magnetometer measurement
             norm = sqrt(mx * mx + my * my + mz * mz)
-            if (norm == 0):
+            if norm == 0:
                 return                          # handle NaN
             norm = 1 / norm                     # use reciprocal for division
             mx *= norm
@@ -99,22 +100,27 @@ class Quaternion(object):
             _4bz = 2 * _2bz
 
             # Gradient descent algorithm corrective step
-            s1 = (-_2q3 * (2 * q2q4 - _2q1q3 - ax) + _2q2 * (2 * q1q2 + _2q3q4 - ay) - _2bz * q3 * (_2bx * (0.5 - q3q3 - q4q4)
-                    + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
-                    + _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
+            s1 = (-_2q3 * (2 * q2q4 - _2q1q3 - ax) + _2q2 * (2 * q1q2 + _2q3q4 - ay) - _2bz * q3
+                  * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
+                  + (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+                  + _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
 
-            s2 = (_2q4 * (2 * q2q4 - _2q1q3 - ax) + _2q1 * (2 * q1q2 + _2q3q4 - ay) - 4 * q2 * (1 - 2 * q2q2 - 2 * q3q3 - az)
-                    + _2bz * q4 * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4)
-                    + _2bz * (q1q2 + q3q4) - my) + (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
+            s2 = (_2q4 * (2 * q2q4 - _2q1q3 - ax) + _2q1 * (2 * q1q2 + _2q3q4 - ay) - 4 * q2
+                  * (1 - 2 * q2q2 - 2 * q3q3 - az) + _2bz * q4 * (_2bx * (0.5 - q3q3 - q4q4) + _2bz
+                  * (q2q4 - q1q3) - mx) + (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4) + _2bz
+                  * (q1q2 + q3q4) - my) + (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4)
+                                                                     + _2bz * (0.5 - q2q2 - q3q3) - mz))
 
-            s3 = (-_2q1 * (2 * q2q4 - _2q1q3 - ax) + _2q4 * (2 * q1q2 + _2q3q4 - ay) - 4 * q3 * (1 - 2 * q2q2 - 2 * q3q3 - az)
-                    + (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
-                    + (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
-                    + (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
+            s3 = (-_2q1 * (2 * q2q4 - _2q1q3 - ax) + _2q4 * (2 * q1q2 + _2q3q4 - ay) - 4 * q3
+                  * (1 - 2 * q2q2 - 2 * q3q3 - az) + (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5 - q3q3 - q4q4) + _2bz
+                                                                                 * (q2q4 - q1q3) - mx)
+                  + (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+                  + (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
 
-            s4 = (_2q2 * (2 * q2q4 - _2q1q3 - ax) + _2q3 * (2 * q1q2 + _2q3q4 - ay) + (-_4bx * q4 + _2bz * q2) * (_2bx * (0.5 - q3q3 - q4q4)
-                    + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q1 + _2bz * q3) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
-                    + _2bx * q2 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
+            s4 = (_2q2 * (2 * q2q4 - _2q1q3 - ax) + _2q3 * (2 * q1q2 + _2q3q4 - ay) + (-_4bx * q4 + _2bz * q2)
+                  * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q1 + _2bz * q3)
+                  * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q2
+                  * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz))
 
             norm = 1 / sqrt(s1 * s1 + s2 * s2 + s3 * s3 + s4 * s4)    # normalise step magnitude
             s1 *= norm
@@ -137,11 +143,13 @@ class Quaternion(object):
             self.q = q1 * norm, q2 * norm, q3 * norm, q4 * norm
 
             self.heading = self.declination + degrees(atan2(2.0 * (self.q[1] * self.q[2] + self.q[0] * self.q[3]),
-                    self.q[0] * self.q[0] + self.q[1] * self.q[1] - self.q[2] * self.q[2] - self.q[3] * self.q[3]))
+                                                            self.q[0] * self.q[0] + self.q[1] * self.q[1] - self.q[2]
+                                                            * self.q[2] - self.q[3] * self.q[3]))
             self.trueHeading = (((self.heading - 360) * -1) - self.headingOffset) % 360
 
             self.roll = -degrees(-asin(2.0 * (self.q[1] * self.q[3] - self.q[0] * self.q[2])))
             self.pitch = self.pitchAdjust + degrees(atan2(2.0 * (self.q[0] * self.q[1] + self.q[2] * self.q[3]),
-                    self.q[0] * self.q[0] - self.q[1] * self.q[1] - self.q[2] * self.q[2] + self.q[3] * self.q[3]))
+                                                          self.q[0] * self.q[0] - self.q[1] * self.q[1] - self.q[2]
+                                                          * self.q[2] + self.q[3] * self.q[3]))
             
             time.sleep(self.deltat)

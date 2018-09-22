@@ -1,6 +1,8 @@
-import sys,signal,os
+import sys
+import signal
+# import os
 import time
-import math
+# import math
 import json
 
 import datetime
@@ -18,7 +20,8 @@ def handle_ctrl_c(signal, frame):
     print("magYmax = ",  magYmax)
     print("magZmax = ",  magZmax)
     
-    calibration = {"min_x": magXmin, "max_x": magXmax, "min_y": magYmin, "max_y": magYmax, "min_z": magZmin, "max_z": magZmax}
+    calibration = {"min_x": magXmin, "max_x": magXmax, "min_y": magYmin, "max_y": magYmax,
+                   "min_z": magZmin, "max_z": magZmax}
     with open('mag_calibration.json', 'w') as calfile:
         json.dump(calibration, calfile)
 
@@ -29,14 +32,14 @@ navBoard = NavBoard(rovecomm_node)
 
 time.sleep(1)
 
-#This will capture exit when using Ctrl-C
+# This will capture exit when using Ctrl-C
 signal.signal(signal.SIGINT, handle_ctrl_c)
 
 
 a = datetime.datetime.now()
 
 
-#Preload the variables used to keep track of the minimum and maximum values
+# Preload the variables used to keep track of the minimum and maximum values
 magXmin = 32767
 magYmin = 32767
 magZmin = 32767
@@ -44,14 +47,12 @@ magXmax = -32767
 magYmax = -32767
 magZmax = -32767
 
-
     
 while True:
 
-    #Read magnetometer values
+    # Read magnetometer values
     MAGx, MAGy, MAGz = navBoard.magnetometerXYZ()
-    
-    
+
     if MAGx > magXmax:
         magXmax = MAGx
     if MAGy > magYmax:
@@ -66,7 +67,8 @@ while True:
     if MAGz < magZmin:
         magZmin = MAGz
 
-    print(" magXmin  %i  magYmin  %i  magZmin  %i  magXmax  %i  magYmax  %i  magZmax %i  ", magXmin, magYmin, magZmin, magXmax, magYmax, magZmax)
+    print(" magXmin  %i  magYmin  %i  magZmin  %i  magXmax  %i  magYmax  %i  magZmax %i  ",
+          magXmin, magYmin, magZmin, magXmax, magYmax, magZmax)
 
-    #slow program down a bit, makes the output more readable
+    # slow program down a bit, makes the output more readable
     time.sleep(0.03)

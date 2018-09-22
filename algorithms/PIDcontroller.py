@@ -34,21 +34,18 @@ class PIDcontroller:
         self.prevTime = time.time()
         
     def update(self, setpoint, real_position):
-        Ts                     = time.time() - self.prevTime
-        error                  = setpoint - real_position      
+        Ts = time.time() - self.prevTime
+        error = setpoint - real_position
         
         if self.wraparound:
-            if(error > (self.wraparound / 2.0)):
+            if error > (self.wraparound / 2.0):
                 error = error - self.wraparound
-            elif(error < -(self.wraparound / 2.0)):
+            elif error < -(self.wraparound / 2.0):
                 error = error + self.wraparound
-        #print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
+        # print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
         self.accumulatedError += error * Ts
         self.accumulatedError = clamp(self.accumulatedError, -self.err_clamp, +self.err_clamp)
-        output = self.Kp * error                        + \
-                 self.Ki * self.accumulatedError        + \
-                 self.Kd * ((error - self.prevError) / Ts)
-        self.prevError  = error
-        self.prevTime   = time.time()
+        output = self.Kp * error + self.Ki * self.accumulatedError + self.Kd * ((error - self.prevError) / Ts)
+        self.prevError = error
+        self.prevTime = time.time()
         return output
-        

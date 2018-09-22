@@ -13,7 +13,8 @@ Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
 
 
 # Haversine Function for calculating bearing and distance
-# Source: http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+# Source:
+# http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the bearing and great circle distance between two points 
@@ -36,14 +37,14 @@ def haversine(lat1, lon1, lat2, lon2):
     dlat = lat2 - lat1 
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a)) 
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    r = 6371  # Radius of earth in kilometers. Use 3956 for miles
     distance = c * r
     
     bearing = atan2(sin(lon2-lon1)*cos(lat2), cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lon2-lon1))
     bearing = degrees(bearing)
     bearing = (bearing + 360) % 360
     
-    return (bearing, distance)
+    return bearing, distance
 
 
 def crosstrack_error_vector(source, destination, location):
@@ -75,7 +76,7 @@ def crosstrack_error_vector(source, destination, location):
     # Represent the destination and location as 
     # vectors relative to the source
     dest_vector = (destination.lat - source.lat, destination.lon - source.lon)
-    loc_vector  = (location.lat    - source.lat, location.lon    - source.lon)
+    loc_vector = (location.lat - source.lat, location.lon - source.lon)
 
     # Project the location vector onto the destination vector
     # to find the closest point as a vector relative to the source
@@ -101,7 +102,7 @@ def weighted_average_angles(angles, weights):
     assert(len(angles) == len(weights))
 
     vectors = [Vector((cos(radians(a)), sin(radians(a)))) for a in angles]
-    vectors = [vec * weights[i] for i,vec in enumerate(vectors)]
+    vectors = [vec * weights[i] for i, vec in enumerate(vectors)]
     x = sum([vec[0] for vec in vectors])
     y = sum([vec[1] for vec in vectors])
     result = degrees(atan2(y,x))
@@ -113,7 +114,7 @@ def weighted_average_angles(angles, weights):
 # Linear Algebra helpers
 #####################################
 
-class Vector():
+class Vector:
     def __init__(self, values):
         self.values = tuple(values)
 
@@ -135,7 +136,7 @@ class Vector():
 
 def dot(vector1, vector2):
     """ Works on any iterable (tuples, lists, vectors, etc) """
-    return sum( vector1[i] * vector2[i] for i in range(len(vector1)))
+    return sum(vector1[i] * vector2[i] for i in range(len(vector1)))
 
 
 def vector_project(vector1, vector2):
@@ -145,9 +146,9 @@ def vector_project(vector1, vector2):
     If projection would be outside of this line, it goes to the closest endpoint
     """
     scale_factor = dot(vector2, vector1) / dot(vector2, vector2)
-    if (scale_factor < 0):
-        return (0,0)
-    if(scale_factor > 1):
+    if scale_factor < 0:
+        return 0, 0
+    if scale_factor > 1:
         return vector2
     else:
         return tuple([scale_factor * v2_i for v2_i in vector2])
@@ -162,12 +163,12 @@ if __name__ == "__main__":
     print("Starting self test")
 
     def almost_equal(x, y, tolerance=0.0001):
-        return (abs(x-y) < tolerance)
+        return abs(x-y) < tolerance
 
-    a = Coordinate(52.10000, 5.50000) # Source
-    b = Coordinate(52.26000, 5.45000) # Destination
-    c = Coordinate(52.19119, 5.52544) # Location
-    d = Coordinate(52.18507, 5.47346) # Precalculated closest point to c on a->b
+    a = Coordinate(52.10000, 5.50000)  # Source
+    b = Coordinate(52.26000, 5.45000)  # Destination
+    c = Coordinate(52.19119, 5.52544)  # Location
+    d = Coordinate(52.18507, 5.47346)  # Precalculated closest point to c on a->b
     # These coordinates come from example 2 at
     # http://geo.javawa.nl/coordcalc/index_en.html
     
@@ -176,7 +177,7 @@ if __name__ == "__main__":
     print("Expected Distance  : ", precalculated_crosstrack_error)
 
     (cd_bearing, cd_distance) = haversine(c.lat, c.lon, d.lat, d.lon)
-    (xte_bearing, xte_dist) = crosstrack_error_vector(a,b,c)
+    (xte_bearing, xte_dist) = crosstrack_error_vector(a, b, c)
 
     print("Haversine Distance : ", cd_distance)
     print("Haversine bearing  : ", cd_bearing)
@@ -184,14 +185,14 @@ if __name__ == "__main__":
     print("xte_bearing        : ", xte_bearing)
 
     assert (almost_equal(cd_distance, precalculated_crosstrack_error, tolerance=0.2))
-    assert (almost_equal(xte_dist   , precalculated_crosstrack_error, tolerance=0.2))
-    assert (almost_equal(xte_bearing, cd_bearing                    , tolerance=20 ))
+    assert (almost_equal(xte_dist, precalculated_crosstrack_error, tolerance=0.2))
+    assert (almost_equal(xte_bearing, cd_bearing, tolerance=20))
 
     e = 350
     f = 10
     g = 180
 
-    h = weighted_average_angles([e, f], [0.5,   0.5  ])
+    h = weighted_average_angles([e, f], [0.5,   0.5])
     i = weighted_average_angles([f, g], [0.999, 0.001])
     assert(h == 0)
     assert(almost_equal(i, 10, tolerance=0.01))

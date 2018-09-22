@@ -2,7 +2,7 @@ import time
 
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
-from algorithms.geoMath import Coordinate
+# from algorithms.geoMath import Coordinate
 
 rovecomm_node = RoveComm()
 gps = GPS(rovecomm_node)

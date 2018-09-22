@@ -1,9 +1,10 @@
 import time
 
-from drivers.rovecomm import RoveComm
+# from drivers.rovecomm import RoveComm
 
 DRIVE_BOARD_IP = "192.168.1.130"
 NOTIFY_ID = -1
+
 
 class Notify:
 

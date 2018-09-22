@@ -32,13 +32,14 @@ def reached_goal(goal, location, start):
 
 clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
+
 class GPSNavigate:
 
-    def __init__(self, gps, headingRef, motors, lidar, gpsCalFile="gps_calibration.json"):
+    def __init__(self, gps, headingRef, motors, gpsCalFile="gps_calibration.json"):
         self.gps = gps
         self.headingRef = headingRef
         self.motors = motors
-        self.lidar = lidar
+        # self.lidar = lidar
 
         self.goal = gps.location()
         self.location = gps.location()
@@ -96,17 +97,17 @@ class GPSNavigate:
             self._decimation += 1
             if (self._decimation % 5) == 0:
                 print("\n\tLocation \t: %s\n"
-                             "\n\tTarget Distance \t: %f\n"
-                             "\tTarget Heading  \t: %d\n"
-                             "\tMeasured Heading\t: %f\n" %
-                             (self.location, target_distance, target_heading, current_heading))
+                      "\n\tTarget Distance \t: %f\n"
+                      "\tTarget Heading  \t: %d\n"
+                      "\tMeasured Heading\t: %f\n" %
+                      (self.location, target_distance, target_heading, current_heading))
 
             # Adjust path
             headingHold(goal_heading, self.headingRef, self.motors, SPEED)
             return False
         else:
             logging.info("WAYPOINT REACHED")
-            #logging.info("\n\tLocation \t: %s\n"
+            # logging.info("\n\tLocation \t: %s\n"
             #             "\n\tTarget Distance \t: %f\n"
             #             "\tTarget Heading  \t: %d\n"
             #             "\tCrosstrack Error\t: %f\n"

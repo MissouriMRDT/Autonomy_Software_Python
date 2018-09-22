@@ -3,23 +3,24 @@ import struct
 import threading
 import logging
 
-PORT          = 11000
-VERSION       = 1
+PORT = 11000
+VERSION = 1
 HEADER_FORMAT = ">BHBHH"
 
 # Flag bit fields
-ACK_FLAG      = 0x01
+ACK_FLAG = 0x01
 
 # Special Data IDs
-PING              = 1
-PING_REPLY        = 2
-SUBSCRIBE         = 3
-UNSUBSCRIBE       = 4
+PING = 1
+PING_REPLY = 2
+SUBSCRIBE = 3
+UNSUBSCRIBE = 4
 FORCE_UNSUBSCRIBE = 5
-ACK               = 6
+ACK = 6
 
-DRIVE_BOARD_IP   = "192.168.1.130"
-DRIVE_DATA_ID    = 528
+DRIVE_BOARD_IP = "192.168.1.130"
+DRIVE_DATA_ID = 528
+
 
 class RoveComm(object):
     """
@@ -134,11 +135,11 @@ class RoveComm(object):
 
     def _header(self, data_id, packet_size, seq_num=0x0F49, flags=0x00):
         return struct.pack(HEADER_FORMAT,
-                             VERSION,
-                             seq_num,
-                             flags,
-                             data_id,
-                             packet_size)
+                           VERSION,
+                           seq_num,
+                           flags,
+                           data_id,
+                           packet_size)
 
     def _sendToBytes(self, data, destination_ip, port=PORT):
         self._socket.sendto(data, (destination_ip, port))
@@ -146,7 +147,7 @@ class RoveComm(object):
     def _listen_thread(self):
         while True:
             packet, sender = self._socket.recvfrom(1024)
-            #logging.debug("Packet received: %s" % packet)
+            # logging.debug("Packet received: %s" % packet)
 
             # Parse the message header
             header_length = struct.calcsize(HEADER_FORMAT)
@@ -174,7 +175,8 @@ class RoveComm(object):
                     self.callbacks[data_id](content_bytes)
                 except KeyError:
                     pass
-                    #logging.debug("No callback assigned for data id %d" % data_id)
+                    # logging.debug("No callback assigned for data id %d" % data_id)
+
 
 if __name__ == '__main__':
     rovecomm_node = RoveComm()

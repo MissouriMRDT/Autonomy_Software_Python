@@ -1,10 +1,11 @@
 import serial
 import pynmea2
 import threading
-import time
+# import time
 from collections import namedtuple
 
 Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
+
 
 class GPS:
     def __init__(self, serial_port="/dev/ttyS0"):
@@ -15,7 +16,7 @@ class GPS:
         self._location = self._getReading()
         
         self.updateThread = threading.Thread(target=self._updateThreadFxn) 
-        self.updateThread.setDaemon(True) # Automatically kill the thread when the program finishes
+        self.updateThread.setDaemon(True)  # Automatically kill the thread when the program finishes
         self.updateThread.start()
         
     def location(self):
@@ -45,6 +46,7 @@ class GPS:
         while True:
             self._location = self._getReading()
         
+
 if __name__ == "__main__":
     import time
     gps = GPS()

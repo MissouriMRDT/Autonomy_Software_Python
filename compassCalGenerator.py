@@ -1,4 +1,4 @@
-import threading
+# import threading
 import numpy
 import time
 import json
@@ -14,7 +14,7 @@ done_measuring = False
 
 
 choice = input("Calibrate the magnetometer (y/n)?")
-if (choice == 'y'):
+if choice == 'y':
     print("Press enter to start calibration. You have 10 seconds to face due north after turning at least 360 degrees")
     input()
 
@@ -28,10 +28,7 @@ if (choice == 'y'):
 
         time.sleep(0.3)
 
-
-
     # Calculate the file
-
     cal = {"min_x": min(x_meas), "max_x": max(x_meas),
            "min_y": min(y_meas), "max_y": max(y_meas)}
     (x, y, z) = mag.raw_xyz()
@@ -50,7 +47,7 @@ if (choice == 'y'):
 
 mag = Compass(rovecomm_node)
 
-while (True):
+while True:
     print("Heading: %.02f " % mag.heading())
     print("Raw: %.02f, %.02f, %.02f" % mag.raw_xyz())
     time.sleep(0.2)

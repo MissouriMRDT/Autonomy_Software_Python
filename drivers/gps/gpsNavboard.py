@@ -31,15 +31,16 @@ class GPS:
         lon, lat = struct.unpack("<ll", raw_data)
         lat = lat * 1e-7
         lon = -lon * 1e-7
-        self._location=(lat, lon)
+        self._location = (lat, lon)
 
     def location(self):
         # returns most recent reported location
         return Coordinate(*self._location)
 
+
 if __name__ == '__main__':
     rovecomm_node = RoveComm()
     gps = GPS(rovecomm_node)
-    while(True):
+    while True:
         print(gps.location())
         time.sleep(1)

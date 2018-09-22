@@ -7,14 +7,16 @@ import Adafruit_PCA9685
 
 NUM_CHANNELS = 16
 
+
 class ServoDriver:
     servo_min = 245.  # Min pulse length out of 4096. Corresponds to 1.00 ms
     servo_max = 492.  # Max pulse length out of 4096. Corresponds to 2.00 ms
 
     def __init__(self):
         self.controller = Adafruit_PCA9685.PCA9685()
-        self.controller.set_pwm_freq(57) # Comes out to 60 hz when accounting for my unit's clock skew
-                     # Probably hacky. Should look into how to make this more accurate.
+        self.controller.set_pwm_freq(57)  # Comes out to 60 hz when accounting for my unit's clock skew
+        # Probably hacky. Should look into how to make this more accurate.
+
     def movejoint(self, joint, angle):
         """ angle should be between 0 and 180, inclusive
             Joint should be between 0 and 5, inclusive"""

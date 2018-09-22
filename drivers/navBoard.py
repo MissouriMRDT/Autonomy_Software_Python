@@ -1,10 +1,11 @@
-from drivers.rovecomm import RoveComm
+# from drivers.rovecomm import RoveComm
 import struct
 
 NAV_IP_ADDRESS = '192.168.1.133'
 ACC_DATA_ID = 1314
 GYR_DATA_ID = 1315
 MAG_DATA_ID = 1316
+
 
 class NavBoard:
     def __init__(self, rovecomm):

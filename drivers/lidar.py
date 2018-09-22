@@ -24,7 +24,7 @@ class LiDAR:
         self.scan = None
         self.drive = DriveBoard(rovecomm)
         self.discont = False
-        self.sweep = Sweep()
+        self.sweep = sweep()
         self.sample = Sample()
         # self.servo = "i'll figure this out later"
 
@@ -33,7 +33,6 @@ class LiDAR:
         self.sweep.set_motor_speed(10)
         self.sweep.set_sample_rate(1000)
         self.sweep.start_scanning()
-
 
         # sets servo to new direction if angle of point from LiDAR is 0 degrees
        # def servo_pos(self):
@@ -58,7 +57,6 @@ class LiDAR:
                         self.drive.move(15, -15)
                         self.discont = True
         return self.discont
-
 
     # essentially determines what data goes into the array to compare slopes
     # data that gets too close does not make it

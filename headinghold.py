@@ -9,9 +9,10 @@ import logging
 import time
 
 logger = logging.getLogger(__name__)
-#kp=5, ki=.2 kd=0
+# kp=5, ki=.2 kd=0
 pid = PIDcontroller(Kp=15, Ki=0.15, Kd=0, wraparound=360)
-        
+
+
 def headingHold(goal, quaternion_ref, drive, speed):
 
     # If close enough to goal, just go straight
@@ -25,11 +26,12 @@ def headingHold(goal, quaternion_ref, drive, speed):
 #        clamp(correction, -180, 180)
         drive.move(speed,  correction)
     
+
 if __name__ == "__main__":
     rovecomm_node = RoveComm()
     driveBoard = DriveBoard(rovecomm_node)
     navBoard = NavBoard(rovecomm_node)
-    time.sleep(1) # Let the magnetometer lock
+    time.sleep(1)  # Let the magnetometer lock
     quaternion = Quaternion(navBoard)
     
     try:
@@ -41,10 +43,10 @@ if __name__ == "__main__":
               \n<speed>: Percentage of full speed to go")
         quit()
     
-    print ("Starting heading hold routine. Goal: ", goal, " degrees")
+    print("Starting heading hold routine. Goal: ", goal, " degrees")
     driveBoard.enable()
     prevheading = None
-    while(True):
+    while True:
         heading = quaternion.trueHeading
         if heading != prevheading:
             headingHold(goal, quaternion, driveBoard, speed)

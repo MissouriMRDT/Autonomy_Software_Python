@@ -12,7 +12,7 @@ from drivers.notify import Notify
 
 from algorithms.objecttracking import ObjectTracker
 from gpsNavigate import GPSNavigate
-import algorithms.geoMath as GeoMath
+import algorithms.geomath as GeoMath
 
 # ---------------------------------------------------------
 # Configuration
@@ -22,13 +22,13 @@ VISION_ENABLED = False
 VISION_RANGE = 0.007  # Kilometers
 
 # Local gpsN
-#avigation parameters
-WIDTH           = 640.0  # pixels
-FIELD_OF_VIEW   = 40.0   # degrees
+# navigation parameters
+WIDTH = 640.0  # pixels
+FIELD_OF_VIEW = 40.0   # degrees
 TARGET_DISTANCE = 0.4    # meters
-RADIUS          = .063   # meters
-SCALING_FACTOR  = 10.0   # pixel-meters
-POWER           = 35     # Percent
+RADIUS = .063   # meters
+SCALING_FACTOR = 10.0   # pixel-meters
+POWER = 35     # Percent
 
 # RoveComm autonomy control DataIDs
 ENABLE_AUTONOMY = 2576
@@ -63,8 +63,9 @@ drive = DriveBoard(rovecomm_node)
 notify = Notify(rovecomm_node)
 
 tracker = ObjectTracker()
-lidar = LiDAR(rovecomm_node)
-gpsNavigation = GPSNavigate(gps, compass, drive, lidar)
+# lidar = LiDAR(rovecomm_node)
+gpsNavigation = GPSNavigate(gps, compass, drive, """lidar""")
+
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
@@ -79,6 +80,7 @@ def enable_autonomy(packet_contents):
     autonomy_enabled = True
     logging.info("Autonomy Enabled")
     drive.enable()
+
 
 def disable_autonomy(packet_contents):
     global autonomy_enabled
@@ -96,14 +98,16 @@ def clear_waypoint_handler(packet_contents):
     drive.disable()
     state = "idle"
 
+
 def do_nothing(packet_contents):
     pass
+
 
 rovecomm_node.callbacks[ENABLE_AUTONOMY] = enable_autonomy
 rovecomm_node.callbacks[DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[CLEAR_WAYPOINTS] = clear_waypoint_handler
-#debug
+# debug
 rovecomm_node.callbacks[1313] = do_nothing
 rovecomm_node.callbacks[1314] = do_nothing
 rovecomm_node.callbacks[1315] = do_nothing

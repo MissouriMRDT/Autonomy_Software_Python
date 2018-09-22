@@ -1,14 +1,16 @@
 import time
-
 import drivers.servodriver
-
+# modules for interactive mode, in correct place per PEP8 standard
+import sys
+import tty
+import termios
 
 class Motors:
 
     # Calibration constant for the motor controller
     centerpoint = 94
     
-    def __init__(self, servodriver, leftchannel = 0, rightchannel = 1):
+    def __init__(self, servodriver, leftchannel=0, rightchannel=1):
         self.controller = servodriver
         self.left = leftchannel
         self.right = rightchannel
@@ -24,12 +26,12 @@ class Motors:
             Angle: -180 = turn in place left, 0 = straight, 180 = turn in place right """
         speedl = speedr = Motors.centerpoint + (speed * 90.0/100.0)
         if angle < 0:
-            speedl = speedl + ((angle / 180.0) * 2 * speed )
+            speedl = speedl + ((angle / 180.0) * 2 * speed)
         elif angle > 0: 
-            speedr = speedr - ((angle / 180.0) * 2 * speed )
+            speedr = speedr - ((angle / 180.0) * 2 * speed)
             
-        self.controller.movejoint(self.left, _clamp(speedl, 0, 180) )        
-        self.controller.movejoint(self.right, _clamp(speedr, 0, 180) )
+        self.controller.movejoint(self.left, _clamp(speedl, 0, 180))
+        self.controller.movejoint(self.right, _clamp(speedr, 0, 180))
         
     def disable(self):
         self.controller.controller.set_pwm(self.left, 0, off=True)
@@ -40,12 +42,12 @@ class Motors:
         self.controller.movejoint(self.right, Motors.centerpoint)
         time.sleep(0.5)
 
+
 def _clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
-        
-# Interactive mode
-import sys,tty,termios
 
+
+# Interactive mode
 class _Getch:
     def __call__(self):
         fd = sys.stdin.fileno()
@@ -57,38 +59,40 @@ class _Getch:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
 
+
 def get(motors):
     inkey = _Getch()
     prev = False
-    while(1):
+    while 1:
         print("Waiting for key")
         k=inkey()
-        if k == '\x1b': # Arrow Key
-            k=inkey() # Arrow keys are thee characters
-            k=inkey() # Clear out buffer
+        if k == '\x1b':  # Arrow Key
+            k = inkey()  # Arrow keys are thee characters
+            k = inkey()  # Clear out buffer
             speed = 100
-            if k=='A':
+            if k == 'A':
                 print("up")
                 motors.move(speed, 0)
-            elif k=='B':
+            elif k == 'B':
                 print("down")
                 motors.move(-speed, 0)
-            elif k=='C':
+            elif k == 'C':
                 print("right")
                 speed = speed + 10
                 motors.move(speed, 180)
-            elif k=='D':
+            elif k == 'D':
                 print("left")
                 speed = speed + 10
                 motors.move(speed, -180)
-        elif k == ' ': # Space
+        elif k == ' ':  # Space
             print("space")
-            motors.move(0,0)
-        elif k == '\x03': # Ctrl-C
+            motors.move(0, 0)
+        elif k == '\x03':  # Ctrl-C
             motors.disable()
             quit()
         else:
             print("Unexpected key ", k)
+
 
 if __name__=='__main__':
     servodrv = drivers.servodriver.ServoDriver()
