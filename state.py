@@ -1,4 +1,4 @@
-class State(object):
+class RoverState(object):
 
     def __init__(self):
         print("Processing current state: ", str(self))
@@ -10,5 +10,5 @@ class State(object):
         return self.__class__.__name__
 
     def __repr__(self):
-        return self.__str__()
+        return self.__class__.__name__
 
