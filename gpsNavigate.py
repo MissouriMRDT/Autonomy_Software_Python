@@ -2,7 +2,7 @@
 import json
 import time
 import logging
-import algorithms.geoMath as GeoMath
+import algorithms.geomath as geomath
 from collections import namedtuple
 from headinghold import headingHold
 
@@ -18,8 +18,8 @@ XTE_STRENGTH = 0.5  # Crosstrack Correction strength (0.0 - 1.0)
 
 
 def reached_goal(goal, location, start):
-    (s_bearing, s_distance) = GeoMath.haversine(start.lat, start.lon, goal.lat, goal.lon)
-    (c_bearing, c_distance) = GeoMath.haversine(location.lat, location.lon, goal.lat, goal.lon)
+    (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
+    (c_bearing, c_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
     distanceMeters = c_distance * 1000.0
     close_enough = distanceMeters < WAYPOINT_DISTANCE_THRESHOLD
@@ -72,14 +72,14 @@ class GPSNavigate:
             self.last_location = self.location
             self.location = self.gps.location()
 
-            (target_heading, target_distance) = GeoMath.haversine(
+            (target_heading, target_distance) = geomath.haversine(
                 self.location.lat, self.location.lon,
                 self.goal.lat, self.goal.lon)
                 
             self.distance_to_goal = target_distance
 
             # Crosstrack Correction as linear
-            (xte_bearing, xte_dist) = GeoMath.crosstrack_error_vector(
+            (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
                 self.startpoint,
                 self.goal,
                 self.location)
@@ -87,7 +87,7 @@ class GPSNavigate:
             # Crosstrack correction as PID
             # xte_correction = self.xte_pid.update(setpoint=0, real_position=xte_bearing)
 
-            goal_heading = GeoMath.weighted_average_angles(
+            goal_heading = geomath.weighted_average_angles(
                 [target_heading, xte_bearing],
                 [1 - XTE_STRENGTH, XTE_STRENGTH])
 
