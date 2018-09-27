@@ -1,3 +1,4 @@
+from enum import Enum
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -7,9 +8,13 @@ RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 POWER = 35  # percent
 
+# Range at which we switch from GPS to optical tracking
+VISION_RANGE = 0.007  # kilometers
+
 # RoveComm Autonomy Control DataIDs
-ENABLE_AUTONOMY = 2576
-DISABLE_AUTONOMY = 2577
-ADD_WAYPOINT = 2578
-CLEAR_WAYPOINTS = 2579
-WAYPOINT_REACHED = 2580
+class DataID(Enum):
+    ENABLE_AUTONOMY = 2576
+    DISABLE_AUTONOMY = 2577
+    ADD_WAYPOINT = 2578
+    CLEAR_WAYPOINTS = 2579
+    WAYPOINT_REACHED = 2580
