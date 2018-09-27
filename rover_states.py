@@ -2,20 +2,37 @@ from state import RoverState
 from enum import Enum
 
 
+class StateSwitcher(object):
+
+    def __init__(self):
+        self.state = Idle()  # default state
+
+    def handle_event(self, event, callback=None):
+        self.state = self.state.handle_event(event)
+        if callback:
+            callback()
+
+
 class Idle(RoverState):
 
-    def handle_event(self, event):
+    def handle_event(self, event, callback=None):
         if event == AutonomyEvents.START:
             return Navigating()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
+        if callback:
+            callback()
+
         return self
+
+    def __str__(self):
+        return super.__str__(self)
 
 
 class Navigating(RoverState):
 
-    def handle_event(self, event):
+    def handle_event(self, event, callback=None):
 
         if event == AutonomyEvents.REACHED_GPS_COORDINATE:
             return Searching()
@@ -24,24 +41,30 @@ class Navigating(RoverState):
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
+        if callback:
+            callback()
+
         return self
 
 
 class Searching(RoverState):
 
-    def handle_event(self, event):
+    def handle_event(self, event, callback=None):
 
         if event == AutonomyEvents.MARKER_SIGHTED:
             return ApproachingMarker()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
+        if callback:
+            callback()
+
         return self
 
 
 class ApproachingMarker(RoverState):
 
-    def handle_event(self, event):
+    def handle_event(self, event, callback=None):
 
         if event == AutonomyEvents.REACHED_MARKER:
             return Navigating()
@@ -50,15 +73,21 @@ class ApproachingMarker(RoverState):
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
+        if callback:
+            callback()
+
         return self
 
 
 class Shutdown(RoverState):
 
-    def handle_event(self, event):
+    def handle_event(self, event, callback=None):
 
         if event == AutonomyEvents.RESTART:
             return Idle()
+
+        if callback:
+            callback()
 
         return self
 

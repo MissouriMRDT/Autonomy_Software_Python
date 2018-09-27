@@ -7,20 +7,17 @@ from drivers.mag.compass import Compass
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
-from drivers.lidar import LiDAR
 from drivers.notify import Notify
 
 from algorithms.objecttracking import ObjectTracker
 from gpsNavigate import GPSNavigate
-import algorithms.geomath as GeoMath
+import algorithms.geomath as geomath
 import constants
-from rover_states import Idle, AutonomyEvents
+from constants import DataID
+from rover_states import StateSwitcher, AutonomyEvents
 
 # Configuration
 VISION_ENABLED = False
-# Range at which we switch from GPS to optical tracking
-VISION_RANGE = 0.007  # Kilometers
-
 
 logging.basicConfig(filename='autonomy.log',
                     format='%(asctime)s %(name)s\t: %(levelname)s\t%(message)s',
@@ -55,7 +52,7 @@ gpsNavigation = GPSNavigate(gps, compass, drive, """lidar""")
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
-    waypoint = GeoMath.Coordinate(latitude, longitude)
+    waypoint = geomath.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
     logging.info("Added waypoint %s" % (waypoint,))
 
@@ -88,32 +85,24 @@ def do_nothing(packet_contents):
     pass
 
 
-rovecomm_node.callbacks[constants.ENABLE_AUTONOMY] = enable_autonomy
-rovecomm_node.callbacks[constants.DISABLE_AUTONOMY] = disable_autonomy
-rovecomm_node.callbacks[constants.ADD_WAYPOINT] = add_waypoint_handler
-rovecomm_node.callbacks[constants.CLEAR_WAYPOINTS] = clear_waypoint_handler
-# debug
-rovecomm_node.callbacks[1313] = do_nothing
-rovecomm_node.callbacks[1314] = do_nothing
-rovecomm_node.callbacks[1315] = do_nothing
-rovecomm_node.callbacks[1296] = do_nothing
-
-
-class StateSwitcher(object):
-
-    def __init__(self):
-        self.state = Idle()  # default state
-
-    def handle_event(self, event):
-        self.state = self.state.handle_event(event)
+rovecomm_node.callbacks[DataID.ENABLE_AUTONOMY.value] = enable_autonomy
+rovecomm_node.callbacks[DataID.DISABLE_AUTONOMY.value] = disable_autonomy
+rovecomm_node.callbacks[DataID.ADD_WAYPOINT.value] = add_waypoint_handler
+rovecomm_node.callbacks[DataID.CLEAR_WAYPOINTS.value] = clear_waypoint_handler
 
 
 stateSwitcher = StateSwitcher()
 
 current_goal = None
 
-# Function callbacks would be handy
 
+def test_func():
+    print("callback successful")
+
+
+stateSwitcher.handle_event(AutonomyEvents.START, callback=test_func)
+
+state = "shutdown"
 while state != 'shutdown':
     if autonomy_enabled:
         if state == 'idle':
@@ -130,7 +119,7 @@ while state != 'shutdown':
             time.sleep(0.01)
             if reached_goal:
                 state = 'waypoint_reached'
-            elif VISION_ENABLED and gpsNavigation.distance_to_goal < VISION_RANGE and waypoints.empty():
+            elif VISION_ENABLED and gpsNavigation.distance_to_goal < constants.VISION_RANGE and waypoints.empty():
                 logging.info('In vision range, searching')
                 ball_in_frame, center, radius = tracker.track_ball()
                 if ball_in_frame:
@@ -144,21 +133,21 @@ while state != 'shutdown':
         elif state == 'vision_navigate':
             ball_in_frame, center, radius = tracker.track_ball()
             if ball_in_frame:
-                angle_to_ball = Constants.FIELD_OF_VIEW * ((center[0] - (Constants.WIDTH / 2)) / Constants.WIDTH)
-                distance = Constants.SCALING_FACTOR / radius
+                angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - (constants.WIDTH / 2)) / constants.WIDTH)
+                distance = constants.SCALING_FACTOR / radius
                 logging.info("Distance: %f" % distance)
-                if distance > Constants.TARGET_DISTANCE:
+                if distance > constants.TARGET_DISTANCE:
                     logging.info("Moving forward: %f" % angle_to_ball)
-                    drive.move(Constants.POWER, angle_to_ball)
-                if distance <= Constants.TARGET_DISTANCE:
+                    drive.move(constants.POWER, angle_to_ball)
+                if distance <= constants.TARGET_DISTANCE:
                     state = 'waypoint_reached'
-                    drive.move(-Constants.POWER, angle_to_ball)
+                    drive.move(-constants.POWER, angle_to_ball)
             else:
                 logging.info("Visual lock lost")
                 state = 'gps_navigate'
 
         elif state == 'waypoint_reached':
-            rovecomm_node.send(WAYPOINT_REACHED, contents="")
+            rovecomm_node.send(DataID.WAYPOINT_REACHED.value, contents="")
             notify.notifyFinish()
             drive.disable()
             time.sleep(1)
