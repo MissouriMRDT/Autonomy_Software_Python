@@ -1,7 +1,7 @@
 class RoverState(object):
 
     def __init__(self):
-        print "Default State: " + str(self)
+        pass
 
     def handle_event(self, event):
         pass

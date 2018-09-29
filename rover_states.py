@@ -26,9 +26,6 @@ class Idle(RoverState):
 
         return self
 
-    def __str__(self):
-        return super.__str__(self)
-
 
 class Navigating(RoverState):
 
