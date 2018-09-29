@@ -18,6 +18,8 @@ class Idle(RoverState):
     def handle_event(self, event, callback=None):
         if event == AutonomyEvents.START:
             return Navigating()
+        elif event == AutonomyEvents.ALL_MARKERS_REACHED:
+            return Idle()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
@@ -33,8 +35,6 @@ class Navigating(RoverState):
 
         if event == AutonomyEvents.REACHED_GPS_COORDINATE:
             return Searching()
-        elif event == AutonomyEvents.ALL_MARKERS_REACHED:
-            return Shutdown()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
@@ -50,6 +50,8 @@ class Searching(RoverState):
 
         if event == AutonomyEvents.MARKER_SIGHTED:
             return ApproachingMarker()
+        elif event == AutonomyEvents.SEARCH_FAILED:
+            return Navigating()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
@@ -93,8 +95,9 @@ class AutonomyEvents(Enum):
     START = 1
     REACHED_GPS_COORDINATE = 2
     MARKER_SIGHTED = 3
-    MARKER_UNSEEN = 4
-    REACHED_MARKER = 5
-    ALL_MARKERS_REACHED = 6
-    ABORT = 7
-    RESTART = 8
+    SEARCH_FAILED = 4
+    MARKER_UNSEEN = 5
+    REACHED_MARKER = 6
+    ALL_MARKERS_REACHED = 7
+    ABORT = 8
+    RESTART = 9
