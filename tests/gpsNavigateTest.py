@@ -5,7 +5,7 @@ from drivers.driveBoard import DriveBoard
 # from drivers.lidar import LiDAR
 from drivers.notify import Notify
 from gpsNavigate import GPSNavigate
-from algorithms.geoMath import Coordinate
+from algorithms.geomath import Coordinate
 from algorithms.quaternion import Quaternion
 
 import time
