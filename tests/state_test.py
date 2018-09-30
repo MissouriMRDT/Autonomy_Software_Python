@@ -30,20 +30,20 @@ counter = 0
 
 while True:
 
-    if str(stateSwitcher.state) == str(rs.Idle()):
+    if stateSwitcher.state == rs.Idle():
         print("waiting")
         counter += 1
 
         if counter > 10:
             stateSwitcher.handle_event(rs.AutonomyEvents.START)
-    elif str(stateSwitcher.state) == str(rs.Navigating()):
+    elif stateSwitcher.state == rs.Navigating():
         print("Rovin")
         counter -= 2
 
         if counter < 0:
             stateSwitcher.handle_event(rs.AutonomyEvents.ABORT)
 
-    elif str(stateSwitcher.state) == str(rs.Shutdown()):
+    elif stateSwitcher.state == rs.Shutdown():
         stateSwitcher.handle_event(rs.AutonomyEvents.RESTART)
 
     time.sleep(1)

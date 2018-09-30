@@ -12,3 +12,9 @@ class RoverState(object):
     def __repr__(self):
         return self.__class__.__name__
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __ne__(self, other):
+        return str(self) != str(other)
+
