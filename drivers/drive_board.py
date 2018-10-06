@@ -42,7 +42,7 @@ class DriveBoard:
 
     def send_drive(self, target_left, target_right):
         data = struct.pack("<hh", target_left, target_right)
-        self.rove_comm_node.sendTo(DRIVE_DATA_ID, data, DRIVE_BOARD_IP)
+        self.rove_comm_node.send_to(DRIVE_DATA_ID, data, DRIVE_BOARD_IP)
 
     def disable(self):
         self.enabled = False

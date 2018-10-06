@@ -15,7 +15,7 @@ class Notify:
 
     def _notify(self, val):
         data = struct.pack("<h", val)
-        self.rove_comm_node.sendTo(NOTIFY_ID, data, DRIVE_BOARD_IP)
+        self.rove_comm_node.send_to(NOTIFY_ID, data, DRIVE_BOARD_IP)
 
     def notify_finish(self):
         self._notify(1)
