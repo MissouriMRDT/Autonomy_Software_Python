@@ -1,5 +1,6 @@
-# from drivers.rovecomm import RoveComm
+from drivers.rovecomm import RoveComm
 import struct
+import time
 
 NAV_IP_ADDRESS = '192.168.1.133'
 ACC_DATA_ID = 1314
@@ -54,3 +55,15 @@ class NavBoard:
 
     def location(self):
         return self._location
+
+
+if __name__ == '__main__':
+    rove_comm_node = RoveComm()
+    nav = NavBoard(rove_comm_node)
+    while True:
+        print(nav.location())
+        print(nav.magnetometer_xyz())
+        print(nav.accelerometer_xyz())
+        print(nav.gyroscope_xyz())
+        print("...")
+        time.sleep(1)
