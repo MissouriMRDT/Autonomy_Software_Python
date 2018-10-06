@@ -6,7 +6,7 @@ import math
 import itertools
 
 from drivers.rovecomm import RoveComm
-from drivers.driveBoard import DriveBoard
+from drivers.drive_board import DriveBoard
 
 
 class LiDAR:
