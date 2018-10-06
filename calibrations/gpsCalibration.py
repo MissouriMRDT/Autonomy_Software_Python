@@ -1,7 +1,7 @@
 import time
 import json
 
-from drivers.navBoard import NavBoard
+from drivers.nav_board import NavBoard
 from drivers.rovecomm import RoveComm
 from algorithms.quaternion import Quaternion
 

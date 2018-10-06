@@ -4,7 +4,7 @@ from algorithms.PIDcontroller import *
 from algorithms.quaternion import Quaternion
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
-from drivers.navBoard import NavBoard
+from drivers.nav_board import NavBoard
 import logging
 import time
 
