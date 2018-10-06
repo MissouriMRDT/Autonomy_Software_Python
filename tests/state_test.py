@@ -20,7 +20,7 @@ print("Switched to state: " + str(stateSwitcher.state) + "\n")
 time.sleep(TIME_INTERVAL)
 
 print("Rover reached a marker")
-stateSwitcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, callback=callback_func)
+stateSwitcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=callback_func)
 
 time.sleep(TIME_INTERVAL)
 

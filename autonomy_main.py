@@ -22,22 +22,37 @@ waypoints = queue.Queue()
 gps_navigator = GPSNavigate(gps, compass, drive)
 tracker = ObjectTracker()
 
-current_goal = None
+
+def drive_to_marker():
+    angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - constants.WIDTH / 2) / constants.WIDTH)
+    distance = constants.SCALING_FACTOR / radius
+    logging.info("Distance to marker: %f" % distance)
+    if distance > constants.TARGET_DISTANCE:
+        logging.info("Angle to marker: %f" % angle_to_ball)
+        drive.move(constants.DRIVE_POWER, angle_to_ball)
+    if distance <= constants.TARGET_DISTANCE:
+        state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER)
+        drive.move(-constants.DRIVE_POWER, angle_to_ball)
+
+
+def set_gps_waypoint():
+    current_goal = waypoints.get_nowait()
+    gps_navigator.setWaypoint(current_goal)
+
 
 while True:
 
     if state_switcher.state == rs.Idle():
         time.sleep(0.2)
         if not waypoints.empty():
-            state_switcher.handle_event(rs.AutonomyEvents.START)
-            current_goal = waypoints.get_nowait()
-            gps_navigator.setWaypoint(current_goal)
+            state_switcher.handle_event(rs.AutonomyEvents.START, then=set_gps_waypoint())
 
     elif state_switcher.state == rs.Navigating():
         reached_goal = gps_navigator.update_controls()
         time.sleep(0.01)
         if reached_goal:
-            state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE)
+            state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
+                                        then=logging.info("GPS coordinate reached"))
 
     elif state_switcher.state == rs.Searching():
         if gps_navigator.distance_to_goal < constants.VISION_RANGE and waypoints.empty():
@@ -50,18 +65,10 @@ while True:
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - constants.WIDTH / 2) / constants.WIDTH)
-            distance = constants.SCALING_FACTOR / radius
-            logging.info("Distance to marker: %f" % distance)
-            if distance > constants.TARGET_DISTANCE:
-                logging.info("Angle to marker: %f" % angle_to_ball)
-                drive.move(constants.DRIVE_POWER, angle_to_ball)
-            if distance <= constants.TARGET_DISTANCE:
-                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER)
-                drive.move(-constants.DRIVE_POWER, angle_to_ball)
+            drive_to_marker()
         else:
-            logging.info("Visual lock lost")
-            state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN)
+            state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
+                                        then=logging.info("Visual lock lost"))
 
     elif state_switcher.state == rs.Shutdown():
         pass

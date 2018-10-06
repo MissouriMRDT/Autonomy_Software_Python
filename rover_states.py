@@ -7,15 +7,15 @@ class StateSwitcher(object):
     def __init__(self):
         self.state = Idle()  # default state
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
         self.state = self.state.handle_event(event)
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
 
 class Idle(RoverState):
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
         if event == AutonomyEvents.START:
             return Navigating()
         elif event == AutonomyEvents.ALL_MARKERS_REACHED:
@@ -23,30 +23,30 @@ class Idle(RoverState):
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
         return self
 
 
 class Navigating(RoverState):
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
 
         if event == AutonomyEvents.REACHED_GPS_COORDINATE:
             return Searching()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
         return self
 
 
 class Searching(RoverState):
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
 
         if event == AutonomyEvents.MARKER_SIGHTED:
             return ApproachingMarker()
@@ -55,15 +55,15 @@ class Searching(RoverState):
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
         return self
 
 
 class ApproachingMarker(RoverState):
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
 
         if event == AutonomyEvents.REACHED_MARKER:
             return Navigating()
@@ -72,21 +72,21 @@ class ApproachingMarker(RoverState):
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
 
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
         return self
 
 
 class Shutdown(RoverState):
 
-    def handle_event(self, event, callback=None):
+    def handle_event(self, event, then=None):
 
         if event == AutonomyEvents.RESTART:
             return Idle()
 
-        if callback:
-            callback()
+        if then:
+            then()  # callback
 
         return self
 
