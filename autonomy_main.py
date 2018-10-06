@@ -3,11 +3,13 @@ import queue
 import logging
 
 import rover_states as rs
+import constants
 from drivers.rovecomm import RoveComm
 from drivers.driveBoard import DriveBoard
 from drivers.gps.gpsNavboard import GPS
 from drivers.mag.compass import Compass
 from gpsNavigate import GPSNavigate
+from algorithms.objecttracking import ObjectTracker
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -18,6 +20,7 @@ compass = Compass(rovecomm_node)
 state_switcher = rs.StateSwitcher()
 waypoints = queue.Queue()
 gps_navigator = GPSNavigate(gps, compass, drive)
+tracker = ObjectTracker()
 
 current_goal = None
 
@@ -31,10 +34,18 @@ while True:
             gps_navigator.setWaypoint(current_goal)
 
     elif state_switcher.state == rs.Navigating():
-        pass
+        reached_goal = gps_navigator.update_controls()
+        time.sleep(0.01)
+        if reached_goal:
+            state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE)
 
     elif state_switcher.state == rs.Searching():
-        pass
+        if gps_navigator.distance_to_goal < constants.VISION_RANGE and waypoints.empty():
+            logging.info("Reached vision range, searching for marker...")
+            ball_in_frame, center, radius = tracker.track_ball()
+            if ball_in_frame:
+                logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
+                state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
 
     elif state_switcher.state == rs.ApproachingMarker():
         pass
