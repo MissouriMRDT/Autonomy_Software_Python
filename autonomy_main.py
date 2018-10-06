@@ -48,7 +48,20 @@ while True:
                 state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
 
     elif state_switcher.state == rs.ApproachingMarker():
-        pass
+        ball_in_frame, center, radius = tracker.track_ball()
+        if ball_in_frame:
+            angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - constants.WIDTH / 2) / constants.WIDTH)
+            distance = constants.SCALING_FACTOR / radius
+            logging.info("Distance to marker: %f" % distance)
+            if distance > constants.TARGET_DISTANCE:
+                logging.info("Angle to marker: %f" % angle_to_ball)
+                drive.move(constants.DRIVE_POWER, angle_to_ball)
+            if distance <= constants.TARGET_DISTANCE:
+                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER)
+                drive.move(-constants.DRIVE_POWER, angle_to_ball)
+        else:
+            logging.info("Visual lock lost")
+            state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN)
 
     elif state_switcher.state == rs.Shutdown():
         pass
