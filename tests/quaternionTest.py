@@ -4,7 +4,7 @@ import time
 # import os
 
 from drivers.rovecomm import RoveComm
-from drivers.navBoard import NavBoard
+from drivers.nav_board import NavBoard
 from algorithms.quaternion import Quaternion
 
 rovecomm_node = RoveComm()

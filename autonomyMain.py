@@ -6,7 +6,7 @@ import logging
 from drivers.mag.compass import Compass
 from drivers.gps.gpsNavboard import GPS
 from drivers.rovecomm import RoveComm
-from drivers.driveBoard import DriveBoard
+from drivers.drive_board import DriveBoard
 from drivers.lidar import LiDAR
 from drivers.notify import Notify
 

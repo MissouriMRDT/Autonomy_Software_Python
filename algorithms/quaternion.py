@@ -46,10 +46,10 @@ class Quaternion(object):
 
     def calculateLoop(self):     # 3-tuples (x, y, z) for accel, gyro and mag data
         while True:
-            mag = self.navBoard.magnetometerXYZ()
+            mag = self.navBoard.magnetometer_xyz()
             mx, my, mz = (mag[x] - self.magbias[x] for x in range(3))  # Units irrelevant (normalised)
-            ax, ay, az = self.navBoard.accelerometerXYZ()             # Units irrelevant (normalised)
-            gx, gy, gz = (radians(x) for x in self.navBoard.gyroscopeXYZ())     # Units deg/s
+            ax, ay, az = self.navBoard.accelerometer_xyz()             # Units irrelevant (normalised)
+            gx, gy, gz = (radians(x) for x in self.navBoard.gyroscope_xyz())     # Units deg/s
             q1, q2, q3, q4 = (self.q[x] for x in range(4))   # short name local variable for readability
             # Auxiliary variables to avoid repeated arithmetic
             _2q1 = 2 * q1

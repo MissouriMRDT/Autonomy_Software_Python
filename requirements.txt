@@ -1,9 +1,7 @@
-adafruit-pca9685
 numpy
 opencv-python
 pip
 pypi-json
 pynmea2
 serial
-termios
 time

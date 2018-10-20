@@ -7,7 +7,7 @@ import json
 
 import datetime
 
-from drivers.navBoard import NavBoard
+from drivers.nav_board import NavBoard
 from drivers.rovecomm import RoveComm
 
 
@@ -51,7 +51,7 @@ magZmax = -32767
 while True:
 
     # Read magnetometer values
-    MAGx, MAGy, MAGz = navBoard.magnetometerXYZ()
+    MAGx, MAGy, MAGz = navBoard.magnetometer_xyz()
 
     if MAGx > magXmax:
         magXmax = MAGx
