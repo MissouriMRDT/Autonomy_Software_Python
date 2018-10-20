@@ -5,21 +5,19 @@ import logging
 import rover_states as rs
 import constants
 from drivers.rovecomm import RoveComm
-from drivers.driveBoard import DriveBoard
-from drivers.gps.gpsNavboard import GPS
-from drivers.mag.compass import Compass
+from drivers.drive_board import DriveBoard
+from drivers.nav_board import NavBoard
 from gpsNavigate import GPSNavigate
 from algorithms.objecttracking import ObjectTracker
 
 # Hardware Setup
 rovecomm_node = RoveComm()
 drive = DriveBoard(rovecomm_node)
-gps = GPS(rovecomm_node)
-compass = Compass(rovecomm_node)
+nav_board = NavBoard(rovecomm_node)
 
 state_switcher = rs.StateSwitcher()
 waypoints = queue.Queue()
-gps_navigator = GPSNavigate(gps, compass, drive)
+gps_navigator = GPSNavigate(nav_board, "", drive)
 tracker = ObjectTracker()
 
 
