@@ -23,18 +23,6 @@ gps_navigator = GPSNavigate(gps, compass, drive)
 tracker = ObjectTracker()
 
 
-def drive_to_marker():
-    angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - constants.WIDTH / 2) / constants.WIDTH)
-    distance = constants.SCALING_FACTOR / radius
-    logging.info("Distance to marker: %f" % distance)
-    if distance > constants.TARGET_DISTANCE:
-        logging.info("Angle to marker: %f" % angle_to_ball)
-        drive.move(constants.DRIVE_POWER, angle_to_ball)
-    if distance <= constants.TARGET_DISTANCE:
-        state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER)
-        drive.move(-constants.DRIVE_POWER, angle_to_ball)
-
-
 def set_gps_waypoint():
     current_goal = waypoints.get_nowait()
     gps_navigator.setWaypoint(current_goal)
@@ -65,7 +53,8 @@ while True:
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            drive_to_marker()
+            left, right, distance = drive_to_marker(drive, tracker, center, radius)
+
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
                                         then=logging.info("Visual lock lost"))

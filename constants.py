@@ -6,7 +6,7 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = 35  # percent
+DRIVE_POWER = 25  # percent
 
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 0.007  # kilometers
