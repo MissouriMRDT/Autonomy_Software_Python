@@ -9,6 +9,7 @@ from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 from gpsNavigate import GPSNavigate
 from algorithms.objecttracking import ObjectTracker
+import algorithms.followBall
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -51,7 +52,7 @@ while True:
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            left, right, distance = drive_to_marker(drive, tracker, center, radius)
+            left, right, distance = algorithms.followBall.drive_to_marker(drive, tracker, center, radius)
 
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
