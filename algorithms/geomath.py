@@ -6,10 +6,11 @@
 # and distance between two points (haversine)
 # and the crosstrack error between a line and a point
 
-from math import radians, cos, sin, asin, sqrt, atan2, degrees
-from collections import namedtuple
+import math
+import collections
+import numpy as np
 
-Coordinate = namedtuple('Coordinate', ['lat', 'lon'])
+Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
 
 
 # Haversine Function for calculating bearing and distance
@@ -30,18 +31,19 @@ def haversine(lat1, lon1, lat2, lon2):
             distance to target in kilometers
     """
     # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
 
     # haversine formula 
     dlon = lon2 - lon1 
     dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
     r = 6371  # Radius of earth in kilometers. Use 3956 for miles
     distance = c * r
     
-    bearing = atan2(sin(lon2-lon1)*cos(lat2), cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lon2-lon1))
-    bearing = degrees(bearing)
+    bearing = math.atan2(math.sin(lon2 - lon1) * math.cos(lat2), math.cos(lat1)*math.sin(lat2)
+                         - math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1))
+    bearing = math.degrees(bearing)
     bearing = (bearing + 360) % 360
     
     return bearing, distance
@@ -101,11 +103,11 @@ def weighted_average_angles(angles, weights):
     assert(sum(weights) == 1)
     assert(len(angles) == len(weights))
 
-    vectors = [Vector((cos(radians(a)), sin(radians(a)))) for a in angles]
+    vectors = [Vector((math.cos(math.radians(a)), math.sin(math.radians(a)))) for a in angles]
     vectors = [vec * weights[i] for i, vec in enumerate(vectors)]
     x = sum([vec[0] for vec in vectors])
     y = sum([vec[1] for vec in vectors])
-    result = degrees(atan2(y, x))
+    result = math.degrees(math.atan2(y, x))
     result = (result + 360) % 360
     return result
 
@@ -116,7 +118,8 @@ def weighted_average_angles(angles, weights):
 
 class Vector:
     def __init__(self, values):
-        self.values = tuple(values)
+        # casting vectors as numpy ndarrays is a more standard practice.
+        self.values = np.array(values)
 
     def __add__(self, other):
         return Vector([sum(x) for x in zip(self.values, other)])
@@ -151,7 +154,7 @@ def vector_project(vector1, vector2):
     if scale_factor > 1:
         return vector2
     else:
-        return tuple([scale_factor * v2_i for v2_i in vector2])
+        return np.array([scale_factor * v2_i for v2_i in vector2])
 
 
 #####################################
