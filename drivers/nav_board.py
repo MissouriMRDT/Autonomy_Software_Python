@@ -2,7 +2,7 @@ from drivers.rovecomm import RoveComm
 import struct
 import time
 
-NAV_IP_ADDRESS = '192.168.1.133'
+NAV_IP_ADDRESS = "192.168.1.133"
 ACC_DATA_ID = 1314
 GYR_DATA_ID = 1315
 MAG_DATA_ID = 1316

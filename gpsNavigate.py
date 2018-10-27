@@ -35,7 +35,7 @@ clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
 
 class GPSNavigate:
 
-    def __init__(self, gps, headingRef, motors, gpsCalFile="gps_calibration.json"):
+    def __init__(self, gps, headingRef, motors):
         self.gps = gps
         self.headingRef = headingRef
         self.motors = motors
@@ -51,8 +51,7 @@ class GPSNavigate:
         self._decimation = 0
         self.distance_to_goal = 0
 
-        with open(gpsCalFile) as calfile:
-            self.headingOffset = json.load(calfile)["gps_offset"]
+        self.headingOffset = 0
 
     def setWaypoint(self, goal_coordinate):
         self.startpoint = self.location
