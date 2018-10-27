@@ -154,7 +154,7 @@ def vector_project(vector1, vector2):
     if scale_factor > 1:
         return vector2
     else:
-        return tuple([scale_factor * v2_i for v2_i in vector2])
+        return np.array([scale_factor * v2_i for v2_i in vector2])
 
 
 #####################################
