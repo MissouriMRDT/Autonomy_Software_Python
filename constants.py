@@ -1,4 +1,5 @@
 from enum import Enum
+import collections
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -10,6 +11,8 @@ DRIVE_POWER = 25  # percent
 
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 0.007  # kilometers
+
+Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
 
 # RoveComm Autonomy Control DataIDs
 class DataID(Enum):

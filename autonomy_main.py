@@ -1,6 +1,7 @@
 import time
 import queue
 import logging
+import struct
 
 import rover_states as rs
 import constants
@@ -22,9 +23,41 @@ gps_navigator = GPSNavigate(nav_board, "", drive)
 tracker = ObjectTracker()
 
 
+# Assign callbacks for incoming messages
+def add_waypoint_handler(packet_contents):
+    latitude, longitude = struct.unpack("<dd", packet_contents)
+    waypoint = constants.Coordinate(latitude, longitude)
+    waypoints.put(waypoint)
+    logging.info("Added waypoint %s" % (waypoint,))
+
+
+def enable_autonomy(packet_contents):
+    if state_switcher.state == rs.Shutdown:
+        state_switcher.handle_event(rs.AutonomyEvents.START, then=logging.info("Enabling Autonomy"))
+    drive.enable()
+
+
+def disable_autonomy(packet_contents):
+    if state_switcher.state != rs.Shutdown:
+        state_switcher.handle_event(rs.AutonomyEvents.ABORT, then=logging.info("Disabling Autonomy"))
+    drive.disable()
+
+
+def clear_waypoint_handler(packet_contents):
+    global waypoints
+    waypoints = queue.Queue()
+    logging.info("Waypoints Cleared")
+
+
 def set_gps_waypoint():
     current_goal = waypoints.get_nowait()
     gps_navigator.setWaypoint(current_goal)
+
+
+rovecomm_node.callbacks[constants.DataID.ENABLE_AUTONOMY] = enable_autonomy
+rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
+rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
+rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
 
 while True:

@@ -7,10 +7,8 @@
 # and the crosstrack error between a line and a point
 
 import math
-import collections
 import numpy as np
-
-Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
+from constants import Coordinate
 
 
 # Haversine Function for calculating bearing and distance
