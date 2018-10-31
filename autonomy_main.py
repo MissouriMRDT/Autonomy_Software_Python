@@ -8,9 +8,10 @@ import constants
 from drivers.rovecomm import RoveComm
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
-from gpsNavigate import GPSNavigate
 from algorithms.objecttracking import ObjectTracker
 import algorithms.followBall
+import algorithms.gps_navigate as gps_nav
+from algorithms.gps_navigate import GPSData
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -19,7 +20,7 @@ nav_board = NavBoard(rovecomm_node)
 
 state_switcher = rs.StateSwitcher()
 waypoints = queue.Queue()
-gps_navigator = GPSNavigate(nav_board, "", drive)
+gps_data = GPSData()
 tracker = ObjectTracker()
 
 
@@ -50,8 +51,9 @@ def clear_waypoint_handler(packet_contents):
 
 
 def set_gps_waypoint():
+    global gps_data
     current_goal = waypoints.get_nowait()
-    gps_navigator.setWaypoint(current_goal)
+    gps_data = GPSData(current_goal, nav_board.location())
 
 
 rovecomm_node.callbacks[constants.DataID.ENABLE_AUTONOMY] = enable_autonomy
@@ -68,19 +70,19 @@ while True:
             state_switcher.handle_event(rs.AutonomyEvents.START, then=set_gps_waypoint())
 
     elif state_switcher.state == rs.Navigating():
-        reached_goal = gps_navigator.update_controls()
-        time.sleep(0.01)
-        if reached_goal:
+        goal, start = gps_data.data()
+        if gps_nav.reached_goal(goal, nav_board.location(), start):
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
                                         then=logging.info("GPS coordinate reached"))
 
+        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+
     elif state_switcher.state == rs.Searching():
-        if gps_navigator.distance_to_goal < constants.VISION_RANGE and waypoints.empty():
-            logging.info("Reached vision range, searching for marker...")
-            ball_in_frame, center, radius = tracker.track_ball()
-            if ball_in_frame:
-                logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-                state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
+        logging.info("Reached vision range, searching for marker...")
+        ball_in_frame, center, radius = tracker.track_ball()
+        if ball_in_frame:
+            logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
+            state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
 
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()

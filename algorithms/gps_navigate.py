@@ -1,51 +1,44 @@
-import time
 import algorithms.geomath as geomath
+import algorithms.heading_hold as hh
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
-SPEED = 30  # Percent
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
 XTE_STRENGTH = 0.5  # Crosstrack Correction strength (0.0 - 1.0)
 
 
-def get_current_heading(self):
-    self.prevtime = time.time()
+def reached_goal(goal, location, start):
+    (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
+    (c_bearing, c_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
-    # Get location
-    self.last_location = self.location
-    self.location = self.gps.location()
+    distanceMeters = c_distance * 1000.0
+    close_enough = distanceMeters < WAYPOINT_DISTANCE_THRESHOLD
 
-    (target_heading, target_distance) = geomath.haversine(
-        self.location.lat, self.location.lon,
-        self.goal.lat, self.goal.lon)
+    bearing_diff = (s_bearing - c_bearing) % 360.0
+    past_goal = 180 - BEARING_FLIP_THRESHOLD <= bearing_diff <= 180 + BEARING_FLIP_THRESHOLD
 
-    self.distance_to_goal = target_distance
+    return past_goal or close_enough
+
+
+def calculate_move(goal, location, start, drive_board, nav_board):
+
+    (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
     # Crosstrack Correction as linear
-    (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(
-        self.startpoint,
-        self.goal,
-        self.location)
+    (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(start, goal, location)
 
-    # Crosstrack correction as PID
-    # xte_correction = self.xte_pid.update(setpoint=0, real_position=xte_bearing)
+    goal_heading = geomath.weighted_average_angles([target_heading, xte_bearing], [1 - XTE_STRENGTH, XTE_STRENGTH])
 
-    goal_heading = geomath.weighted_average_angles(
-        [target_heading, xte_bearing],
-        [1 - XTE_STRENGTH, XTE_STRENGTH])
+    return hh.get_motor_power_from_heading(goal_heading, drive_board, nav_board)
 
-    # Skip the filtering, trust the magnetometer
-    current_heading = self.headingRef.trueHeading
 
-    self._decimation += 1
-    if (self._decimation % 5) == 0:
-        print("\n\tLocation \t: %s\n"
-              "\n\tTarget Distance \t: %f\n"
-              "\tTarget Heading  \t: %d\n"
-              "\tMeasured Heading\t: %f\n" %
-              (self.location, target_distance, target_heading, current_heading))
+class GPSData:
 
-    # Adjust path
-    return current_heading
+    def __int__(self, goal, start):
+        self.goal = goal
+        self.start = start
+
+    def data(self):
+        return self.goal, self.start
