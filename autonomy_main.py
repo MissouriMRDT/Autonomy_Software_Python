@@ -33,14 +33,17 @@ def add_waypoint_handler(packet_contents):
 
 
 def enable_autonomy(packet_contents):
+    print("Enable callback thrown")
     if state_switcher.state == rs.Shutdown:
         state_switcher.handle_event(rs.AutonomyEvents.START, then=logging.info("Enabling Autonomy"))
+        print("Throwing START")
     drive.enable()
 
 
 def disable_autonomy(packet_contents):
     if state_switcher.state != rs.Shutdown:
         state_switcher.handle_event(rs.AutonomyEvents.ABORT, then=logging.info("Disabling Autonomy"))
+        print("Throwing ABORT")
     drive.disable()
 
 
@@ -68,12 +71,14 @@ while True:
         time.sleep(0.2)
         if not waypoints.empty():
             state_switcher.handle_event(rs.AutonomyEvents.START, then=set_gps_waypoint())
+            print("Throwing START")
 
     elif state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
                                         then=logging.info("GPS coordinate reached"))
+            print("Throwing REACHED_GPS_COORDINATE")
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
 
@@ -83,6 +88,7 @@ while True:
         if ball_in_frame:
             logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
+            print("Throwing MARKER_SIGHTED")
 
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
@@ -92,6 +98,7 @@ while True:
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
                                         then=logging.info("Visual lock lost"))
+            print("Throwing MARKER_UNSEEN")
 
     elif state_switcher.state == rs.Shutdown():
         pass
