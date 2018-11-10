@@ -1,4 +1,5 @@
 from drivers.rovecomm import RoveComm
+import constants
 import struct
 import time
 
@@ -14,7 +15,7 @@ class NavBoard:
         self._pitch = 0
         self._roll = 0
         self._heading = 0
-        self._location = (0, 0)
+        self._location = constants.Coordinate(0, 0)
 
         self.rove_comm_node = rove_comm
 
@@ -26,20 +27,20 @@ class NavBoard:
         self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
 
     def process_pitch_data(self, raw_data):
-        self._pitch = struct.unpack("f", raw_data)
+        self._pitch = struct.unpack("f", raw_data)[0]
 
     def process_roll_data(self, raw_data):
-        self._roll = struct.unpack("f", raw_data)
+        self._roll = struct.unpack("f", raw_data)[0]
 
     def process_heading_data(self, raw_data):
-        self._heading = struct.unpack("f", raw_data)
+        self._heading = struct.unpack("f", raw_data)[0]
 
     def process_gps_data(self, raw_data):
         # The GPS sends data as two doubles
         lon, lat = struct.unpack("<ll", raw_data)
         lat = lat * 1e-7
         lon = -lon * 1e-7
-        self._location = (lat, lon)
+        self._location = constants.Coordinate(lat, lon)
 
     def pitch(self):
         return self._pitch

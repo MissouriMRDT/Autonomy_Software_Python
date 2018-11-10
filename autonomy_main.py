@@ -29,19 +29,26 @@ def add_waypoint_handler(packet_contents):
     latitude, longitude = struct.unpack("<dd", packet_contents)
     waypoint = constants.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
-    logging.info("Added waypoint %s" % (waypoint,))
+    print("Added waypoint %s" % (waypoint,))
 
 
 def enable_autonomy(packet_contents):
-    print("Enable callback thrown")
-    if state_switcher.state == rs.Shutdown:
+    print("What's happening? ")
+    print(state_switcher.state)
+    print("Seriously")
+    if state_switcher.state == rs.Idle():
         state_switcher.handle_event(rs.AutonomyEvents.START, then=logging.info("Enabling Autonomy"))
+        set_gps_waypoint()
         print("Throwing START")
+    elif state_switcher.state == rs.Shutdown():
+        state_switcher.handle_event(rs.AutonomyEvents.RESTART, then=logging.info("Restarting Autonomy"))
+        print("Throwing RESTART")
+
     drive.enable()
 
 
 def disable_autonomy(packet_contents):
-    if state_switcher.state != rs.Shutdown:
+    if state_switcher.state != rs.Shutdown():
         state_switcher.handle_event(rs.AutonomyEvents.ABORT, then=logging.info("Disabling Autonomy"))
         print("Throwing ABORT")
     drive.disable()
@@ -56,7 +63,8 @@ def clear_waypoint_handler(packet_contents):
 def set_gps_waypoint():
     global gps_data
     current_goal = waypoints.get_nowait()
-    gps_data = GPSData(current_goal, nav_board.location())
+    gps_data.goal = current_goal
+    gps_data.start = nav_board.location()
 
 
 rovecomm_node.callbacks[constants.DataID.ENABLE_AUTONOMY] = enable_autonomy
@@ -67,13 +75,7 @@ rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handl
 
 while True:
 
-    if state_switcher.state == rs.Idle():
-        time.sleep(0.2)
-        if not waypoints.empty():
-            state_switcher.handle_event(rs.AutonomyEvents.START, then=set_gps_waypoint())
-            print("Throwing START")
-
-    elif state_switcher.state == rs.Navigating():
+    if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
@@ -102,3 +104,7 @@ while True:
 
     elif state_switcher.state == rs.Shutdown():
         pass
+
+    time.sleep(1)
+    print(state_switcher.state)
+
