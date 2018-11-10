@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum
 import collections
 
 # Navigation Parameters
@@ -15,7 +15,7 @@ VISION_RANGE = 0.007  # kilometers
 Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
 
 # RoveComm Autonomy Control DataIDs
-class DataID(Enum):
+class DataID(IntEnum):
     ENABLE_AUTONOMY = 2576
     DISABLE_AUTONOMY = 2577
     ADD_WAYPOINT = 2578
