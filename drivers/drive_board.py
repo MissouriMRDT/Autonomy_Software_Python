@@ -1,7 +1,7 @@
 import struct
 from drivers.rovecomm import RoveComm
 
-SPEED_LIMIT = 300
+SPEED_LIMIT = 100
 DRIVE_BOARD_IP = "192.168.1.130"
 DRIVE_DATA_ID = 528
 
@@ -23,18 +23,22 @@ class DriveBoard:
         self.disable()
         
     def calculate_move(self, speed, angle):
-        """ Speed: -100 to 100
-        Angle: -180 = turn in place left, 0 = straight, 180 = turn in place right """
+        """ Speed: -1000 to 1000
+        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right """
         
         # Map speed and angle to (-1000, +1000) for each wheel
-        speed_left = speed_right = speed / 100.0
+        speed_left = speed_right = speed
         if angle > 0:
-            speed_right = speed_right * (1 + (angle / 180.0))
-        elif angle < 0:
             speed_left = speed_left * (1 - (angle / 180.0))
+        elif angle < 0:
+            speed_right = speed_right * (1 + (angle / 180.0))
+
+        # Reduce speed for tighter turns
+        speed_left = speed_left * (1 - (abs(angle) / 720))
+        speed_right = speed_right * (1 - (abs(angle) / 720))
         
-        self._targetSpdLeft = int(clamp(1000.0 * speed_left, -SPEED_LIMIT, SPEED_LIMIT))
-        self._targetSpdRight = int(clamp(1000.0 * speed_right, -SPEED_LIMIT, SPEED_LIMIT))
+        self._targetSpdLeft = int(clamp(speed_left, -SPEED_LIMIT, SPEED_LIMIT))
+        self._targetSpdRight = int(clamp(speed_right, -SPEED_LIMIT, SPEED_LIMIT))
 
         if self.enabled:
             return self._targetSpdLeft, self._targetSpdRight
