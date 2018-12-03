@@ -82,7 +82,11 @@ while True:
                                         then=logging.info("GPS coordinate reached"))
             print("Throwing REACHED_GPS_COORDINATE")
 
+            drive.send_drive(0, 0)
+            break
+
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+        drive.send_drive(left, right)
 
     elif state_switcher.state == rs.Searching():
         logging.info("Reached vision range, searching for marker...")
