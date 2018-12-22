@@ -72,6 +72,8 @@ rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
+state_switcher.state = rs.ApproachingMarker()
+drive.enable()
 
 while True:
 
@@ -99,7 +101,14 @@ while True:
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            left, right, distance = algorithms.followBall.drive_to_marker(drive, tracker, center, radius)
+            (left, right), distance = algorithms.followBall.drive_to_marker(50, drive, center, radius)
+
+            if distance < .5:
+                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
+                drive.send_drive(0, 0)
+            else:
+                print("Driving To: " + str(left) + ", " + str(right))
+                drive.send_drive(left, right)
 
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
