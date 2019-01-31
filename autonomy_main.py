@@ -9,9 +9,9 @@ from drivers.rovecomm import RoveComm
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 from algorithms.objecttracking import ObjectTracker
-import algorithms.followBall
-import algorithms.gps_navigate as gps_nav
 from algorithms.gps_navigate import GPSData
+import algorithms.followBall as follow_ball
+import algorithms.gps_navigate as gps_nav
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -33,9 +33,7 @@ def add_waypoint_handler(packet_contents):
 
 
 def enable_autonomy(packet_contents):
-    print("What's happening? ")
     print(state_switcher.state)
-    print("Seriously")
     if state_switcher.state == rs.Idle():
         state_switcher.handle_event(rs.AutonomyEvents.START, then=logging.info("Enabling Autonomy"))
         set_gps_waypoint()
@@ -67,6 +65,7 @@ def set_gps_waypoint():
     gps_data.start = nav_board.location()
 
 
+# Define the callbacks to execute when rovecomm recieves the command
 rovecomm_node.callbacks[constants.DataID.ENABLE_AUTONOMY] = enable_autonomy
 rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
@@ -77,6 +76,8 @@ drive.enable()
 
 while True:
 
+    # GPS Navigation:
+    # Travel Point to Point (P2P) from the current GPS to the target given from Basestation
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
@@ -90,6 +91,9 @@ while True:
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         drive.send_drive(left, right)
 
+
+    # Search Pattern:
+    # Travel in a defined pattern to find the target object, the tennis ball
     elif state_switcher.state == rs.Searching():
         logging.info("Reached vision range, searching for marker...")
         ball_in_frame, center, radius = tracker.track_ball()
@@ -98,10 +102,13 @@ while True:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
             print("Throwing MARKER_SIGHTED")
 
+
+    # Approach Marker:
+    # Travel to the found object
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            (left, right), distance = algorithms.followBall.drive_to_marker(50, drive, center, radius)
+            (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
 
             if distance < .5:
                 state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
