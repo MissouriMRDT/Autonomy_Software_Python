@@ -66,7 +66,7 @@ class ApproachingMarker(RoverState):
     def handle_event(self, event, then=None):
 
         if event == AutonomyEvents.REACHED_MARKER:
-            return Navigating()
+            return Idle()
         elif event == AutonomyEvents.MARKER_UNSEEN:
             return Searching()
         elif event == AutonomyEvents.ABORT:

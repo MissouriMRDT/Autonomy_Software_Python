@@ -10,11 +10,11 @@ from drivers.rovecomm import RoveComm
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 from algorithms.objecttracking import ObjectTracker
-import algorithms.followBall
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
+import algorithms.followBall as follow_ball
 
 # Hardware Setup
 rovecomm_node = RoveComm()
@@ -36,9 +36,7 @@ def add_waypoint_handler(packet_contents):
 
 
 def enable_autonomy(packet_contents):
-    print("What's happening? ")
     print(state_switcher.state)
-    print("Seriously")
     if state_switcher.state == rs.Idle():
         state_switcher.handle_event(rs.AutonomyEvents.START, then=logging.info("Enabling Autonomy"))
         set_gps_waypoint()
@@ -70,13 +68,17 @@ def set_gps_waypoint():
     gps_data.start = nav_board.location()
 
 
+# Define the callbacks to execute when rovecomm recieves the command
 rovecomm_node.callbacks[constants.DataID.ENABLE_AUTONOMY] = enable_autonomy
 rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
+
 while True:
 
+    # GPS Navigation:
+    # Travel Point to Point (P2P) from the current GPS to the target given from Basestation
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
@@ -86,8 +88,15 @@ while True:
             gps_data.goal = nav_board.location()
             print("Throwing REACHED_GPS_COORDINATE")
 
-        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+            drive.send_drive(0, 0)
+            break
 
+        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+        drive.send_drive(left, right)
+
+
+    # Search Pattern:
+    # Travel in a defined pattern to find the target object, the tennis ball
     elif state_switcher.state == rs.Searching():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
@@ -100,16 +109,26 @@ while True:
         ball_in_frame, center, radius = tracker.track_ball()
 
         if ball_in_frame:
+            drive.send_drive(0, 0)
             logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
             print("Throwing MARKER_SIGHTED")
 
         drive.send_drive(left, right)
 
+    # Approach Marker:
+    # Travel to the found object
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
         if ball_in_frame:
-            left, right, distance = algorithms.followBall.drive_to_marker(drive, tracker, center, radius)
+            (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
+
+            if distance < .5:
+                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
+                drive.send_drive(0, 0)
+            else:
+                print("Driving To: " + str(left) + ", " + str(right))
+                drive.send_drive(left, right)
 
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
@@ -121,4 +140,3 @@ while True:
 
     time.sleep(1)
     print(state_switcher.state)
-

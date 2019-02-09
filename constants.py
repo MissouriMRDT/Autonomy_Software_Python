@@ -8,7 +8,7 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = 25  # percent
+DRIVE_POWER = 200  # -1000 to 1000
 
 SEARCH_DISTANCE = 1
 DELTA_THETA = math.pi / 2
@@ -17,6 +17,7 @@ DELTA_THETA = math.pi / 2
 VISION_RANGE = 0.007  # kilometers
 
 Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
+
 
 # RoveComm Autonomy Control DataIDs
 class DataID(IntEnum):
