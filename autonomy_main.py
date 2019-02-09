@@ -12,7 +12,7 @@ from drivers.nav_board import NavBoard
 from algorithms.objecttracking import ObjectTracker
 import algorithms.followBall
 import algorithms.gps_navigate as gps_nav
-import algorithms.marker_search
+import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
 
@@ -75,49 +75,36 @@ rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
-search_origin = 0
-goal = 0
-
 while True:
 
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
-                                        then=logging.info("GPS coordinate reached"))
+                                        then=logging.info("GPS coordinate reached"))           
+            gps_data.start = nav_board.location()
+            gps_data.goal = nav_board.location()
             print("Throwing REACHED_GPS_COORDINATE")
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
-        search_origin = goal
 
     elif state_switcher.state == rs.Searching():
+        goal, start = gps_data.data()
+        if gps_nav.reached_goal(goal, nav_board.location(), start):
+            new_goal = marker_search.calculate_next_coordinate(start, nav_board.location())
+            gps_data.goal = new_goal
 
-        logging.info("Reached vision range, searching for marker...")
+        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+
+        logging.info("...searching for marker...")
         ball_in_frame, center, radius = tracker.track_ball()
 
-        # Archimedes spiral of the form r = (path_diff)(angle)
-        angle_diff = 10  # amount to increment angle
-        path_diff = 20  # determines distance between each cycle
-        angle = 0  # initial angle is 0 degrees/radians
+        if ball_in_frame:
+            logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
+            state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
+            print("Throwing MARKER_SIGHTED")
 
-        while not ball_in_frame:
-            angle += angle_diff  # determine next polar angle
-            radius = path_diff * angle  # calculate next r using polar equation
-            x = radius * math.cos(angle)  # convert r, theta into x, y
-            y = radius * math.sin(angle)
-
-            # convert x, y into lat, long by considering distances from previous point
-            goal.lat += x
-            goal.lon += y
-
-            # drive to next point
-            gps_nav.calculate_move(goal, nav_board.location(), search_origin, drive, nav_board)
-
-            ball_in_frame, center, radius = tracker.track_ball()
-
-        logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-        state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
-        print("Throwing MARKER_SIGHTED")
+        drive.send_drive(left, right)
 
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
