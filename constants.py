@@ -10,7 +10,7 @@ RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 DRIVE_POWER = 200  # -1000 to 1000
 
-SEARCH_DISTANCE = 1
+SEARCH_DISTANCE = 0.02
 DELTA_THETA = math.pi / 2
 
 # Range at which we switch from GPS to optical tracking
