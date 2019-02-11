@@ -100,10 +100,8 @@ while True:
     elif state_switcher.state == rs.Searching():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
-            new_goal = marker_search.calculate_next_coordinate(start, nav_board.location())
-            gps_data.goal = new_goal
-
-        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
+            goal = marker_search.calculate_next_coordinate(start, nav_board.location())
+            gps_data.goal = goal
 
         logging.info("...searching for marker...")
         ball_in_frame, center, radius = tracker.track_ball()
@@ -113,7 +111,9 @@ while True:
             logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
             print("Throwing MARKER_SIGHTED")
+            break
 
+        left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         drive.send_drive(left, right)
 
     # Approach Marker:
