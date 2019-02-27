@@ -41,7 +41,6 @@ class ObjectTracker(object):
         self.ball_in_frame = False
 
         (grabbed, frame) = self.camera.read()
-        cir = frame.copy()
 
         if grabbed:
             cv2.waitKey(10)

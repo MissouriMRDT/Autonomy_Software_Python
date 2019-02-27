@@ -6,9 +6,9 @@ import math
 
 import rover_states as rs
 import constants
-from drivers.rovecomm import RoveComm
+from drivers.rovecomm import RoveCommEthernetUdp
 from drivers.drive_board import DriveBoard
-from drivers.nav_board import NavBoard
+#from drivers.nav_board import NavBoard
 from algorithms.objecttracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
@@ -17,9 +17,9 @@ import algorithms.geomath as geomath
 import algorithms.followBall as follow_ball
 
 # Hardware Setup
-rovecomm_node = RoveComm()
-drive = DriveBoard(rovecomm_node)
-nav_board = NavBoard(rovecomm_node)
+rovecomm_node = RoveCommEthernetUdp()
+drive = DriveBoard()
+#nav_board = NavBoard(rovecomm_node)
 
 state_switcher = rs.StateSwitcher()
 waypoints = queue.Queue()
@@ -74,6 +74,7 @@ rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
+state_switcher.state = rs.ApproachingMarker()
 
 while True:
 
@@ -125,10 +126,10 @@ while True:
 
             if distance < .5:
                 state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
-                drive.send_drive(0, 0)
+                rovecomm_node.write(drive.send_drive(0, 0))
             else:
                 print("Driving To: " + str(left) + ", " + str(right))
-                drive.send_drive(left, right)
+                rovecomm_node.write(drive.send_drive(left, right))
 
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,

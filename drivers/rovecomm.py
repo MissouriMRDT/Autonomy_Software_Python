@@ -1,165 +1,135 @@
 import socket
 import struct
 import threading
-import logging
 
-PORT = 11000
-VERSION = 1
-HEADER_FORMAT = ">BHBHH"
+ROVECOMM_PORT = 11000
+ROVECOMM_VERSION = 2
+ROVECOMM_HEADER_FORMAT = ">BHBB"
 
-# Flag bit fields
-ACK_FLAG = 0x01
+ROVECOMM_PING_REQUEST = 1
+ROVECOMM_PING_REPLY = 2
+ROVECOMM_SUBSCRIBE_REQUEST = 3
+ROVECOMM_UNSUBSCRIBE_REQUEST = 4
+ROVECOMM_INCOMPATIBLE_VERSION = 5
 
-# Special Data IDs
-PING = 1
-PING_REPLY = 2
-SUBSCRIBE = 3
-UNSUBSCRIBE = 4
-FORCE_UNSUBSCRIBE = 5
-ACK = 6
+types_int_to_byte = {
+    0: 'b',
+    1: 'B',
+    2: 'h',
+    3: 'H',
+    4: 'l',
+    5: 'L',
+}
+
+types_byte_to_int = {
+    'b': 0,
+    'B': 1,
+    'h': 2,
+    'H': 3,
+    'l': 4,
+    'L': 5,
+}
 
 
-class RoveComm(object):
-    """
-    RoveComm message sender and receiver
-    Example:
-        from rovecomm import RoveComm
-        import struct
-        import time
-        import random
+class RoveCommPacket:
+    def __init__(self, data_id=0, data_type='b', data=(), ip_octet_4='', port=ROVECOMM_PORT):
+        self.data_id = data_id
+        self.data_type = data_type
+        self.data_count = len(data)
+        self.data = data
+        if (ip_octet_4 != ''):
+            self.ip_address = ('192.168.1.' + ip_octet_4, port)
+        else:
+            self.ip_address = ('0.0.0.0', port)
+        return
 
-        def set_speed_handler(contents):
-            # Contents are typically C style structs
-            # ">HH" is a format code for two uint16_t
-            # See python's documentation for struct.unpack
-            # for more info about format codes
-            # And working with C style structs from python
-            speed_left, speed_right = struct.unpack(">HH", contents)
-            print "Speed set to %d, %d" % (speed_left, speed_right)
+    def SetIp(self, address):
+        self.ip_address = (address, self.ip_address[1])
 
-        def add_waypoint_handler(contents):
-            latitude, longitude = struct.unpack(">dd")
-            print "Added waypoint (%f, %f) " % (latitude, longitude)
+    def print(self):
+        print('----------')
+        print('{0:6s} {1}'.format('ID:', self.data_id))
+        print('{0:6s} {1}'.format('Type:', self.data_type))
+        print('{0:6s} {1}'.format('Count:', self.data_count))
+        print('{0:6s} {1}'.format('IP:', self.ip_address))
+        print('{0:6s} {1}'.format('Data:', self.data))
+        print('----------')
 
-        rovecomm_node = RoveComm()
 
-        # use RoveComm.callbacks to define what code should
-        # run when a message is received.
-        # Here we assign data id 138 to set_speed_handler
-        # and data id 267 to add_waypoint_handler
-        rovecomm_node.callbacks[138] = set_speed_handler
-        rovecomm_node.callbacks[267] = add_waypoint_handler
-
-        # Now you can do the rest of your program
-        while True:
-            my_telemetry = random.random()
-            rovecomm_node.send(data_id = 138,
-                               contents = struct.pack(my_telemetry, 'f'),
-                               destination_ip = "192.168.1.20")
-            time.sleep(5)
-    """
-
-    def __init__(self):
-        self.callbacks = {}
+class RoveCommEthernetUdp:
+    def __init__(self, port=ROVECOMM_PORT):
+        self.rove_comm_port = port
         self.subscribers = []
 
+        self.callbacks = {}
+
+        self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
+        self.RoveCommSocket.setblocking(False)
+        self.RoveCommSocket.bind(("", self.rove_comm_port))
+
+        self.thread = threading.Thread(target=self.listen)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def write(self, packet):
+
         try:
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self._socket.bind(("", PORT))
-        except socket.error:
-            raise Exception("Error: Could not claim port. "
-                            "Either another program or another copy or rovecomm"
-                            "is using port %d " % PORT)
+            if not isinstance(packet.data, tuple):
+                raise ValueError('Must pass data as a list, Data: ' + str(packet.data))
 
-        # start a thread to get messages in the background
-        self._monitoring_thread = threading.Thread(target=self._listen_thread)
-        self._monitoring_thread.daemon = True
-        self._monitoring_thread.start()
+            rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
+                                          types_byte_to_int[packet.data_type])
+            for i in packet.data:
+                rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
-    def send(self, data_id, contents):
-        """
-        Send a RoveComm formatted message to everyone subscribed
-        Parameters
-        -----------
-            data_id        : RoveComm Data ID. 16-bit integer.
-            contents       : bytes to send
-        """
-        for subscriber in self.subscribers:
-            self.send_to(data_id, contents, subscriber)
+            for subscriber in self.subscribers:
+                self.RoveCommSocket.sendto(rovecomm_packet, subscriber)
 
-    def subscribe(self, destination_ip):
-        """
-        Ask to receive messages from another device
-        """
-        self.send_to(SUBSCRIBE, bytes("", "utf8"), destination_ip)
+            if packet.ip_address != ('0.0.0.0', 0):
+                self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
+                return 1
+        except:
+            return 0
 
-    def unsubscribe(self, destination_ip):
-        """
-        Stop receiving messages from another device
-        """
-        self.send_to(UNSUBSCRIBE, bytes("", "utf8"), destination_ip)
+    def read(self):
 
-    def send_to(self, data_id, contents, destination_ip, seq_num=0x0F49, flags=0x00, port=PORT):
-        """
-        Send a RoveComm formatted message to a specific address
-        Used internally
-        Parameters
-        -----------
-            data_id        : RoveComm Data ID. 16-bit integer.
-            contents           : bytes to send
-            destination_ip : IP address to send to. String formatted like "192.168.1.1"
-            The following parameters are optional and not commonly used:
-            seq_num        : 16 bit sequence number. Not commonly used.
-            port           : Port number. 2 byte unsigned integer
-            flags          : Bit addressable field. OR all ack flags together
-        """
-        
-        packet_size = len(contents)
-        header = self._header(data_id, packet_size, seq_num, flags)
-        data = bytes(header) + contents
-        self._send_to_bytes(data, destination_ip, port)
+        try:
+            packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
+            header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
 
-    @staticmethod
-    def _header(data_id, packet_size, seq_num=0x0F49, flags=0x00):
-        return struct.pack(HEADER_FORMAT,
-                           VERSION,
-                           seq_num,
-                           flags,
-                           data_id,
-                           packet_size)
+            rovecomm_version, data_id, data_count, data_type = struct.unpack(
+                ROVECOMM_HEADER_FORMAT, packet[0:header_size])
+            data = packet[header_size:]
 
-    def _send_to_bytes(self, data, destination_ip, port=PORT):
-        self._socket.sendto(data, (destination_ip, port))
+            if rovecomm_version != 2:
+                return_packet = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
+                return_packet.ip_address = remote_ip
+                return return_packet
 
-    def _listen_thread(self):
+            if data_id == ROVECOMM_SUBSCRIBE_REQUEST:
+                if self.subscribers.count(remote_ip == 0):
+                    self.subscribers.append(remote_ip)
+            elif data_id == ROVECOMM_UNSUBSCRIBE_REQUEST:
+                if self.subscribers.count(remote_ip) != 0:
+                    self.subscribers.remove(remote_ip)
+
+            data_type = types_int_to_byte[data_type]
+            data = struct.unpack('>' + data_type * data_count, data)
+
+            return_packet = RoveCommPacket(data_id, data_type, data, '')
+            return_packet.ip_address = remote_ip
+            return return_packet
+
+        except:
+            return_packet = RoveCommPacket()
+            return return_packet
+
+    def listen(self):
+
         while True:
-            packet, sender = self._socket.recvfrom(1024)
-            # logging.debug("Packet received: %s" % packet)
+            packet = RoveCommEthernetUdp.read(self)
 
-            # Parse the message header
-            header_length = struct.calcsize(HEADER_FORMAT)
-            header_bytes = packet[0:header_length]
-            content_bytes = packet[header_length:]
-            (version, seq_num, flags, data_id, size) = struct.unpack(HEADER_FORMAT, header_bytes)
-
-            # Check for special features, like pings and acknowledgements
-            if flags & ACK_FLAG:
-                self.send_to(ACK, contents=data_id, destination_ip=sender)
-
-            if data_id == PING:
-                self.send_to(PING_REPLY, contents=struct.pack(">H", seq_num), destination_ip=sender)
-            elif data_id == SUBSCRIBE:
-                self.subscribers.append(sender[0])
-            elif data_id == UNSUBSCRIBE:
-                try:
-                    self.subscribers.remove(sender)
-                except ValueError:
-                    logging.warning("%s tried to unsubscribe, but wasn't subscribed in the first place" % sender)
-
-            # No special features needed? Good. Just a normal packet.
-            else:
-                try:
-                    self.callbacks[data_id](content_bytes)
-                except KeyError:
-                    pass
-                    # logging.debug("No callback assigned for data id %d" % data_id)
+            try:
+                self.callbacks[packet.data_id](packet.data)
+            except KeyError:
+                pass
