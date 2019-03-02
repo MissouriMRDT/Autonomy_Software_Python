@@ -71,6 +71,9 @@ class RoveCommEthernetUdp:
         self.thread.daemon = True
         self.thread.start()
 
+    def subscribe(self, ip_octet):
+        self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
+
     def write(self, packet):
 
         try:

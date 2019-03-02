@@ -8,7 +8,7 @@ import rover_states as rs
 import constants
 from drivers.rovecomm import RoveCommEthernetUdp
 from drivers.drive_board import DriveBoard
-#from drivers.nav_board import NavBoard
+from drivers.nav_board import NavBoard
 from algorithms.objecttracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
@@ -19,7 +19,7 @@ import algorithms.followBall as follow_ball
 # Hardware Setup
 rovecomm_node = RoveCommEthernetUdp()
 drive = DriveBoard()
-#nav_board = NavBoard(rovecomm_node)
+nav_board = NavBoard(rovecomm_node)
 
 state_switcher = rs.StateSwitcher()
 waypoints = queue.Queue()
