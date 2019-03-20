@@ -4,7 +4,7 @@ import cv2
 
 class ObjectTracker(object):
     def __init__(self):
-        self.GREEN_LOWER = np.array((50, 75, 75))
+        self.GREEN_LOWER = np.array((75, 100, 100))
         self.GREEN_UPPER = np.array((255, 255, 255))
         self.MIN_RADIUS = 10
         self.FRAME_RATE = 10

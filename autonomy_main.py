@@ -75,6 +75,9 @@ rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
 state_switcher.state = rs.ApproachingMarker()
+drive.enable()
+
+time.sleep(5)
 
 while True:
 

@@ -2,7 +2,7 @@ import struct
 from drivers.rovecomm import RoveCommPacket
 import constants
 
-DRIVE_BOARD_IP = "132"
+DRIVE_BOARD_IP = "134"
 DRIVE_DATA_ID = 1000
 
 
@@ -44,7 +44,7 @@ class DriveBoard:
         return 0, 0
 
     def send_drive(self, target_left, target_right):
-        return RoveCommPacket(DRIVE_DATA_ID, 'H', (target_left, target_right), ip_octet_4=DRIVE_BOARD_IP)
+        return RoveCommPacket(DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=DRIVE_BOARD_IP)
 
     def disable(self):
         self.enabled = False
