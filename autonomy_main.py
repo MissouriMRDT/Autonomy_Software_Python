@@ -128,8 +128,8 @@ while True:
             (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
 
             if distance < .5:
-                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
                 rovecomm_node.write(drive.send_drive(0, 0))
+                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
             else:
                 print("Driving To: " + str(left) + ", " + str(right))
                 rovecomm_node.write(drive.send_drive(left, right))
@@ -142,5 +142,5 @@ while True:
     elif state_switcher.state == rs.Shutdown():
         pass
 
-    time.sleep(1)
+    time.sleep(.1)
     print(state_switcher.state)
