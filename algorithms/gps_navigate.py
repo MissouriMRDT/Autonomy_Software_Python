@@ -31,13 +31,13 @@ def reached_goal(goal, location, start):
 
 def calculate_move(goal, location, start, drive_board, nav_board):
 
-    #(target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
-
+    (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
+    # The Haversine stuff works, reliably. Please let's use it instead.
     # Crosstrack Correction as linear
     #(xte_bearing, xte_dist) = geomath.crosstrack_error_vector(start, goal, location)
 
     #goal_heading = geomath.weighted_average_angles([target_heading, xte_bearing], [1 - XTE_STRENGTH, XTE_STRENGTH])
-
+    """
     dx = goal.lon - location.lon
     dy = goal.lat - location.lat
 
@@ -59,10 +59,14 @@ def calculate_move(goal, location, start, drive_board, nav_board):
     print(c)
 
     speed = 150
-
+    
     if c < .9:
         speed = int(speed * c) + 10
-
+    """
+    speed = 150
+    if target_distance < 0.01:
+        speed = int(speed * target_distance * 10) + 10
+    goal_heading = target_heading
     return hh.get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board)
 
 

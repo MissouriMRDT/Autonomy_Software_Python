@@ -4,7 +4,7 @@ import constants
 
 DRIVE_BOARD_IP = "134"
 DRIVE_DATA_ID = 1000
-
+#left/right between -1000,1000
 
 def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)

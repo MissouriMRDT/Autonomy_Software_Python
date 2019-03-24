@@ -37,7 +37,7 @@ class RoveCommPacket:
         self.data_type = data_type
         self.data_count = len(data)
         self.data = data
-        if (ip_octet_4 != ''):
+        if ip_octet_4 != '':
             self.ip_address = ('192.168.1.' + ip_octet_4, port)
         else:
             self.ip_address = ('0.0.0.0', port)

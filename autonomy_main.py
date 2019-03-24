@@ -29,7 +29,9 @@ tracker = ObjectTracker()
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
-    latitude, longitude = struct.unpack("<dd", packet_contents)
+    latitude, longitude = packet_contents.data # this might be right, Sarah check it against rovecomm.
+    # we're taking the data, unpacking it into data, then returning it as a packet directed to ourselves.
+    # we don't pack it up again though since it's an internal packet and we don't send it through write.
     waypoint = constants.Coordinate(latitude, longitude)
     waypoints.put(waypoint)
     print("Added waypoint %s" % (waypoint,))
@@ -87,7 +89,7 @@ while True:
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
-                                        then=logging.info("GPS coordinate reached"))           
+                                        then=logging.info("GPS coordinate reached"))
             gps_data.start = nav_board.location()
             gps_data.goal = nav_board.location()
             print("Throwing REACHED_GPS_COORDINATE")

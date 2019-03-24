@@ -12,7 +12,7 @@ def calculate_next_coordinate(start, current):
     theta = r / constants.SEARCH_DISTANCE
 
     # Add delta theta to calculate new point with
-    theta += constants.DELTA_THETA
+    theta += constants.DELTA_THETA # We should definitely decrease theta from math.pi/2 to pi/4, pi/6 or even pi/8
 
     r = constants.SEARCH_DISTANCE * theta
 

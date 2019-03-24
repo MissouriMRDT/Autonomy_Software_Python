@@ -6,7 +6,7 @@ import threading
 
 from math import sqrt, atan2, asin, degrees, radians
 
-
+#this is being handled on NavBoard currently, do not use.
 class Quaternion(object):
 
     # Class provides sensor fusion allowing heading, pitch and roll to be extracted. This uses the Madgwick algorithm.

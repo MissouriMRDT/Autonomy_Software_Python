@@ -8,7 +8,7 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = 200  # -1000 to 1000
+DRIVE_POWER = 100  # -1000 to 1000, normally 200 dropped lower for early testing to be safe
 
 SEARCH_DISTANCE = 0.02
 DELTA_THETA = math.pi / 2
@@ -21,8 +21,8 @@ Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
 
 # RoveComm Autonomy Control DataIDs
 class DataID(IntEnum):
-    ENABLE_AUTONOMY = 2576
-    DISABLE_AUTONOMY = 2577
-    ADD_WAYPOINT = 2578
-    CLEAR_WAYPOINTS = 2579
-    WAYPOINT_REACHED = 2580
+    ENABLE_AUTONOMY = 11100
+    DISABLE_AUTONOMY = 11101
+    ADD_WAYPOINT = 11102
+    CLEAR_WAYPOINTS = 11103
+    WAYPOINT_REACHED = 11104
