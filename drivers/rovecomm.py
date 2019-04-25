@@ -131,8 +131,7 @@ class RoveCommEthernetUdp:
 
         while True:
             packet = RoveCommEthernetUdp.read(self)
-
             try:
-                self.callbacks[packet.data_id](packet.data)
+                self.callbacks[packet.data_id](packet)
             except KeyError:
                 pass

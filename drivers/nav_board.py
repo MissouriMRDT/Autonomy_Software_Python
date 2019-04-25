@@ -24,10 +24,10 @@ class NavBoard:
         self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
         self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
 
-    def process_pitch_data(self, packet):
-        #self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
-        self._heading = packet.data[0] #Should be 1, but current NavBoard implementation is 0.
-        #self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
+    def process_imu_data(self, packet):
+        self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
+        self._heading = packet.data[1] #Should be 1, but current NavBoard implementation is 0.
+        self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
