@@ -11,8 +11,8 @@ class ObjectTracker(object):
         self.ball_in_frame = None
         self.center = None
         self.radius = None
-        self.circle = np.array([[[375, 52]], [[232, 84]], [[138, 200]], [[162, 337]], [[226, 403]], [[286, 427]],
-                                [[415, 407]], [[475, 359]], [[511, 293]], [[503, 156]], [[453, 90]]])
+        # self.circle = np.array([[[375, 52]], [[232, 84]], [[138, 200]], [[162, 337]], [[226, 403]], [[286, 427]],
+                                # [[415, 407]], [[475, 359]], [[511, 293]], [[503, 156]], [[453, 90]]])
 
         # connects cameras, creates file
         try:
@@ -53,9 +53,9 @@ class ObjectTracker(object):
         mask = cv2.erode(mask, None, iterations=2)
         mask = cv2.dilate(mask, None, iterations=2)
 
-        contours = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        contour = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
-        canny = cv2.Canny(mask, 20, 200)
+        """canny = cv2.Canny(mask, 20, 200)
 
         cv2.imshow("Canny", canny)
 
@@ -83,7 +83,19 @@ class ObjectTracker(object):
             self.center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
             cv2.circle(frame, (int(x), int(y)), int(self.radius), (0, 255, 255), 2)
+            cv2.circle(frame, self.center, 5, (0, 0, 255), -1)"""
+
+        if len(contour) > 0:
+            self.ball_in_frame = True
+            largest_contour = max(contour, key=cv2.contourArea)
+            ((x, y), self.radius) = cv2.minEnclosingCircle(largest_contour)
+            M = cv2.moments(largest_contour)
+            self.center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+
+        if self.radius > self.MIN_RADIUS:
+            cv2.circle(frame, (int(x), int(y)), int(self.radius), (0, 255, 255), 2)
             cv2.circle(frame, self.center, 5, (0, 0, 255), -1)
+
 
             cv2.imshow("Auto", frame)
 
@@ -98,7 +110,7 @@ if __name__ == '__main__':
     tracker = ObjectTracker()
     while True:
         ball_in_frame, center, radius = tracker.track_ball()
-        if ball_in_frame:
+        if (ball_in_frame) and (radius > 0) :
             print("Ball found at %s, distance %s" % (center, 1.0/radius))
         else:
             print("No ball found")
