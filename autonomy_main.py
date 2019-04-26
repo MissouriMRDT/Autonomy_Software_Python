@@ -9,7 +9,9 @@ import constants
 from drivers.rovecomm import RoveCommEthernetUdp
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
-from algorithms.objecttracking import ObjectTracker
+# from algorithms.objecttracking import ObjectTracker
+# from algorithms.ColorBasedTracking import ObjectTracker
+from algorithms.CannyTracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData

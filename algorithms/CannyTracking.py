@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import time
 
 
 class ObjectTracker(object):
@@ -27,7 +28,7 @@ class ObjectTracker(object):
             print("Frame capture failed")
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video_filename = "objtracker.avi"
+        video_filename = "objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # save videos to unique files
         # "'logs/objtracker_%s.avi'" % time.strftime("%Y%m%d-%H%M%S") -- logs name, logs created in main
         print(video_filename)
         self.video_out = cv2.VideoWriter(video_filename, fourcc, self.FRAME_RATE, (640, 480))
@@ -43,11 +44,14 @@ class ObjectTracker(object):
         (grabbed, frame) = self.camera.read()
 
         if grabbed:
-            cv2.waitKey(10)
+            cv2.waitKey(1) # need an argument of anything or it hangs here, 1 is the shortest possible wait
+            self.video_out.write(frame) # write raw frame to video file
         else:
             print("Frame capture failed")
 
-        hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        # cv2.imshow("hsv", hsv)
+        hsv = cv2.cvtColor(hsv, cv2.COLOR_RGB2HSV)
         # cv2.imshow("hsv", hsv)
         mask = cv2.inRange(hsv, self.GREEN_LOWER, self.GREEN_UPPER)
         # cv2.imshow("mask", mask)
@@ -89,7 +93,7 @@ class ObjectTracker(object):
             cv2.imshow("Canny", canny)
             cv2.imshow("Auto", frame)
 
-            self.video_out.write(frame)
+            # self.video_out.write(frame) # leave this commented for now so we can get a raw stream instead of one with the tennis ball match circle
 
             return self.ball_in_frame, self.center, self.radius
 

@@ -35,7 +35,7 @@ self._pitch = packet.data[0] #leave these alone for now, early testing will be h
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
-        lon, lat =
+        lon, lat = packet.data
         lat = lat * 1e-7
         lon = -lon * 1e-7
         self._location = constants.Coordinate(lat, lon)
