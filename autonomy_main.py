@@ -144,11 +144,12 @@ while True:
     elif state_switcher.state == rs.Shutdown():
         pass
 
+    # Idle:
+    # while in the Idle state, check to see if we have a waypoint.
     elif state_switcher.state == rs.Idle():
-        """
         if waypoints:
-            set_gps_waypoint() # attempting to ensure we're actually grabbing a new waypoint from the waypoint queue during task without requiring a disable/enable command pair.
-        """
+            set_gps_waypoint()
+        
 
     time.sleep(.1)
     print(state_switcher.state)
