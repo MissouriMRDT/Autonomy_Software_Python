@@ -1,5 +1,5 @@
 import time
-import queue
+from collections import deque
 import logging
 import struct
 import math
@@ -22,18 +22,16 @@ drive = DriveBoard()
 nav_board = NavBoard(rovecomm_node)
 
 state_switcher = rs.StateSwitcher()
-waypoints = queue.Queue()
+waypoints = deque()
 gps_data = GPSData()
 tracker = ObjectTracker()
 
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
-    latitude, longitude = packet_contents.data # this might be right, Sarah check it against rovecomm.
-    # we're taking the data, unpacking it into data, then returning it as a packet directed to ourselves.
-    # we don't pack it up again though since it's an internal packet and we don't send it through write.
+    latitude, longitude = packet_contents.data
     waypoint = constants.Coordinate(latitude, longitude)
-    waypoints.put(waypoint)
+    waypoints.append(waypoint)
     print("Added waypoint %s" % (waypoint,))
 
 
@@ -59,13 +57,13 @@ def disable_autonomy(packet_contents):
 
 def clear_waypoint_handler(packet_contents):
     global waypoints
-    waypoints = queue.Queue()
+    waypoints = deque()
     logging.info("Waypoints Cleared")
 
 
 def set_gps_waypoint():
     global gps_data
-    current_goal = waypoints.get_nowait()
+    current_goal = waypoints.popleft()
     gps_data.goal = current_goal
     gps_data.start = nav_board.location()
 
@@ -79,7 +77,7 @@ rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handl
 #state_switcher.state = rs.ApproachingMarker()
 #drive.enable()
 
-time.sleep(5)
+time.sleep(2)
 
 while True:
 
@@ -95,7 +93,7 @@ while True:
             print("Throwing REACHED_GPS_COORDINATE")
 
             rovecomm_node.write(drive.send_drive(0, 0))
-            break
+            continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         rovecomm_node.write(drive.send_drive(left, right))
@@ -109,7 +107,7 @@ while True:
             goal = marker_search.calculate_next_coordinate(start, nav_board.location())
             gps_data.goal = goal
 
-        logging.info("...searching for marker...")
+        print("...searching for marker...")
         ball_in_frame, center, radius = tracker.track_ball()
 
         if ball_in_frame:
@@ -117,7 +115,7 @@ while True:
             logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED)
             print("Throwing MARKER_SIGHTED")
-            break
+            continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         rovecomm_node.write(drive.send_drive(left, right))
@@ -126,12 +124,14 @@ while True:
     # Travel to the found object
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
+        print("Ball Radius: " + str(radius))
         if ball_in_frame:
             (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
 
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, then=logging.info("Reached Marker"))
+                continue
             else:
                 print("Driving To: " + str(left) + ", " + str(right))
                 rovecomm_node.write(drive.send_drive(left, right))

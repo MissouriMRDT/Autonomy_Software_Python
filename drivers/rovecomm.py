@@ -19,6 +19,8 @@ types_int_to_byte = {
     3: 'H',
     4: 'l',
     5: 'L',
+    6: 'q', # int64
+    7: 'd', # double
 }
 
 types_byte_to_int = {
@@ -28,6 +30,8 @@ types_byte_to_int = {
     'H': 3,
     'l': 4,
     'L': 5,
+    'q': 6, # int64
+    'd': 7, # double
 }
 
 
@@ -64,7 +68,7 @@ class RoveCommEthernetUdp:
         self.callbacks = {}
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
-        self.RoveCommSocket.setblocking(False)
+        self.RoveCommSocket.setblocking(True)
         self.RoveCommSocket.bind(("", self.rove_comm_port))
 
         self.thread = threading.Thread(target=self.listen)
@@ -104,6 +108,7 @@ class RoveCommEthernetUdp:
                 ROVECOMM_HEADER_FORMAT, packet[0:header_size])
             data = packet[header_size:]
 
+
             if rovecomm_version != 2:
                 return_packet = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
                 return_packet.ip_address = remote_ip
@@ -130,8 +135,9 @@ class RoveCommEthernetUdp:
     def listen(self):
 
         while True:
-            packet = RoveCommEthernetUdp.read(self)
+            print("yo")
+            packet = self.read()
             try:
                 self.callbacks[packet.data_id](packet)
-            except KeyError:
+            except:
                 pass
