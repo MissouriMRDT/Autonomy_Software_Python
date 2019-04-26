@@ -19,7 +19,7 @@ types_int_to_byte = {
     3: 'H',
     4: 'l',
     5: 'L',
-    6: 'q', # int64
+    6: 'q', # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
     7: 'd', # double
 }
 
