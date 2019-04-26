@@ -15,6 +15,7 @@ class NavBoard:
         self._heading = 0
         self._location = constants.Coordinate(0, 0)
         self._distToGround = 0
+        self._lidarEnabled = 0 # int 1/0 for enabled/disabled to determine whether to use the data.
 
         self.rove_comm_node = rove_comm
 
@@ -25,20 +26,22 @@ class NavBoard:
         self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
 
     def process_imu_data(self, packet):
-        self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
+        self._pitch, self._heading, self._roll = packet.data
+        """        
+self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
         self._heading = packet.data[1] #Should be 1, but current NavBoard implementation is 0.
         self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
+        """
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
-        lon = packet.data[0]
-        lat = packet.data[1]
+        lon, lat =
         lat = lat * 1e-7
         lon = -lon * 1e-7
         self._location = constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround = packet.data[0]
+        self._distToGround, self._lidarEnabled = packet.data # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch

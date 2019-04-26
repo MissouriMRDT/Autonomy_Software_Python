@@ -56,7 +56,7 @@ class DriveBoard:
 if __name__ == '__main__':
     motors = DriveBoard()
     motors.enable()
-    for i in range(-180, 180):
+    for i in range(-180, 181):
         left, right = motors.calculate_move(100, 0)
         motors.send_drive(left, right)
         print(left, right)

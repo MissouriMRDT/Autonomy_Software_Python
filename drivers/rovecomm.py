@@ -135,7 +135,7 @@ class RoveCommEthernetUdp:
     def listen(self):
 
         while True:
-            print("yo")
+            # print("yo")
             packet = self.read()
             try:
                 self.callbacks[packet.data_id](packet)
