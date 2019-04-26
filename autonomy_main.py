@@ -88,6 +88,13 @@ while True:
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
         if gps_nav.reached_goal(goal, nav_board.location(), start):
+
+            # If there are more points, set the new one and start from top
+            if waypoints.count > 0:
+                print("Reached mid point!")
+                set_gps_waypoint()
+                continue
+
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE,
                                         then=logging.info("GPS coordinate reached"))
             gps_data.start = nav_board.location()
@@ -145,13 +152,6 @@ while True:
 
     elif state_switcher.state == rs.Shutdown():
         pass
-
-    # Idle:
-    # while in the Idle state, check to see if we have a waypoint.
-    elif state_switcher.state == rs.Idle():
-        if waypoints:
-            set_gps_waypoint()
-        
 
     time.sleep(.1)
     print(state_switcher.state)
