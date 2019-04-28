@@ -2,14 +2,14 @@ from drivers.rovecomm import RoveCommEthernetUdp
 import constants
 import time
 
-NAV_IP_ADDRESS = "140"
+NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
 IMU_DATA_ID = 5101
 LIDAR_DATA_ID = 5102
 
 
 class NavBoard:
-    def __init__(self, rove_comm):
+    def __init__(self, rove_comm, filename):
         self._pitch = 0
         self._roll = 0
         self._heading = 0
@@ -24,6 +24,7 @@ class NavBoard:
         self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
         self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
         self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
+        self.loggingFile = filename # see CannyTracking to add logging
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
@@ -38,6 +39,7 @@ self._pitch = packet.data[0] #leave these alone for now, early testing will be h
         lon, lat = packet.data
         lat = lat * 1e-7
         lon = -lon * 1e-7
+        print(self._location)
         self._location = constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):

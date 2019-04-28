@@ -63,10 +63,11 @@ def calculate_move(goal, location, start, drive_board, nav_board):
     if c < .9:
         speed = int(speed * c) + 10
     """
-    speed = 150
+    speed = 200
     if target_distance < 0.01:
         speed = int(speed * target_distance * 10) + 10
     goal_heading = target_heading
+    print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
     return hh.get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board)
 
 

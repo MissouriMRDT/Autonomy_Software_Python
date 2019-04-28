@@ -11,11 +11,12 @@ def clamp(n, min_n, max_n):
 
 
 class DriveBoard:
-    def __init__(self):
+    def __init__(self, filename):
         
         self._targetSpdLeft = 0
         self._targetSpdRight = 0
         self.enabled = False
+        self.loggingFile = filename
         
     def __del__(self):
         self.disable()
@@ -26,11 +27,11 @@ class DriveBoard:
 
         speed_left = speed_right = speed
         if angle > 0:
-            speed_left = speed_left * (1 - (angle / 180.0))
-            speed_right = speed_right / (1 - (angle / 180.0))
+            speed_left = speed_left * (1 - (angle / 360.0))
+            speed_right = speed_right / (1 - (angle / 360.0))
         elif angle < 0:
-            speed_right = speed_right * (1 + (angle / 180.0))
-            speed_left = speed_left / (1 + (angle / 180.0))
+            speed_right = speed_right * (1 + (angle / 360.0))
+            speed_left = speed_left / (1 + (angle / 360.0))
 
         # Reduce speed for tighter turns
         speed_left = speed_left * (1 - (abs(angle) / 720))

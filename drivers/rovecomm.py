@@ -61,11 +61,13 @@ class RoveCommPacket:
 
 
 class RoveCommEthernetUdp:
-    def __init__(self, port=ROVECOMM_PORT):
+    def __init__(self, filename, port=ROVECOMM_PORT):
         self.rove_comm_port = port
         self.subscribers = []
 
         self.callbacks = {}
+
+        self.loggingFile = filename
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
         self.RoveCommSocket.setblocking(True)
@@ -137,6 +139,8 @@ class RoveCommEthernetUdp:
         while True:
             # print("yo")
             packet = self.read()
+            # if packet.data_id == 5100:
+            #    packet.print()
             try:
                 self.callbacks[packet.data_id](packet)
             except:

@@ -4,8 +4,9 @@ from enum import Enum
 
 class StateSwitcher(object):
 
-    def __init__(self):
+    def __init__(self, filename):
         self.state = Idle()  # default state
+        self.loggingFile = filename # see example in CannyTracking to add logging to functions
 
     def handle_event(self, event, then=None):
         self.state = self.state.handle_event(event)

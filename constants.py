@@ -8,7 +8,7 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = 150  # -1000 to 1000, normally 200 dropped lower for early testing to be safe
+DRIVE_POWER = 300  # -1000 to 1000, normally 200 dropped lower for early testing to be safe
 
 SEARCH_DISTANCE = 0.02
 DELTA_THETA = math.pi / 2

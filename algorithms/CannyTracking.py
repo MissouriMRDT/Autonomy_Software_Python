@@ -4,9 +4,10 @@ import time
 
 
 class ObjectTracker(object):
-    def __init__(self):
+    def __init__(self, filename):
         self.GREEN_LOWER = np.array((75, 100, 100))
         self.GREEN_UPPER = np.array((255, 255, 255))
+        self.loggingFile = filename
         self.MIN_RADIUS = 10
         self.FRAME_RATE = 10
         self.ball_in_frame = None
@@ -20,6 +21,8 @@ class ObjectTracker(object):
             self.camera = cv2.VideoCapture(1)
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            with open(self.loggingFile, 'a') as f:
+                f.write("Camera Opened\n")
         except Exception:
             raise Exception("Could not connect to camera")
         pass
@@ -60,7 +63,8 @@ class ObjectTracker(object):
         mask = cv2.dilate(mask, None, iterations=2)
         # cv2.imshow("mask", mask)
         contours = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
+        with open(self.loggingFile, 'a') as f:
+            f.write("Applied masks and found contours\n")
         canny = cv2.Canny(mask, 20, 200)
 
         # cv2.imshow("Canny", canny)
@@ -90,8 +94,8 @@ class ObjectTracker(object):
 
             cv2.circle(frame, (int(x), int(y)), int(self.radius), (0, 255, 255), 2)
             cv2.circle(frame, self.center, 5, (0, 0, 255), -1)
-            cv2.imshow("Canny", canny)
-            cv2.imshow("Auto", frame)
+            # cv2.imshow("Canny", canny)
+            # cv2.imshow("Auto", frame)
 
             # self.video_out.write(frame) # leave this commented for now so we can get a raw stream instead of one with the tennis ball match circle
 

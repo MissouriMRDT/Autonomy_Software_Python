@@ -10,29 +10,23 @@ from drivers.rovecomm import RoveCommEthernetUdp
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 # from algorithms.objecttracking import ObjectTracker
-# from algorithms.ColorBasedTracking import ObjectTracker
-from algorithms.CannyTracking import ObjectTracker
+from algorithms.ColorBasedTracking import ObjectTracker
+# from algorithms.CannyTracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
 import algorithms.followBall as follow_ball
 
-logging = "logs" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
-loggingFile = open(logging,'w')
-loggingFile.close()
-
-
 # Hardware Setup
-rovecomm_node = RoveCommEthernetUdp(logging)
-drive = DriveBoard(logging)
-nav_board = NavBoard(rovecomm_node, logging)
+rovecomm_node = RoveCommEthernetUdp()
+drive = DriveBoard()
+nav_board = NavBoard(rovecomm_node)
 
-state_switcher = rs.StateSwitcher(logging)
+state_switcher = rs.StateSwitcher()
 waypoints = deque()
 gps_data = GPSData()
-tracker = ObjectTracker(logging)
-
+tracker = ObjectTracker()
 
 
 # Assign callbacks for incoming messages
@@ -82,8 +76,8 @@ rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
-state_switcher.state = rs.ApproachingMarker()
-drive.enable()
+# state_switcher.state = rs.ApproachingMarker()
+# drive.enable()
 
 time.sleep(2)
 
@@ -96,7 +90,7 @@ while True:
         if gps_nav.reached_goal(goal, nav_board.location(), start):
 
             # If there are more points, set the new one and start from top
-            if waypoints:
+            if waypoints.count > 0:
                 print("Reached mid point!")
                 set_gps_waypoint()
                 continue
@@ -111,7 +105,6 @@ while True:
             continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
-        print("Drive motors: " + str(left) + ", " + str(right))
         rovecomm_node.write(drive.send_drive(left, right))
 
 
@@ -134,14 +127,12 @@ while True:
             continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
-        print("Drive motors: " + str(left) + ", " + str(right))
         rovecomm_node.write(drive.send_drive(left, right))
 
     # Approach Marker:
     # Travel to the found object
     elif state_switcher.state == rs.ApproachingMarker():
         ball_in_frame, center, radius = tracker.track_ball()
-        """
         print("Ball Radius: " + str(radius))
         if ball_in_frame:
             (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
@@ -158,13 +149,9 @@ while True:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN,
                                         then=logging.info("Visual lock lost"))
             print("Throwing MARKER_UNSEEN")
-        """
 
     elif state_switcher.state == rs.Shutdown():
         pass
 
     time.sleep(.1)
     print(state_switcher.state)
-
-
-loggingFile.close() # won't actually do anything here

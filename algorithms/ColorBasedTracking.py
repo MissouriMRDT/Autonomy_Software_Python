@@ -56,9 +56,9 @@ class ObjectTracker(object):
         # cv2.imshow("hsv", hsv)
         mask = cv2.inRange(hsv, self.GREEN_LOWER, self.GREEN_UPPER)
         # cv2.imshow("mask", mask)
-        mask = cv2.erode(mask, None, None, (-1,-1), iterations=2)
+        mask = cv2.erode(mask, None, iterations=2)
         # cv2.imshow("mask", mask)
-        mask = cv2.dilate(mask, None, None, (-1,-1),  iterations=2)
+        mask = cv2.dilate(mask, None, iterations=2)
         # cv2.imshow("mask", mask)
         contour = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
@@ -106,7 +106,7 @@ class ObjectTracker(object):
             cv2.circle(frame, self.center, 5, (0, 0, 255), -1)
 
 
-            cv2.imshow("Auto", frame)
+            # cv2.imshow("Auto", frame)
 
             # self.video_out.write(frame) # leave this commented for early testing so we can get the raw video feed to run through later for more testing.
 
@@ -114,7 +114,7 @@ class ObjectTracker(object):
         # if not self.firstRun: # using this to pull a sample image to grab RGB values for the tennis ball from gimp.
             # self.firstRun = 1
             # cv2.imwrite('test.png', frame)
-        cv2.imshow("Auto", frame)
+        # cv2.imshow("Auto", frame)
         return self.ball_in_frame, (0, 0), 0
 
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     tracker = ObjectTracker()
     while True:
         ball_in_frame, center, radius = tracker.track_ball()
-        if (ball_in_frame) and (radius > 0) :
+        if ball_in_frame:
             print("Ball found at %s, distance %s" % (center, 1.0/radius))
         else:
             print("No ball found")
