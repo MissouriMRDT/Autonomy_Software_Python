@@ -31,7 +31,7 @@ class ObjectTracker(object):
             print("Frame capture failed")
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video_filename = "objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # save videos to unique files
+        video_filename = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # save videos to unique files
         # "'logs/objtracker_%s.avi'" % time.strftime("%Y%m%d-%H%M%S") -- logs name, logs created in main
         print(video_filename)
         self.video_out = cv2.VideoWriter(video_filename, fourcc, self.FRAME_RATE, (640, 480))

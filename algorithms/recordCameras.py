@@ -21,8 +21,8 @@ except Exception:
 
 pass
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-video1 = "cameraLeft" + time.strftime("%Y%m%d-%H%M%S") + ".avi"
-video2 = "cameraRight" + time.strftime("%Y%m%d-%H%M%S") + ".avi"
+video1 = "../logs/cameraLeft" + time.strftime("%Y%m%d-%H%M%S") + ".avi"
+video2 = "../logs/cameraRight" + time.strftime("%Y%m%d-%H%M%S") + ".avi"
 videoOut1 = cv2.VideoWriter(video1, fourcc, 10, (640,480))
 videoOut2 = cv2.VideoWriter(video2, fourcc, 10, (640,480))
 
