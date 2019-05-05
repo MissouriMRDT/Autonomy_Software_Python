@@ -26,16 +26,11 @@ class DriveBoard:
         Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right """
 
         speed_left = speed_right = speed
-        if angle > 0:
-            speed_left = speed_left * (1 - (angle / 360.0))
-            speed_right = speed_right / (1 - (angle / 360.0))
-        elif angle < 0:
-            speed_right = speed_right * (1 + (angle / 360.0))
-            speed_left = speed_left / (1 + (angle / 360.0))
 
-        # Reduce speed for tighter turns
-        speed_left = speed_left * (1 - (abs(angle) / 720))
-        speed_right = speed_right * (1 - (abs(angle) / 720))
+        if(angle > 0):
+            speed_right = speed_right * (1 - (angle / 180.0))
+        elif(angle < 0):
+            speed_left = speed_left * (1 + (angle / 180.0))
         
         self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
         self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
