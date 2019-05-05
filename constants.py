@@ -13,6 +13,9 @@ DRIVE_POWER = 300  # -1000 to 1000, normally 200 dropped lower for early testing
 SEARCH_DISTANCE = 0.02
 DELTA_THETA = math.pi / 2
 
+#LiDAR maximum distance before we decide we would yeet off a cliff.
+LIDAR_MAXIMUM = 250 # 2.5m to test early, need to determine actual value.
+
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 0.007  # kilometers
 

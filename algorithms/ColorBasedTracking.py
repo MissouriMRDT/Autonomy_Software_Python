@@ -29,7 +29,7 @@ class ObjectTracker(object):
             print("Frame capture failed")
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        video_filename = "objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # save videos to unique files.
+        video_filename = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # save videos to unique files.
         # "'logs/objtracker_%s.avi'" % time.strftime("%Y%m%d-%H%M%S") -- logs name, logs created in main
         print(video_filename)
         self.video_out = cv2.VideoWriter(video_filename, fourcc, self.FRAME_RATE, (640, 480))
@@ -62,36 +62,6 @@ class ObjectTracker(object):
         # cv2.imshow("mask", mask)
         contour = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
-
-        """canny = cv2.Canny(mask, 20, 200)
-
-        cv2.imshow("Canny", canny)
-
-        ball = []
-        score = 1
-
-        for contour in contours:
-            approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
-            area = cv2.contourArea(approx)
-
-            if area > 80 and cv2.matchShapes(approx, self.circle, 1, 0.0) < score:
-                ball = approx
-                score = cv2.matchShapes(approx, self.circle, 1, 0.0)
-
-        if score < 1:
-            self.ball_in_frame = True
-            cnt = ball
-            epsilon = 0.1 * cv2.arcLength(cnt, False)
-            approx = cv2.approxPolyDP(cnt, epsilon, True)
-
-            cv2.drawContours(canny, approx, -1, (255, 255, 0), 10)
-
-            ((x, y), self.radius) = cv2.minEnclosingCircle(ball)
-            M = cv2.moments(ball)
-            self.center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
-            cv2.circle(frame, (int(x), int(y)), int(self.radius), (0, 255, 255), 2)
-            cv2.circle(frame, self.center, 5, (0, 0, 255), -1)"""
         radius = 0
         if len(contour) > 0:
             self.ball_in_frame = True

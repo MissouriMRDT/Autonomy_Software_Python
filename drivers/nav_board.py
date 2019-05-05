@@ -6,6 +6,7 @@ NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
 IMU_DATA_ID = 5101
 LIDAR_DATA_ID = 5102
+GPSADD_DATA_ID = 5103
 
 
 class NavBoard:
@@ -15,7 +16,7 @@ class NavBoard:
         self._heading = 0
         self._location = constants.Coordinate(0, 0)
         self._distToGround = 0
-        self._lidarEnabled = 0 # int 1/0 for enabled/disabled to determine whether to use the data.
+        self._lidarQuality = 0 # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
 
         self.rove_comm_node = rove_comm
 
@@ -27,12 +28,13 @@ class NavBoard:
         self.loggingFile = filename # see CannyTracking to add logging
 
     def process_imu_data(self, packet):
-        self._pitch, self._heading, self._roll = packet.data
-        """        
-self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
-        self._heading = packet.data[1] #Should be 1, but current NavBoard implementation is 0.
+        # self._pitch, self._heading, self._roll = packet.data
+                
+        self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
+        if abs(self._heading - packet.data[1]) < 30: # attempt to filter inappropriate values, experimentally i've never seen the rover turn more than 120 degrees per second.
+            self._heading = packet.data[1]
         self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
-        """
+        
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
@@ -43,7 +45,7 @@ self._pitch = packet.data[0] #leave these alone for now, early testing will be h
         self._location = constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarEnabled = packet.data # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        self._distToGround, self._lidarQuality = packet.data # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch
