@@ -6,12 +6,16 @@ class StateSwitcher(object):
 
     def __init__(self, filename):
         self.state = Idle()  # default state
+        self.previousState = Idle()
         self.loggingFile = filename # see example in CannyTracking to add logging to functions
 
     def handle_event(self, event, previousState, then=None):
-        if self.state == ObstacleAvoidance():
-            self.state = previousState
+        if event == AutonomyEvents.END_OBSTACLE_AVOIDANCE:
+            # self.previousState = previousState
+            self.state = self.previousState
+            self.previousState = previousState
         else:
+            self.previousState = previousState
             self.state = self.state.handle_event(event)
         if then:
             then()  # callback
@@ -75,6 +79,8 @@ class ApproachingMarker(RoverState):
             return Searching()
         elif event == AutonomyEvents.ABORT:
             return Shutdown()
+        elif event == AutonomyEvents.OBSTACLE_AVOIDANCE:
+            return ObstacleAvoidance()
 
         if then:
             then()  # callback
