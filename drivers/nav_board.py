@@ -28,13 +28,13 @@ class NavBoard:
         self.loggingFile = filename # see CannyTracking to add logging
 
     def process_imu_data(self, packet):
-        # self._pitch, self._heading, self._roll = packet.data
-                
+        self._pitch, self._heading, self._roll = packet.data
+        """        
         self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
         if abs(self._heading - packet.data[1]) < 30: # attempt to filter inappropriate values, experimentally i've never seen the rover turn more than 120 degrees per second.
             self._heading = packet.data[1]
         self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
-        
+        """
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
