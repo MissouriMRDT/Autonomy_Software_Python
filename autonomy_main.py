@@ -113,6 +113,7 @@ while True:
     # Travel Point to Point (P2P) from the current GPS to the target given from Basestation
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
+        ball_in_frame, center, radius = tracker.track_ball()
         
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             
