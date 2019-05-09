@@ -3,6 +3,11 @@ import cv2
 import time
 
 
+# COLOR BOUNDS FOR OTHER COLORED TENNIS BALLS
+# hot pink:
+#     pinkUpper = np.array((250, 149, 165))
+#     pinkLower = np.array((126, 41, 57))
+
 class ObjectTracker(object):
     def __init__(self):
         self.GREEN_LOWER = np.array((55, 65, 40))
