@@ -1,17 +1,16 @@
 import time
 from collections import deque
-# import logging
+import logging
 import struct
 import math
 
 import rover_states as rs
 import constants
 from drivers.rovecomm import RoveCommEthernetUdp
+from drivers.rovecomm import RoveCommPacket
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
-# from algorithms.objecttracking import ObjectTracker
 from algorithms.ColorBasedTracking import ObjectTracker
-#from algorithms.CannyTracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
@@ -102,6 +101,9 @@ rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handl
 
 # state_switcher.state = rs.ApproachingMarker()
 # drive.enable()
+# test = False
+# state_switcher.handle_event(rs.AutonomyEvents.OBSTACLE_AVOIDANCE, rs.ApproachingMarker())
+# drive.enable()
 
 time.sleep(2)
 
@@ -128,20 +130,21 @@ while True:
             print("Throwing REACHED_GPS_COORDINATE")
             
             rovecomm_node.write(drive.send_drive(0, 0))
-#            rovecomm_node.write(1000, 'h', (0,0), ip_octet_4=140)
+            # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
             continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         
         print("Drive motors: " + str(left) + ", " + str(right))
         rovecomm_node.write(drive.send_drive(left, right))
- #       rovecomm_node.write(1000, 'h', (left, right), ip_octet_4=140)
+        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
 
     # Search Pattern:
     # Travel in a defined pattern to find the target object, the tennis ball
     elif state_switcher.state == rs.Searching():
         goal, start = gps_data.data()
+        print(goal)
         
         if gps_nav.reached_goal(goal, nav_board.location(), start):
             goal = marker_search.calculate_next_coordinate(start, nav_board.location())
@@ -164,11 +167,16 @@ while True:
         print("Drive motors: " + str(left) + ", " + str(right))
         
         rovecomm_node.write(drive.send_drive(left, right))
-   #     rovecomm_node.write(1000, 'h', (left,right), ip_octet_4=140)
+        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
     # Approach Marker:
     # Travel to the found object
     elif state_switcher.state == rs.ApproachingMarker():
+        # if test == False:
+            # print("Testing obstacle avoidance")
+            # test = True    
+            # state_switcher.handle_event(rs.AutonomyEvents.OBSTACLE_AVOIDANCE, rs.ApproachingMarker())
+            # continue
         ball_in_frame, center, radius = tracker.track_ball()
         
         
@@ -178,13 +186,13 @@ while True:
             
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
-                rovecomm_node.write(1000, 'h', (0,0), ip_octet_4=140)
+                # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
                 state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker"))
                 continue
             else:
                 print("Driving To: " + str(left) + ", " + str(right))
                 rovecomm_node.write(drive.send_drive(left, right))
-     #           rovecomm_node.write(1000, 'h', (target_left, target_right), ip_octet_4=140)
+                # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
         else:
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN, rs.ApproachingMarker())
@@ -195,19 +203,25 @@ while True:
         pass
 
     elif state_switcher.state == rs.Idle():
-        # state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
+        #state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
        
         pass
 
     elif state_switcher.state == rs.ObstacleAvoidance():
         rovecomm_node.write(drive.send_drive(0,0))
+        # print(drive.send_drive(0,0))
+        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
         start = nav_board._location
         rovecomm_node.write(drive.send_drive(-100,-100)) # tune this drive number
+        # rovecomm_node.write(RoveCommPacket(1000, 'h', (-100,-100), ip_octet_4=140))
         junk, distance = geomath.haversine(start[0], start[1], nav_board._location[0], nav_board._location[1])
         while distance < 2:
                 junk, distance = geomath.haversine(start[0], start[1], nav_board._location[0], nav_board._location[1])
-		time.sleep(0.1)
+                print (distance)
+                time.sleep(0.1)
+                distance = 3
         rovecomm_node.write(drive.send_drive(0,0))
+        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
         r = 6371 # radius of earth
         brng = math.radians(nav_board._heading - 90) # target heading
         d = 0.0005 # 5 meters
@@ -217,9 +231,11 @@ while True:
         lon2 = lon1 + math.atan2(math.sin(brng)*math.sin(d/r)*math.cos(lat1),math.cos(d/r)-math.sin(lat1)*math.sin(lat2))
         lat2 = math.degrees(lat2)
         lon2 = math.degrees(lon2)
-        target = constants.coordinate(lat2, lon2)
+        target = constants.Coordinate(lat2, lon2)
+        print(target)
         left, right = gps_nav.calculate_move(target, nav_board.location(), start, drive, nav_board)
         if nav_board._distToGround > constants.LIDAR_MAXIMUM:
+            rovecomm_node.write(drive.send_drive(0,0))
             continue
         rovecomm_node.write(drive.send_drive(left,right))
         distance = 10
@@ -228,8 +244,11 @@ while True:
             left, right = gps_nav.calculate_move(target, nav_board.location(), start, drive, nav_board)
             rovecomm_node.write(drive.send_drive(left,right))
             junk, distance = geomath.haversine(nav_board._location[0], nav_board._location[1], target[0], target[1])
+            distance = 0.0
             if nav_board._distToGround > constants.LIDAR_MAXIMUM:
+                rovecomm_node.write(drive.send_drive(0,0))
                 continue
+        print("End of Avoidance")
         state_switcher.handle_event(rs.AutonomyEvents.END_OBSTACLE_AVOIDANCE, rs.ObstacleAvoidance())
 
 
