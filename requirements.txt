@@ -1,7 +1,7 @@
 numpy
 opencv-python
 pip
-pypi-json
+simplejson
 pynmea2
 serial
 time
