@@ -33,7 +33,7 @@ class ObjectTracker(object):
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         except Exception:
             raise Exception("Could not connect to camera")
-            pass
+        pass
         grabbed, self.framebuffer = self.camera.read()
         if not grabbed:
             print("Frame capture failed")
