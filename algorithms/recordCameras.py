@@ -32,7 +32,7 @@ while True:
     videoOut1.write(frame1)
     videoOut2.write(frame2)
     time.sleep(0.05)
-    print("Luuuuuped")
+    print("Recording Film")
 
 
 camera1.release()

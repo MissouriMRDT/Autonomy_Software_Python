@@ -1,6 +1,7 @@
 import socket
 import struct
 import threading
+import time
 
 ROVECOMM_PORT = 11000
 ROVECOMM_VERSION = 2
@@ -67,7 +68,8 @@ class RoveCommEthernetUdp:
 
         self.callbacks = {}
 
-        self.loggingFile = filename
+        self.outString = filename
+        # logging file
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
         self.RoveCommSocket.setblocking(True)
@@ -141,7 +143,11 @@ class RoveCommEthernetUdp:
             packet = self.read()
             # if packet.data_id == 5100:
             #    packet.print()
+            
             try:
                 self.callbacks[packet.data_id](packet)
+                if (self.outString != "hi"):
+                    with open(self.outString, 'a') as f:
+                        f.write(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data) + "\n")
             except:
                 pass

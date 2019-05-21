@@ -4,7 +4,7 @@ import constants
 # Performs a calculation for the next target gps on a spiral search pattern
 # Start and current are a Coordinate lat/lon
 def calculate_next_coordinate(start, current):
-
+    # these need to be mapped to radians for math stuff, otherwise they break in very terrible ways. We might want to just use Haversine here as well?
     diff_lat = (start.lat - current.lat) * 1000
     diff_lon = (start.lon - current.lon) * 1000
 
