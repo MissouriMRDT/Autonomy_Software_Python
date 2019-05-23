@@ -106,11 +106,14 @@ rovecomm_node.callbacks[constants.DataID.DISABLE_AUTONOMY] = disable_autonomy
 rovecomm_node.callbacks[constants.DataID.ADD_WAYPOINT] = add_waypoint_handler
 rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handler
 
-# gps_data.goal = constants.Coordinate(1,0)
-# gps_data.start = constants.Coordinate(0,0)
+# gps_data.goal = constants.Coordinate(nav_board._location[0],nav_board._location[1] )
+# gps_data.start = constants.Coordinate(nav_board._location[0],nav_board._location[1])
 # nav_board._location = constants.Coordinate(0,0)
-# state_switcher.state = rs.ApproachingMarker()
+
+# these two are for testing ball tracking
+# state_switcher.state = rs.Searching()
 # drive.enable()
+
 # looping = 0
 # test = False
 # state_switcher.handle_event(rs.AutonomyEvents.OBSTACLE_AVOIDANCE, rs.ApproachingMarker())
@@ -184,19 +187,20 @@ while True:
         with open(outString, 'a') as f:
             f.write(time.strftime("%H%M%S") + " Searching: Ball Sighted, " + str(ball_in_frame) + ". With center and radius " + str(center) + "," + str(radius) + "\n")
 
-        if ball_in_frame:
-            rovecomm_node.write(drive.send_drive(0, 0))
+        # if ball_in_frame:
+            # rovecomm_node.write(drive.send_drive(0, 0))
             
             # logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-            state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED, rs.Searching())
-            with open(outString, 'a') as f:
-                f.write(time.strftime("%H%M%S") + " Searching: Marker Sighted, entering ApproachingMarker()\n")
-            print("Throwing MARKER_SIGHTED")
-            continue
+            # state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED, rs.Searching())
+            # with open(outString, 'a') as f:
+                # f.write(time.strftime("%H%M%S") + " Searching: Marker Sighted, entering ApproachingMarker()\n")
+            # print("Throwing MARKER_SIGHTED")
+            # continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         print("Drive motors: " + str(left) + ", " + str(right))
-        
+        with open(outString, 'a') as f:
+            f.write("Searching: " + str(left) + "," + str(right) + " \n")
         rovecomm_node.write(drive.send_drive(left, right))
         # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
@@ -213,13 +217,13 @@ while True:
         
         print("Ball Radius: " + str(radius))
         if ball_in_frame:
-            (left, right), distance = follow_ball.drive_to_marker(50, drive, center, radius)
+            (left, right), distance = follow_ball.drive_to_marker(125, drive, center, radius, nav_board)
             print("Ball in Frame")
-            distance = 2 # for testing, comment out later
+            # distance = 2 # for testing, comment out later
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
-                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker"))
+                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker")) # commented for testing, remove the commenting for running
                 with open(outString, 'a') as f:
                     f.write(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()\n")
                 continue
@@ -230,7 +234,7 @@ while True:
                 rovecomm_node.write(drive.send_drive(left, right))
                 # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
-        # else:
+        # else: # commented for testing, remove the commenting for running.
             # state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN, rs.ApproachingMarker())
             # with open(outString, 'a') as f:
                 # f.write(time.strftime("%H%M%S") + " ApproachingMarker: lost sight of marker, returning to Searching()\n")
@@ -282,9 +286,9 @@ while True:
             f.write(time.strftime("%H%M%S") + " ObstacleAvoidance: new target " + str(target[0]) + "," + str(target[1]) + "\n")
         print(target)
         left, right = gps_nav.calculate_move(target, nav_board.location(), start, drive, nav_board)
-        if nav_board._distToGround > constants.LIDAR_MAXIMUM:
-            rovecomm_node.write(drive.send_drive(0,0))
-            continue
+        # if nav_board._distToGround > constants.LIDAR_MAXIMUM:
+            # rovecomm_node.write(drive.send_drive(0,0))
+            # continue
         rovecomm_node.write(drive.send_drive(left,right))
         distance = 10
         while distance > gps_nav.WAYPOINT_DISTANCE_THRESHOLD * 0.001: # the value in gps_nav is currently in kilometers as of 5/17/19, temporarily fixing this here.
@@ -299,9 +303,9 @@ while True:
             rovecomm_node.write(drive.send_drive(left,right))
             junk, distance = geomath.haversine(nav_board._location[0], nav_board._location[1], target[0], target[1])
             # distance = 0.0
-            if nav_board._distToGround > constants.LIDAR_MAXIMUM:
-                rovecomm_node.write(drive.send_drive(0,0))
-                continue
+            # if nav_board._distToGround > constants.LIDAR_MAXIMUM:
+                # rovecomm_node.write(drive.send_drive(0,0))
+                # continue
         print("End of Avoidance")
         with open(outString, 'a') as f:
             f.write(time.strftime("%H%M%S") + " ObstacleAvoidance: Leaving obstacle avoidance, returning to " + str(state_switcher.previousState) + "\n")

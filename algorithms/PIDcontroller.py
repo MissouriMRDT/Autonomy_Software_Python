@@ -42,9 +42,11 @@ class PIDcontroller:
                 error = error - self.wraparound
             elif error < -(self.wraparound / 2.0):
                 error = error + self.wraparound
-        # print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
+        print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
         self.accumulatedError += error * Ts
         self.accumulatedError = clamp(self.accumulatedError, -self.err_clamp, +self.err_clamp)
+        if abs(error) < 2:
+            self.accumulatedError = 0 # PID theory says we should reset the accumulated error to 0 when we're at our target position, allowing 2 degrees to either side of the rover allows that to be reset properly. We might need to further tune this constant at a later time to ensure proper heading holds.
         output = self.Kp * error + self.Ki * self.accumulatedError + self.Kd * ((error - self.prevError) / Ts)
         self.prevError = error
         self.prevTime = time.time()

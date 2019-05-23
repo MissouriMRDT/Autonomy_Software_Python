@@ -11,7 +11,7 @@ from drivers.nav_board import NavBoard
 def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)
 
-pid = PIDcontroller(Kp=5.5, Ki=0.15, Kd=0, wraparound=360)
+pid = PIDcontroller(Kp=1.5, Ki=0.15, Kd=0, wraparound=360)
 
 
 def get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board):

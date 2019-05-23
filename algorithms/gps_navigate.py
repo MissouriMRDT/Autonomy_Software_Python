@@ -63,7 +63,7 @@ def calculate_move(goal, location, start, drive_board, nav_board):
     if c < .9:
         speed = int(speed * c) + 10
     """
-    speed = 300 # increased for testing per Rausch
+    speed = 250 # increased for testing per Rausch
     print(target_distance)
     #if target_distance < 0.015:
     #    speed = 25
