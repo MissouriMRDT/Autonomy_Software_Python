@@ -1,6 +1,7 @@
 from drivers.rovecomm import RoveCommEthernetUdp
 import constants
 import time
+import datetime
 
 NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
@@ -17,7 +18,7 @@ class NavBoard:
         self._location = constants.Coordinate(0, 0)
         self._distToGround = 0
         self._lidarQuality = 0 # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
-
+        self._lastTime = time.time()
         self.rove_comm_node = rove_comm
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
@@ -41,7 +42,13 @@ class NavBoard:
         lon, lat = packet.data
         lat = lat * 1e-7
         lon = -lon * 1e-7
+        timeDifference = time.time() - self._lastTime
+        # print("5")
+        # print(timeDiffernce)
+        # print(time.localtime(time.time()))
+        print(str(time.time()))
         print(self._location)
+        self._lastTime = time.time()
         self._location = constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):

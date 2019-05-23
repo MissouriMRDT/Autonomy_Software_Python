@@ -3,10 +3,10 @@ import constants
 
 # Performs a calculation for the next target gps on a spiral search pattern
 # Start and current are a Coordinate lat/lon
-def calculate_next_coordinate(start, current):
+def calculate_next_coordinate(start, former_goal):
     # these need to be mapped to radians for math stuff, otherwise they break in very terrible ways. We might want to just use Haversine here as well?
-    diff_lat = (start.lat - current.lat) * 1000
-    diff_lon = (start.lon - current.lon) * 1000
+    diff_lat = (start.lat - former_goal.lat) * 1000
+    diff_lon = (start.lon - former_goal.lon) * 1000
 
     r = math.sqrt(diff_lat ** 2 + diff_lon ** 2)
     theta = r / constants.SEARCH_DISTANCE

@@ -3,7 +3,7 @@ import algorithms.heading_hold as hh
 import math
 
 # User definable constants
-WAYPOINT_DISTANCE_THRESHOLD = 1.0  # Meters
+WAYPOINT_DISTANCE_THRESHOLD = 1.5  # Meters
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
 GPS_TRUST_SPEED = 30  # Speed in meters per second at which 100% of bearing is
 # calculated using the delta in GPS coordinates
@@ -29,7 +29,7 @@ def reached_goal(goal, location, start):
     return past_goal or close_enough
 
 
-def calculate_move(goal, location, start, drive_board, nav_board):
+def calculate_move(goal, location, start, drive_board, nav_board, speed):
 
     (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
     # The Haversine stuff works, reliably. Please let's use it instead.
@@ -63,10 +63,10 @@ def calculate_move(goal, location, start, drive_board, nav_board):
     if c < .9:
         speed = int(speed * c) + 10
     """
-    speed = 250 # increased for testing per Rausch
+    #speed = 250 # increased for testing per Rausch
     print(target_distance)
-    #if target_distance < 0.015:
-    #    speed = 25
+    if target_distance < 0.01:
+        speed = 100
     goal_heading = target_heading
     print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
     return hh.get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board)
