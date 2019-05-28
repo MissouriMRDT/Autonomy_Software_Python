@@ -11,6 +11,7 @@ from drivers.rovecomm import RoveCommPacket
 from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 from algorithms.ColorBasedTracking import ObjectTracker
+from drivers.notify import Notify
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
@@ -30,6 +31,7 @@ print("RoveComm")
 drive = DriveBoard(outString)
 print("DriveBoard")
 nav_board = NavBoard(rovecomm_node, outString)
+notify = Notify(rovecomm_node)
 print("NavBoard")
 state_switcher = rs.StateSwitcher(outString)
 print("StateSwitcher")
@@ -224,8 +226,12 @@ while True:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
                 # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker")) # commented for testing, remove the commenting for running
+                
+                
                 with open(outString, 'a') as f:
                     f.write(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()\n")
+                
+                notify.notify_finish()
                 continue
             else:
                 print("Driving To: " + str(left) + ", " + str(right))
