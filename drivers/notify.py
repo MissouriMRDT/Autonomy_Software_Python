@@ -26,10 +26,6 @@ class Notify:
         self._notify(0)
         time.sleep(1)
         self._notify(50)
-        time.sleep(1)
-        self._notify(0)
-        time.sleep(1)
-        self._notify(50)
         time.sleep(5)
         self._notify(0)
 
@@ -39,3 +35,4 @@ if __name__ == '__main__':
     notify = Notify(rove_comm_node)
 
     notify.notify_finish()
+

@@ -231,9 +231,14 @@ while True:
             # distance = 2 # for testing, comment out later
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
-                state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker")) # commented for testing, remove the commenting for running
+                
+                # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
+                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker")) # commented for testing, remove the commenting for running
+                
+                
                 with open(outString, 'a') as f:
                     f.write(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()\n")
+                
                 notify.notify_finish()
                 continue
             else:
