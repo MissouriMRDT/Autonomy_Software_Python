@@ -160,7 +160,7 @@ while True:
             notify.notify_finish()
             rovecomm_node.write(drive.send_drive(0, 0))
             # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
-            break
+            continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board, 250)
         # time.sleep(loopDelay * 3)
