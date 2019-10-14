@@ -2,7 +2,6 @@ import socket
 import struct
 import threading
 import time
-from drivers.logging import LogWriter
 
 ROVECOMM_PORT = 11000
 ROVECOMM_VERSION = 2

@@ -6,12 +6,13 @@ from drivers.rovecomm import RoveCommPacket
 class LogWriter:
     def __init__(self,filename):
         self.filename = filename
-        with open(self.filename) as f:
+        with open(self.filename, 'w') as f:
             f.write(time.strftime("%Y%m%d-%H%M%S") + "\n")
     
         
     def __del__(self):
-        self.filename.close()
+        with open(self.filename, 'a') as f:
+            f.write("Quitting\n")
     
     def write_line(self, line):
         with open(self.filename, 'a') as f:

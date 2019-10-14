@@ -18,7 +18,7 @@ from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
 import algorithms.followBall as follow_ball
 
-outString = "../logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
+outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
 print(outString)
 
@@ -88,7 +88,7 @@ def set_gps_waypoint():
     current_goal = waypoints.popleft()
     gps_data.goal = current_goal
     gps_data.start = nav_board.location()
-    Logger.write_line(time.strftime("%H%M%S") + " Set Waypoint: set new waypoint (" + str(current_goal[0]) + "," + str(current_goal[1] + ")")
+    Logger.write_line(time.strftime("%H%M%S") + " Set Waypoint: set new waypoint (" + str(current_goal[0]) + "," + str(current_goal[1]) + ")")
 
 
 # Define the callbacks to execute when rovecomm recieves the command
@@ -235,6 +235,7 @@ while True:
 
     elif state_switcher.state == rs.Idle():
         #state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
+        Logger.write_line("IDLING")
        
         pass
 
