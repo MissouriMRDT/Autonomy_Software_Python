@@ -62,7 +62,7 @@ def enable_autonomy(packet_contents):
         print("Throwing START")
     elif state_switcher.state == rs.Shutdown():
         Logger.write_line(time.strftime("%H%M%S") + " Enable: switching from Shutdown to Restart")
-        state_switcher.handle_event(rs.AutonomyEvents.RESTART, rs.Shutdown(),  then=Logger.write_line("Restarting Autonomy"))
+        state_switcher.handle_event(rs.AutonomyEvents.RESTART, rs.Shutdown())
         print("Throwing RESTART")
 
     drive.enable()
@@ -70,7 +70,7 @@ def enable_autonomy(packet_contents):
 
 def disable_autonomy(packet_contents):
     if state_switcher.state != rs.Shutdown():
-        state_switcher.handle_event(rs.AutonomyEvents.ABORT, rs.Shutdown(), then=Logger.write_line("Disabling Autonomy"))
+        state_switcher.handle_event(rs.AutonomyEvents.ABORT, rs.Shutdown())
         print("Throwing ABORT")
         Logger.write_line(time.strftime("%H%M%S") + " Shutdown event")
     drive.disable()
@@ -138,8 +138,7 @@ while True:
                 Logger.write_line(time.strftime("%H%M%S") + " Navigating: Reached midpoint, grabbing new point " + str(goal[0]) + "," + str(goal[1]))
                 continue
 
-            state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE, rs.Navigating(),
-                                        then=Logger.write_line("GPS coordinate reached"))
+            state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE, rs.Navigating())
             gps_data.start = nav_board.location()
             gps_data.goal = nav_board.location()
             print("Throwing REACHED_GPS_COORDINATE")
@@ -210,7 +209,7 @@ while True:
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 
-                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=Logger.write_line("Reached Marker")) # commented for testing, remove the commenting for running
+                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker()) # commented for testing, remove the commenting for running
                 
                 
                 Logger.write_line(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()")
