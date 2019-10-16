@@ -62,7 +62,7 @@ def enable_autonomy(packet_contents):
         print("Throwing START")
     elif state_switcher.state == rs.Shutdown():
         Logger.write_line(time.strftime("%H%M%S") + " Enable: switching from Shutdown to Restart")
-        state_switcher.handle_event(rs.AutonomyEvents.RESTART, rs.Shutdown(),  then=logging.info("Restarting Autonomy"))
+        state_switcher.handle_event(rs.AutonomyEvents.RESTART, rs.Shutdown(),  then=Logger.write_line("Restarting Autonomy"))
         print("Throwing RESTART")
 
     drive.enable()
@@ -70,7 +70,7 @@ def enable_autonomy(packet_contents):
 
 def disable_autonomy(packet_contents):
     if state_switcher.state != rs.Shutdown():
-        state_switcher.handle_event(rs.AutonomyEvents.ABORT, rs.Shutdown(), then=logging.info("Disabling Autonomy"))
+        state_switcher.handle_event(rs.AutonomyEvents.ABORT, rs.Shutdown(), then=Logger.write_line("Disabling Autonomy"))
         print("Throwing ABORT")
         Logger.write_line(time.strftime("%H%M%S") + " Shutdown event")
     drive.disable()
@@ -79,7 +79,7 @@ def disable_autonomy(packet_contents):
 def clear_waypoint_handler(packet_contents):
     global waypoints
     waypoints = deque()
-    Logger.write_line(time.strftime("%H%M%S") + " Clear Waypoint all cleared")
+    Logger.write_line(time.strftime("%H%M%S") + " Clear Waypoint: all cleared")
 
 
 def set_gps_waypoint():
@@ -139,7 +139,7 @@ while True:
                 continue
 
             state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE, rs.Navigating(),
-                                        then=logging.info("GPS coordinate reached"))
+                                        then=Logger.write_line("GPS coordinate reached"))
             gps_data.start = nav_board.location()
             gps_data.goal = nav_board.location()
             print("Throwing REACHED_GPS_COORDINATE")
@@ -180,7 +180,7 @@ while True:
             rovecomm_node.write(drive.send_drive(0, 0))
             time.sleep(1)
             
-            logging.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
+            Logger.write_line("Marker seen at %s with r=%i, locking on..." % (center, radius))
             state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED, rs.Searching())
             Logger.write_line(time.strftime("%H%M%S") + " Searching: Marker Sighted, entering ApproachingMarker()")
             print("Throwing MARKER_SIGHTED")
@@ -190,7 +190,6 @@ while True:
         print("Drive motors: " + str(left) + ", " + str(right))
         Logger.write_line(time.strftime("%H%M%S") + "Searching: " + str(left) + "," + str(right))
         rovecomm_node.write(drive.send_drive(left, right))
-        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
 
     # Approach Marker:
     # Travel to the found object
@@ -211,8 +210,7 @@ while True:
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 
-                # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
-                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=logging.info("Reached Marker")) # commented for testing, remove the commenting for running
+                # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker(), then=Logger.write_line("Reached Marker")) # commented for testing, remove the commenting for running
                 
                 
                 Logger.write_line(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()")
@@ -231,11 +229,11 @@ while True:
         
 
     elif state_switcher.state == rs.Shutdown():
+        Logger.write_line(time.strftime("%H%M%S") + " Shutdown: shutdown")
         pass
 
     elif state_switcher.state == rs.Idle():
-        #state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
-        Logger.write_line("IDLING")
+        Logger.write_line(time.strftime("%H%M%S") + " Idle: IDLING")
        
         pass
 
@@ -256,9 +254,8 @@ while True:
                 # distance = 3
         rovecomm_node.write(drive.send_drive(0,0))
         Logger.write_line(time.strftime("%H%M%S") + " ObstacleAvoidance: finished reversing, finding new waypoint")
-        # rovecomm_node.write(RoveCommPacket(1000, 'h', (0,0), ip_octet_4=140))
         r = 6371 # radius of earth
-        brng = math.radians(nav_board._heading - 90) # target heading
+        brng = math.radians(nav_board._heading - 90) # target heading, needs to be corrected to always fall in the range of possible values
         d = 0.005 # 5 meters
         lat1 = math.radians(nav_board._location[0])
         lon1 = math.radians(nav_board._location[1])
