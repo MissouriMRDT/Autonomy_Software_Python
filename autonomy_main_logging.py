@@ -144,7 +144,7 @@ while True:
             print("Throwing REACHED_GPS_COORDINATE")
             notify.notify_finish()
             rovecomm_node.write(drive.send_drive(0, 0))
-            break
+            continue
 
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board, 250)
         # time.sleep(loopDelay * 3)
