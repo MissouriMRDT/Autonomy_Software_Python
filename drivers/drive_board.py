@@ -12,12 +12,11 @@ def clamp(n, min_n, max_n):
 
 
 class DriveBoard:
-    def __init__(self, filename):
+    def __init__(self):
         
         self._targetSpdLeft = 0
         self._targetSpdRight = 0
         self.enabled = False
-        self.loggingFile = filename
         
     def __del__(self):
         self.disable()

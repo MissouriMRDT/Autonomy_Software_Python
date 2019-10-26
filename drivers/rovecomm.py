@@ -62,13 +62,14 @@ class RoveCommPacket:
 
 
 class RoveCommEthernetUdp:
-    def __init__(self, filename, port=ROVECOMM_PORT):
+    def __init__(self, logger, port=ROVECOMM_PORT):
         self.rove_comm_port = port
         self.subscribers = []
 
         self.callbacks = {}
+        self.logger = logger
 
-        self.outString = filename
+        
         # logging file
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
@@ -146,8 +147,6 @@ class RoveCommEthernetUdp:
             
             try:
                 self.callbacks[packet.data_id](packet)
-                if (self.outString != "hi"):
-                    with open(self.outString, 'a') as f:
-                        f.write(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data) + "\n")
+                self.logger.write_line(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data))
             except:
                 pass
