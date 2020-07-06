@@ -35,7 +35,7 @@ def identify_tags(img):
         approx = cv2.approxPolyDP(cnts[tag_index], epsilon, True)
         child_approx = cv2.approxPolyDP(cnts[h[0][tag_index][2]], epsilon, True)
 
-        if len(approx) == 4 and len(child_approx) > 4:
+        if cv2.contourArea(approx) > 300 and len(approx) == 4 and len(child_approx) > 4:
             contours.append(approx)
 
     return contours
@@ -58,7 +58,7 @@ def order(pts):
 
 
 # Constants for tag retrieval
-AR_DIM = 8
+AR_DIM = 32
 TAG_MATRIX = np.array([
     [0, 0],
     [AR_DIM - 1, 0],
