@@ -3,14 +3,14 @@ from collections import deque
 import struct
 import math
 
-import rover_states as rs
-import constants
-from drivers.rovecomm import RoveCommEthernetUdp
-from drivers.rovecomm import RoveCommPacket
+import core.rover_states as rs
+import core.constants
+from core.rovecomm import RoveCommEthernetUdp
+from core.rovecomm import RoveCommPacket
 from drivers.drive_board import DriveBoard
-from drivers.nav_board import NavBoard
-from drivers.notify import Notify
-from drivers.logging import LogWriter
+from interfaces.nav_board import NavBoard
+from core.notify import Notify
+from core.logging import LogWriter
 from algorithms.color_based_tracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search

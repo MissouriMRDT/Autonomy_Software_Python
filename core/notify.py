@@ -1,7 +1,7 @@
 import time
 import struct
 
-from drivers.rovecomm import RoveCommEthernetUdp, RoveCommPacket
+from core.rovecomm import RoveCommEthernetUdp, RoveCommPacket
 
 
 DRIVE_BOARD_IP = "192.168.1.142"

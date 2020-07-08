@@ -1,7 +1,7 @@
 
 import struct
-from drivers.rovecomm import RoveCommPacket
-import constants
+from core.rovecomm import RoveCommPacket
+import core.constants
 
 DRIVE_BOARD_IP = "134"
 DRIVE_DATA_ID = 1000

@@ -3,7 +3,7 @@ import numpy
 import time
 import json
 import math
-from drivers.rovecomm import RoveComm
+from core.rovecomm import RoveComm
 from drivers.mag.compass import Compass
 
 rovecomm_node = RoveComm()

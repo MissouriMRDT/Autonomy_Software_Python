@@ -1,11 +1,11 @@
 
-import constants
+import core.constants
 from algorithms.PID_controller import PIDcontroller
 
 
-from drivers.rovecomm import RoveCommEthernetUdp
-from drivers.drive_board import DriveBoard
-from drivers.nav_board import NavBoard
+from core.rovecomm import RoveCommEthernetUdp
+from interfaces.drive_board import DriveBoard
+from interfaces.nav_board import NavBoard
 
 
 def clamp(n, min_n, max_n):

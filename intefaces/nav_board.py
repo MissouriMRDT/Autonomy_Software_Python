@@ -1,8 +1,8 @@
-from drivers.rovecomm import RoveCommEthernetUdp
-import constants
+from core.rovecomm import RoveCommEthernetUdp
+import core.constants
 import time
 import datetime
-from drivers.logging import LogWriter
+from core.logging import LogWriter
 
 NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100

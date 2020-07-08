@@ -8,7 +8,7 @@
 
 import math
 import numpy as np
-from constants import Coordinate
+from core.constants import Coordinate
 
 
 # Haversine Function for calculating bearing and distance

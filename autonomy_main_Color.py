@@ -4,11 +4,11 @@ import logging
 import struct
 import math
 
-import rover_states as rs
-import constants
-from drivers.rovecomm import RoveCommEthernetUdp
-from drivers.drive_board import DriveBoard
-from drivers.nav_board import NavBoard
+import core.rover_states as rs
+import core.constants
+from core.rovecomm import RoveCommEthernetUdp
+from interfaces.drive_board import DriveBoard
+from interfaces.nav_board import NavBoard
 # from algorithms.objecttracking import ObjectTracker
 from algorithms.color_based_tracking import ObjectTracker
 # from algorithms.CannyTracking import ObjectTracker
