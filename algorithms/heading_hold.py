@@ -1,6 +1,6 @@
 
 import constants
-from algorithms.PIDcontroller import PIDcontroller
+from algorithms.PID_controller import PIDcontroller
 
 
 from drivers.rovecomm import RoveCommEthernetUdp

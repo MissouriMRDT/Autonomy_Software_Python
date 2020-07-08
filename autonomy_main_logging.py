@@ -11,12 +11,12 @@ from drivers.drive_board import DriveBoard
 from drivers.nav_board import NavBoard
 from drivers.notify import Notify
 from drivers.logging import LogWriter
-from algorithms.ColorBasedTracking import ObjectTracker
+from algorithms.color_based_tracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
-import algorithms.followBall as follow_ball
+import algorithms.follow_ball
 
 outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
