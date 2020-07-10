@@ -11,7 +11,7 @@ aruco_dict = aruco.custom_dictionary(2, 5, 1)
 # add empty bytesList array to fill with 3 markers later
 aruco_dict.bytesList = np.empty(shape = (2, 4, 4), dtype = np.uint8)
 
-# add new marker(s)
+# add custom markers as defined by the ALVAR library
 mybits = np.array([[1,1,0,1,1],[1,1,0,1,1],[1,0,1,0,1],[1,1,1,1,1],[1,1,1,1,1,]], dtype = np.uint8)
 aruco_dict.bytesList[0] = aruco.Dictionary_getByteListFromBits(mybits)
 
@@ -27,11 +27,14 @@ while(True):
     ret, frame = cap.read()
     if ret == True:
         #apply some effects to make image easy to process
-        #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        #NOTE: good chance Aruco already done this
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        #for ALVAR tags the border is actually 2 black bits wide
         parameters =  aruco.DetectorParameters_create()
         parameters.markerBorderBits = 2
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
+
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
 
         # resize frame to show even on smaller screens
