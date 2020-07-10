@@ -1,8 +1,6 @@
 import numpy as np
 import cv2, PIL
 from cv2 import aruco
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import pandas as pd
 import time
 
@@ -20,7 +18,7 @@ aruco_dict.bytesList[1] = aruco.Dictionary_getByteListFromBits(mybits_1)
 
 # open video capture from (first) webcam
 # can also be used with video files
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 while(True):
     # Capture frame-by-frame
@@ -33,12 +31,16 @@ while(True):
         #for ALVAR tags the border is actually 2 black bits wide
         parameters =  aruco.DetectorParameters_create()
         parameters.markerBorderBits = 2
+        parameters.cornerRefinementMethod = 3
+        parameters.errorCorrectionRate = 0.2
 
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-        frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
 
+        #draw bounding box and ID on the markers
+        frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
+        
         # resize frame to show even on smaller screens
-        frame = cv2.resize(frame, None, fx = 0.6, fy = 0.6)
+        frame = cv2.resize(frame, None, fx = 1.6, fy = 1.6)
         # Display the resulting frame
         cv2.imshow('frame',frame)
 
