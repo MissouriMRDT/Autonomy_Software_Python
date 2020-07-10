@@ -1,51 +1,47 @@
+import numpy as np
+import cv2, PIL
+from cv2 import aruco
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import pandas as pd
+import time
 
-import cv2
+# define an empty custom dictionary with 
+aruco_dict = aruco.custom_dictionary(2, 5, 1)
+# add empty bytesList array to fill with 3 markers later
+aruco_dict.bytesList = np.empty(shape = (2, 4, 4), dtype = np.uint8)
 
+# add new marker(s)
+mybits = np.array([[1,1,0,1,1],[1,1,0,1,1],[1,0,1,0,1],[1,1,1,1,1],[1,1,1,1,1,]], dtype = np.uint8)
+aruco_dict.bytesList[0] = aruco.Dictionary_getByteListFromBits(mybits)
+
+mybits_1 = np.array([[1,1,0,1,1],[1,1,0,1,1],[1,0,1,0,1],[0,0,1,1,0],[1,1,1,0,1,]], dtype = np.uint8)
+aruco_dict.bytesList[1] = aruco.Dictionary_getByteListFromBits(mybits_1)
+
+# open video capture from (first) webcam
+# can also be used with video files
 cap = cv2.VideoCapture(0)
-#define the dictionary (matrix size) of each ar tag size
-dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-dictionary2 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_25h9)
-dictionary3 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-dictionary4 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_7X7_1000)
-dictionary5 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
-dictionary6 = cv2.aruco.custom_dictionary(9, 9, 9)
-
 
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
+    if ret == True:
+        #apply some effects to make image easy to process
+        #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        parameters =  aruco.DetectorParameters_create()
+        parameters.markerBorderBits = 2
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, aruco_dict, parameters=parameters)
+        frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
 
-    res = cv2.aruco.detectMarkers(gray,dictionary)
-    res2 = cv2.aruco.detectMarkers(gray,dictionary2)
-    res3 = cv2.aruco.detectMarkers(gray,dictionary3)
-    res4 = cv2.aruco.detectMarkers(gray,dictionary4)
-    res5 = cv2.aruco.detectMarkers(gray,dictionary5)
-    res6 = cv2.aruco.detectMarkers(gray,dictionary6)
-    
-#   print(res[0],res[1],len(res[2]))
+        # resize frame to show even on smaller screens
+        frame = cv2.resize(frame, None, fx = 0.6, fy = 0.6)
+        # Display the resulting frame
+        cv2.imshow('frame',frame)
 
-    if len(res[0]) > 0:
-        cv2.aruco.drawDetectedMarkers(gray,res[0],res[1])
-    if len(res2[0]) > 0:
-        cv2.aruco.drawDetectedMarkers(gray,res2[0],res2[1])
-    if len(res3[0]) > 0:
-        cv2.aruco.drawDetectedMarkers(gray,res3[0],res3[1])
-    if len(res4[0]) > 0:    
-        cv2.aruco.drawDetectedMarkers(gray,res4[0],res4[1])
-    if len(res5[0]) > 0:
-        cv2.aruco.drawDetectedMarkers(gray,res5[0],res5[1])
-    if len(res6[0]) > 0:
-        cv2.aruco.drawDetectedMarkers(gray,res6[0],res6[1])
-        
-    # Display the resulting frame - change this to read in an image (Nov 23rd)
-    cv2.imshow('frame',gray)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
-# What to return? Heading?
