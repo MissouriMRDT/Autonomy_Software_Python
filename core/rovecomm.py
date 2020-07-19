@@ -37,6 +37,17 @@ types_byte_to_int = {
 
 
 class RoveCommPacket:
+    '''
+    The RoveComm packet is the encapsulation of a message sent across the rover network that can be parsed by all rover computing systems.
+
+    A RoveComm Packet contains:
+        - A data id
+        - A data type
+        - The number of data entries (data count)
+        - The data itself
+
+    The autonomy implementation also includes the remote ip of the sender.
+    '''
     def __init__(self, data_id=0, data_type='b', data=(), ip_octet_4='', port=ROVECOMM_PORT):
         self.data_id = data_id
         self.data_type = data_type
@@ -62,13 +73,20 @@ class RoveCommPacket:
 
 
 class RoveCommEthernetUdp:
+    '''
+    The UDP implementation for RoveComm. UDP is a fast connectionless transport protocol that guarantees no data corruption
+    but does not guarantee delivery, and if it delivers does not guarantee it being in the same order it was sent.
+
+    Implements:
+        - Write (to both the target ip and all subscribers)
+        - Read
+    '''
     def __init__(self, logger, port=ROVECOMM_PORT):
         self.rove_comm_port = port
         self.subscribers = []
 
         self.callbacks = {}
         self.logger = logger
-
         
         # logging file
 
@@ -84,7 +102,9 @@ class RoveCommEthernetUdp:
         self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
 
     def write(self, packet):
-
+        '''
+        Transmits a packet to the destination IP (if there is one) and all active subscribers.
+        '''
         try:
             if not isinstance(packet.data, tuple):
                 raise ValueError('Must pass data as a list, Data: ' + str(packet.data))
@@ -104,7 +124,9 @@ class RoveCommEthernetUdp:
             return 0
 
     def read(self):
-
+        '''
+        Unpacks the UDP packet and packs it into a RoveComm Packet for easy parsing in other code.
+        '''
         try:
             packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
             header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
@@ -138,13 +160,12 @@ class RoveCommEthernetUdp:
             return return_packet
 
     def listen(self):
-
+        '''
+        Starts listener that will read in packets and populate appropriate callbacks (functional a dictionary of data ids)
+        that can then be referenced within other scripts.
+        '''
         while True:
-            # print("yo")
-            packet = self.read()
-            # if packet.data_id == 5100:
-            #    packet.print()
-            
+            packet = self.read()            
             try:
                 self.callbacks[packet.data_id](packet)
                 self.logger.write_line(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data))
