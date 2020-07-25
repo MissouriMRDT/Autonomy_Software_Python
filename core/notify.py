@@ -8,6 +8,7 @@ DRIVE_BOARD_IP = "192.168.1.142"
 NOTIFY_ID = 7000
 
 
+#TODO: Wrap this in a Lighting/Media Board interface
 class Notify:
 
     def __init__(self, rove_comm):

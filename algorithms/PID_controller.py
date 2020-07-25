@@ -34,6 +34,10 @@ class PIDcontroller:
         self.prevTime = time.time()
         
     def update(self, setpoint, real_position):
+        """
+        updates the PID controller with the setpoint and current position, 
+        returns output we can use to scale smoothly towards our setpoint
+        """
         Ts = time.time() - self.prevTime
         error = setpoint - real_position
         

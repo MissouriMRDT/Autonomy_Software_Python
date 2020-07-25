@@ -4,6 +4,10 @@ import time
 from core.rovecomm import RoveCommPacket
 
 class LogWriter:
+    """
+    A simple python logger that will allow us to log autonomy events to a text file for examination after a task.
+    """
+
     def __init__(self,filename):
         self.filename = filename
         with open(self.filename, 'w') as f:

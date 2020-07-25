@@ -12,6 +12,11 @@ GPSADD_DATA_ID = 5103
 
 
 class NavBoard:
+    """
+    Interface for the navboard, a seperate compute unit that provides GPS and IMU (Pitch/Yaw/Roll) data to the Autonomy system.
+    This interface collects and stores the data received from the navboard so it can be used elsewhere.  
+    """
+    
     def __init__(self, rove_comm, logger):
         self._pitch = 0
         self._roll = 0
@@ -24,6 +29,7 @@ class NavBoard:
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
+        #set up appropriate callbacks so we can store data as we receive it from NavBoard
         self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
         self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
         self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data

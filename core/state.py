@@ -1,4 +1,7 @@
 class RoverState(object):
+    """
+    A state class abstraction which serves as part of the state machine
+    """
 
     def __init__(self):
         pass

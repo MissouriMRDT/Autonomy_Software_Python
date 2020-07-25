@@ -12,6 +12,11 @@ def clamp(n, min_n, max_n):
 
 
 class DriveBoard:
+    """
+    The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the drive board on the rover, 
+    as well as calculate motor speeds for a desired vector.
+    """
+    
     def __init__(self):
         
         self._targetSpdLeft = 0
