@@ -1,4 +1,4 @@
-from state import RoverState
+from core.state import RoverState
 from enum import Enum
 
 

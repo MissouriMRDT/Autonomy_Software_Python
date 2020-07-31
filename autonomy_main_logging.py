@@ -5,6 +5,7 @@ import math
 
 import core.rover_states as rs
 import core.constants
+from core.constants import ApproachState
 from core.rovecomm import RoveCommEthernetUdp
 from core.rovecomm import RoveCommPacket
 from drivers.drive_board import DriveBoard
@@ -128,7 +129,7 @@ while True:
         # if looping > 25:
             # looping = 0
             # state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE, rs.Navigating())
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.ON_COURSE:
             Logger.write_line(time.strftime("%H%M%S") + " Navigating: reached goal (" + str(nav_board._location[0]) + "," + str(nav_board._location[1]) + ")")
             # If there are more points, set the new one and start from top
             if waypoints:
@@ -159,7 +160,7 @@ while True:
         goal, start = gps_data.data()
         print(goal)
         
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.ON_COURSE:
             rovecomm_node.write(drive.send_drive(0, 0))
             time.sleep(1)
             goal = marker_search.calculate_next_coordinate(start, goal)
