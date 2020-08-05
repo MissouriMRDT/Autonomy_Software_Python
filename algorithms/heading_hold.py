@@ -20,6 +20,7 @@ def get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board):
     clamp(heading_correction, -180, 180)
     return drive_board.calculate_move(speed, heading_correction)
 
+
 if __name__ == "__main__":
 
     rovecomm_node = RoveCommEthernetUdp("")

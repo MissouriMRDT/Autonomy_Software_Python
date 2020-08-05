@@ -1,5 +1,6 @@
 import math
-import core.constants
+import core.constants as constants
+
 
 # Performs a calculation for the next target gps on a spiral search pattern
 # Start and current are a Coordinate lat/lon
