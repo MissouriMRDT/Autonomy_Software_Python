@@ -5,3 +5,5 @@ simplejson
 pynmea2
 serial
 time
+pytest-cov
+pytest
