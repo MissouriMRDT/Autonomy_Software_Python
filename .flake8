@@ -1,0 +1,8 @@
+[flake8]
+ignore = E501
+exclude =
+    # No need to traverse our git directory
+    .git,
+    venv
+
+max-complexity = 10

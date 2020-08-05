@@ -4,6 +4,9 @@
 #VS Code files
 .vscode/
 
+#Pytest files
+.pytest_cache/
+
 # Mac Temp Files
 .DS_Store
 

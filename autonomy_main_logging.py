@@ -1,12 +1,10 @@
 import time
 from collections import deque
-import struct
 import math
 
 import core.rover_states as rs
-import core.constants
+import core.constants as constants
 from core.rovecomm import RoveCommEthernetUdp
-from core.rovecomm import RoveCommPacket
 from drivers.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 from core.notify import Notify
@@ -16,7 +14,7 @@ import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
-import algorithms.follow_ball
+import algorithms.follow_ball as follow_ball
 
 outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
@@ -40,6 +38,7 @@ tracker = ObjectTracker()
 print("Cameras")
 loopDelay = 0.07
 print("Setup complete")
+
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
@@ -111,7 +110,7 @@ rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handl
 # drive.enable()
 # state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
 
-#notify.notify_finish()
+# notify.notify_finish()
 
 time.sleep(1)
 

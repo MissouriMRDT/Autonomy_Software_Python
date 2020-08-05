@@ -1,6 +1,5 @@
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
-import math
 
 # User definable constants
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # Meters
@@ -34,9 +33,9 @@ def calculate_move(goal, location, start, drive_board, nav_board, speed):
     (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
     # The Haversine stuff works, reliably. Please let's use it instead.
     # Crosstrack Correction as linear
-    #(xte_bearing, xte_dist) = geomath.crosstrack_error_vector(start, goal, location)
+    # (xte_bearing, xte_dist) = geomath.crosstrack_error_vector(start, goal, location)
 
-    #goal_heading = geomath.weighted_average_angles([target_heading, xte_bearing], [1 - XTE_STRENGTH, XTE_STRENGTH])
+    # goal_heading = geomath.weighted_average_angles([target_heading, xte_bearing], [1 - XTE_STRENGTH, XTE_STRENGTH])
     """
     dx = goal.lon - location.lon
     dy = goal.lat - location.lat
@@ -63,7 +62,7 @@ def calculate_move(goal, location, start, drive_board, nav_board, speed):
     if c < .9:
         speed = int(speed * c) + 10
     """
-    #speed = 250 # increased for testing per Rausch
+    # speed = 250 # increased for testing per Rausch
     print(target_distance)
     if target_distance < 0.01:
         speed = 100

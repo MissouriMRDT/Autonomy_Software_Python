@@ -10,7 +10,7 @@ class StateSwitcher(object):
     def __init__(self, filename):
         self.state = Idle()  # default state
         self.previousState = Idle()
-        self.outString = filename # see example in CannyTracking to add logging to functions
+        self.outString = filename  # see example in CannyTracking to add logging to functions
 
     def handle_event(self, event, previousState, then=None):
         if event == AutonomyEvents.END_OBSTACLE_AVOIDANCE:
@@ -120,6 +120,7 @@ class Shutdown(RoverState):
             then()  # callback
 
         return self
+
 
 class ObstacleAvoidance(RoverState):
     """
