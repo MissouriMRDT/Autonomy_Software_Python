@@ -31,8 +31,8 @@ jobs:
       run: |
         pytest --cov --html=report.html
     - name: Archive unit test results
-        uses: actions/upload-artifact@v2
-        with:
-          name: unit-test-report
-          path: report.html
+      uses: actions/upload-artifact@v2
+      with:
+        name: unit-test-report
+        path: report.html
 
