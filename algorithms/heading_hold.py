@@ -1,5 +1,4 @@
 
-import core.constants
 from algorithms.PID_controller import PIDcontroller
 
 
@@ -10,6 +9,7 @@ from interfaces.nav_board import NavBoard
 
 def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)
+
 
 pid = PIDcontroller(Kp=3, Ki=0.25, Kd=0, wraparound=360)
 

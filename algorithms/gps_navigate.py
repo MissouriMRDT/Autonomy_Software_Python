@@ -58,7 +58,7 @@ def calculate_move(goal, location, start, drive_board, nav_board, speed):
     print(c)
 
     speed = 150
-    
+
     if c < .9:
         speed = int(speed * c) + 10
     """

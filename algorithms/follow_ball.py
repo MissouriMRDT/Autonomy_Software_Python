@@ -1,13 +1,13 @@
 import logging
 import core.constants as constants
-import algorithms.heading_hold as hh # hh to match other styles in our code base
+import algorithms.heading_hold as hh  # hh to match other styles in our code base
 
 
 def drive_to_marker(speed, drive_board, center, radius, nav_board):
     angle_to_ball = constants.FIELD_OF_VIEW * ((center[0] - constants.WIDTH / 2) / constants.WIDTH)
     print(angle_to_ball)
     if radius == 0:
-        radius = 1 # TODO: more robust fix
+        radius = 1  # TODO: more robust fix
     distance = constants.SCALING_FACTOR / radius
     logging.info("Distance to marker: %f" % distance)
     logging.info("Angle to marker: %f" % angle_to_ball)
