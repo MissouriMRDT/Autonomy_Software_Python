@@ -7,6 +7,9 @@
 #Pytest files
 .pytest_cache/
 
+#pipenv lock file
+Pipfile.lock
+
 # Mac Temp Files
 .DS_Store
 
