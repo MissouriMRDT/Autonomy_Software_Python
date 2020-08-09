@@ -8,7 +8,7 @@
 .pytest_cache/
 
 #pipenv lock file
-Pipfile.lock
+.lock
 
 # Mac Temp Files
 .DS_Store
