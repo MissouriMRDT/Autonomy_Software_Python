@@ -15,7 +15,7 @@ git clone https://github.com/MissouriMRDT/Autonomy_Software.git
 ```
 2. Install Python 3.7 or higer, and then install pipenv using pip
 ```
-pip install pyenv
+pip install pipenv
 ```
 3. Configure your python virtual environment (using pipenv) to install the required packages
 ```
@@ -28,6 +28,25 @@ pytest --cov # unit tests and coverage
 flake8 # linter used for code quality
 ```
 These packages will be run by default for any push to dev/master and any pull request into dev/master to ensure the code quality matches our standards.
+
+Any of the ZED (our chosen Stereo Cam) specific code will require the [ZED SDK](https://www.stereolabs.com/developers/release/), though you won't be able to run most code without an NVIDIA GPU.
+
+## Recommended Tools:
+
+IDE:
+
+[Visual Studio Code](https://code.visualstudio.com/) w/ Python extension installed
+To configure linting put the following in .vscode/settings.json:
+```
+"python.linting.pylintEnabled": false,
+"python.linting.flake8Enabled": true,
+"python.linting.lintOnSave": true,
+"python.linting.enabled": true
+```
+
+Version Control:
+1. [Github Desktop](https://desktop.github.com/)
+2. [Git Bash](https://git-scm.com/downloads) & [Tortoise Git](https://tortoisegit.org/) (integration tips can be found [here](https://medium.com/@adriangodong/windows-git-bash-tortoisegit-1a866fbde27e))
 
 ## Architecture
 The architecture is broken up into four categories:
