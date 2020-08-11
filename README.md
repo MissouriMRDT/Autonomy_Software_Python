@@ -13,13 +13,13 @@ There are a couple of simple steps in order to get started writing software for 
 ```
 git clone https://github.com/MissouriMRDT/Autonomy_Software.git
 ```
-2. Install Python 3.7 or higer, and then install pyenv using pip
+2. Install Python 3.7 or higer, and then install pipenv using pip
 ```
 pip install pyenv
 ```
-3. Configure your python virtual environment (using pyenv) to install the required packages
+3. Configure your python virtual environment (using pipenv) to install the required packages
 ```
-pyenv install
+pipenv install
 ```
 4. You should now be set up (bar any issues), you can go ahead and run our unit tests or linter using the following commands:
 ```
