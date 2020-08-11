@@ -5,7 +5,7 @@ import math
 import core.rover_states as rs
 import core.constants as constants
 from core.rovecomm import RoveCommEthernetUdp
-from drivers.drive_board import DriveBoard
+from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 from core.notify import Notify
 from core.logging import LogWriter
