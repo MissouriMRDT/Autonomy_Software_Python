@@ -3,7 +3,8 @@ from collections import deque
 import logging
 
 import core.rover_states as rs
-import core.constants as constants
+import core.constants
+from core.constants import ApproachState
 from core.rovecomm import RoveCommEthernetUdp
 from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
@@ -84,7 +85,7 @@ while True:
     # Travel Point to Point (P2P) from the current GPS to the target given from Basestation
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
 
             # If there are more points, set the new one and start from top
             if waypoints.count > 0:
@@ -108,7 +109,7 @@ while True:
     # Travel in a defined pattern to find the target object, the tennis ball
     elif state_switcher.state == rs.Searching():
         goal, start = gps_data.data()
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
             goal = marker_search.calculate_next_coordinate(start, nav_board.location())
             gps_data.goal = goal
 
