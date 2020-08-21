@@ -17,7 +17,7 @@ from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
 import algorithms.follow_ball as follow_ball
 
-outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
+outString = time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
 print(outString)
 

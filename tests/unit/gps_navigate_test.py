@@ -12,7 +12,7 @@ from core.logging import LogWriter
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
 
 # set up dependancies
-outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
+outString = time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
 rovecomm_node = RoveCommEthernetUdp(Logger)
 
