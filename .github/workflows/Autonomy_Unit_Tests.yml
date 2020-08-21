@@ -27,10 +27,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov pytest-html pipenv
         pipenv install
-        pipenv shell
     - name: Unit and coverage test with pytest
       run: |
-        pytest --cov --html=report.html
+        pipenv run pytest --cov --html=report.html
     - name: Archive unit test results
       uses: actions/upload-artifact@v2
       with:
