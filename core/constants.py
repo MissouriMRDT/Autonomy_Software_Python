@@ -10,7 +10,7 @@ RADIUS = .063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 DRIVE_POWER = 200  # -1000 to 1000, normally 200 dropped lower for early testing to be safe
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
-BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees
+BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 
 SEARCH_DISTANCE = 0.008
 DELTA_THETA = math.pi / 2
@@ -34,6 +34,6 @@ class DataID(IntEnum):
 
 
 class ApproachState(Enum):
-    ON_COURSE     = 1
+    APPROACHING     = 1
     CLOSE_ENOUGH    = 2
     PAST_GOAL       = 3
