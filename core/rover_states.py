@@ -1,13 +1,16 @@
-from state import RoverState
+from core.state import RoverState
 from enum import Enum
 
 
 class StateSwitcher(object):
+    """
+    The state machine "handler" which will deal with switching between various states
+    """
 
     def __init__(self, filename):
         self.state = Idle()  # default state
         self.previousState = Idle()
-        self.outString = filename # see example in CannyTracking to add logging to functions
+        self.outString = filename  # see example in CannyTracking to add logging to functions
 
     def handle_event(self, event, previousState, then=None):
         if event == AutonomyEvents.END_OBSTACLE_AVOIDANCE:
@@ -21,6 +24,10 @@ class StateSwitcher(object):
 
 
 class Idle(RoverState):
+    """
+    This is the default state for the state machine. In this state the program does nothing explicit.
+    Its singular purpose is to keep the python program running to receive and transmit rovecomm commands from base station that configure the next leg’s settings and confirm them.
+    """
 
     def handle_event(self, event, then=None):
         if event == AutonomyEvents.START:
@@ -37,6 +44,10 @@ class Idle(RoverState):
 
 
 class Navigating(RoverState):
+    """
+    The goal of this state is to navigate to the GPS coordinates provided by base station in succession, the last of which is the coordinate provided by the judges for that leg of the task.
+    Coordinates before the last are simply the operators in base station’s best guess of the best path for the rover due to terrain identified on RED’s map.
+    """
 
     def handle_event(self, event, then=None):
 
@@ -52,6 +63,10 @@ class Navigating(RoverState):
 
 
 class Searching(RoverState):
+    """
+    The searching state’s goal is to drive the rover in an ever expanding Archimedean spiral, searching for the AR Tag.
+    The spiral type was chosen because of it’s fixed distance between each rotation’s path.
+    """
 
     def handle_event(self, event, then=None):
 
@@ -69,6 +84,9 @@ class Searching(RoverState):
 
 
 class ApproachingMarker(RoverState):
+    """
+    Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
+    """
 
     def handle_event(self, event, then=None):
 
@@ -88,6 +106,10 @@ class ApproachingMarker(RoverState):
 
 
 class Shutdown(RoverState):
+    """
+    Within any state except for Idle, all implement ABORT as a throwable when a stop message is received from base station.
+    All abort throws are sent to shutdown to stop the rover and resolve any loose ends that may arise from the navigation states.
+    """
 
     def handle_event(self, event, then=None):
 
@@ -99,11 +121,15 @@ class Shutdown(RoverState):
 
         return self
 
+
 class ObstacleAvoidance(RoverState):
+    """
+    This state provides navigation around obstacles found in the field.
+    """
 
     def handle_event(self, event, then=None):
 
-        return self 
+        return self
 
 
 class AutonomyEvents(Enum):
