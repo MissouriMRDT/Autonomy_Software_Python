@@ -2,7 +2,7 @@ import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
 import core.constants as constants
 from core.constants import ApproachState
-import math
+
 
 def get_approach_status(goal, location, start):
     (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
@@ -22,11 +22,10 @@ def get_approach_status(goal, location, start):
         print("CLOSE ENOUGH!")
         return ApproachState.CLOSE_ENOUGH
 
-    return ApproachState.ON_COURSE
+    return ApproachState.APPROACHING
 
 
-def calculate_move(goal, location, start, drive_board, nav_board, speed):
-
+def calculate_move(goal, location, start, drive_board, nav_board, speed=150):
     (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
     print(target_distance)
     if target_distance < 0.01:
@@ -35,7 +34,7 @@ def calculate_move(goal, location, start, drive_board, nav_board, speed):
     print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
     return hh.get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board)
 
-
+     
 class GPSData:
 
     def __int__(self, goal, start):

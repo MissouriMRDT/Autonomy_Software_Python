@@ -1,8 +1,6 @@
 from core.rovecomm import RoveCommEthernetUdp
-import core.constants
+import core.constants as constants
 import time
-import datetime
-from core.logging import LogWriter
 
 NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
@@ -14,30 +12,30 @@ GPSADD_DATA_ID = 5103
 class NavBoard:
     """
     Interface for the navboard, a seperate compute unit that provides GPS and IMU (Pitch/Yaw/Roll) data to the Autonomy system.
-    This interface collects and stores the data received from the navboard so it can be used elsewhere.  
+    This interface collects and stores the data received from the navboard so it can be used elsewhere.
     """
-    
+
     def __init__(self, rove_comm, logger):
         self._pitch = 0
         self._roll = 0
         self._heading = 0
         self._location = constants.Coordinate(0, 0)
         self._distToGround = 0
-        self._lidarQuality = 0 # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
+        self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
         self.rove_comm_node = rove_comm
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
-        #set up appropriate callbacks so we can store data as we receive it from NavBoard
+        # set up appropriate callbacks so we can store data as we receive it from NavBoard
         self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
         self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
         self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
-        self.logger = logger # see CannyTracking to add logging
+        self.logger = logger  # see CannyTracking to add logging
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
-        """        
+        """
         self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
         if abs(self._heading - packet.data[1]) < 30: # attempt to filter inappropriate values, experimentally i've never seen the rover turn more than 120 degrees per second.
             self._heading = packet.data[1]
@@ -49,17 +47,13 @@ class NavBoard:
         lon, lat = packet.data
         lat = lat * 1e-7
         lon = -lon * 1e-7
-        timeDifference = time.time() - self._lastTime
-        # print("5")
-        # print(timeDiffernce)
-        # print(time.localtime(time.time()))
         print(str(time.time()))
         print(self._location)
         self._lastTime = time.time()
         self._location = constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarQuality = packet.data # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        self._distToGround, self._lidarQuality = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch

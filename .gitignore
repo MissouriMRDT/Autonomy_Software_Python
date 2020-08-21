@@ -4,6 +4,12 @@
 #VS Code files
 .vscode/
 
+#Pytest files
+.pytest_cache/
+
+#pipenv lock file
+.lock
+
 # Mac Temp Files
 .DS_Store
 

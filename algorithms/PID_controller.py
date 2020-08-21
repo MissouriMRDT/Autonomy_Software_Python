@@ -1,18 +1,20 @@
 import time
 
-clamp = lambda n, minn, maxn: max(min(maxn, n), minn)
+
+def clamp(n, min_n, max_n):
+    return max(min(max_n, n), min_n)
 
 
 class PIDcontroller:
     """ Simple PID controller.
-        Does not need to be run at a fixed frequency; can adjust itself using system clock.      
-        
+        Does not need to be run at a fixed frequency; can adjust itself using system clock.
+
         Parameters
         ----------
             Kp : Real Number
                 Proportional Gain.
             Ki : Real Number
-                Integral Gain. 
+                Integral Gain.
             Kd : Real number
                 Derivative Gain
             accumulated_error_clamp : Positive number
@@ -32,15 +34,15 @@ class PIDcontroller:
         self.prevError = 0
         self.accumulatedError = 0
         self.prevTime = time.time()
-        
+
     def update(self, setpoint, real_position):
         """
-        updates the PID controller with the setpoint and current position, 
+        updates the PID controller with the setpoint and current position,
         returns output we can use to scale smoothly towards our setpoint
         """
         Ts = time.time() - self.prevTime
         error = setpoint - real_position
-        
+
         if self.wraparound:
             if error > (self.wraparound / 2.0):
                 error = error - self.wraparound
@@ -50,7 +52,7 @@ class PIDcontroller:
         self.accumulatedError += error * Ts
         self.accumulatedError = clamp(self.accumulatedError, -self.err_clamp, +self.err_clamp)
         if abs(error) < 2:
-            self.accumulatedError = 0 # PID theory says we should reset the accumulated error to 0 when we're at our target position, allowing 2 degrees to either side of the rover allows that to be reset properly. We might need to further tune this constant at a later time to ensure proper heading holds.
+            self.accumulatedError = 0  # PID theory says we should reset the accumulated error to 0 when we're at our target position, allowing 2 degrees to either side of the rover allows that to be reset properly. We might need to further tune this constant at a later time to ensure proper heading holds.
         output = self.Kp * error + self.Ki * self.accumulatedError + self.Kd * ((error - self.prevError) / Ts)
         self.prevError = error
         self.prevTime = time.time()

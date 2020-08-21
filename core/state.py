@@ -20,4 +20,3 @@ class RoverState(object):
 
     def __ne__(self, other):
         return str(self) != str(other)
-

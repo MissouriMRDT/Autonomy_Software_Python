@@ -1,14 +1,12 @@
 import time
 from collections import deque
-import struct
 import math
 
 import core.rover_states as rs
 import core.constants
 from core.constants import ApproachState
 from core.rovecomm import RoveCommEthernetUdp
-from core.rovecomm import RoveCommPacket
-from drivers.drive_board import DriveBoard
+from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 from core.notify import Notify
 from core.logging import LogWriter
@@ -17,7 +15,7 @@ import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
-import algorithms.follow_ball
+import algorithms.follow_ball as follow_ball
 
 outString = "logs/" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
@@ -41,6 +39,7 @@ tracker = ObjectTracker()
 print("Cameras")
 loopDelay = 0.07
 print("Setup complete")
+
 
 # Assign callbacks for incoming messages
 def add_waypoint_handler(packet_contents):
@@ -112,7 +111,7 @@ rovecomm_node.callbacks[constants.DataID.CLEAR_WAYPOINTS] = clear_waypoint_handl
 # drive.enable()
 # state_switcher.handle_event(rs.AutonomyEvents.START, rs.Idle())
 
-#notify.notify_finish()
+# notify.notify_finish()
 
 time.sleep(1)
 
@@ -129,7 +128,7 @@ while True:
         # if looping > 25:
             # looping = 0
             # state_switcher.handle_event(rs.AutonomyEvents.REACHED_GPS_COORDINATE, rs.Navigating())
-        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.ON_COURSE:
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
             Logger.write_line(time.strftime("%H%M%S") + " Navigating: reached goal (" + str(nav_board._location[0]) + "," + str(nav_board._location[1]) + ")")
             # If there are more points, set the new one and start from top
             if waypoints:
@@ -160,7 +159,7 @@ while True:
         goal, start = gps_data.data()
         print(goal)
         
-        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.ON_COURSE:
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
             rovecomm_node.write(drive.send_drive(0, 0))
             time.sleep(1)
             goal = marker_search.calculate_next_coordinate(start, goal)
@@ -227,7 +226,6 @@ while True:
             Logger.write_line(time.strftime("%H%M%S") + " ApproachingMarker: lost sight of marker, returning to Searching()")
             print("Throwing MARKER_UNSEEN")
         
-
     elif state_switcher.state == rs.Shutdown():
         Logger.write_line(time.strftime("%H%M%S") + " Shutdown: shutdown")
         pass
@@ -242,20 +240,20 @@ while True:
         rovecomm_node.write(drive.send_drive(0,0))
         # print(drive.send_drive(0,0))
         start = nav_board._location
-        rovecomm_node.write(drive.send_drive(-100,-100)) # tune this drive number
+        rovecomm_node.write(drive.send_drive(-100,-100))  # tune this drive number
         junk, distance = geomath.haversine(start[0], start[1], nav_board._location[0], nav_board._location[1])
         while distance < 0.002:
-                if state_switcher.state != rs.ObstacleAvoidance():
-                    rovecomm_node.write(drive.send_drive(0,0))
-                    continue
-                junk, distance = geomath.haversine(start[0], start[1], nav_board._location[0], nav_board._location[1])
-                print (distance)
-                time.sleep(loopDelay)
-                # distance = 3
+            if state_switcher.state != rs.ObstacleAvoidance():
+                rovecomm_node.write(drive.send_drive(0, 0))
+                continue
+            junk, distance = geomath.haversine(start[0], start[1], nav_board._location[0], nav_board._location[1])
+            print (distance)
+            time.sleep(loopDelay)
+            # distance = 3
         rovecomm_node.write(drive.send_drive(0,0))
         Logger.write_line(time.strftime("%H%M%S") + " ObstacleAvoidance: finished reversing, finding new waypoint")
         r = 6371 # radius of earth
-        brng = math.radians(nav_board._heading - 90) # target heading, needs to be corrected to always fall in the range of possible values
+        brng = math.radians(nav_board._heading - 90)  # target heading, needs to be corrected to always fall in the range of possible values
         d = 0.005 # 5 meters
         lat1 = math.radians(nav_board._location[0])
         lon1 = math.radians(nav_board._location[1])
@@ -271,9 +269,9 @@ while True:
         # if nav_board._distToGround > constants.LIDAR_MAXIMUM:
             # rovecomm_node.write(drive.send_drive(0,0))
             # continue
-        rovecomm_node.write(drive.send_drive(left,right))
+        rovecomm_node.write(drive.send_drive(left, right))
         distance = 10
-        while distance > gps_nav.WAYPOINT_DISTANCE_THRESHOLD * 0.001: # the value in gps_nav is currently in kilometers as of 5/17/19, temporarily fixing this here.
+        while distance > gps_nav.WAYPOINT_DISTANCE_THRESHOLD * 0.001:  # the value in gps_nav is currently in kilometers as of 5/17/19, temporarily fixing this here.
             # add ball tracking after we turn away from our initial heading.
             if state_switcher.state != rs.ObstacleAvoidance():
                 rovecomm_node.write(drive.send_drive(0,0))
@@ -281,7 +279,7 @@ while True:
                 continue
             time.sleep(loopDelay)
             left, right = gps_nav.calculate_move(target, nav_board.location(), start, drive, nav_board)
-            rovecomm_node.write(drive.send_drive(left,right))
+            rovecomm_node.write(drive.send_drive(left, right))
             junk, distance = geomath.haversine(nav_board._location[0], nav_board._location[1], target[0], target[1])
             # distance = 0.0
             # if nav_board._distToGround > constants.LIDAR_MAXIMUM:

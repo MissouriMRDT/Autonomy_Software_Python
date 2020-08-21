@@ -148,6 +148,6 @@ if __name__ == '__main__':
         if ball_in_frame:
             if radius == 0:
                 radius = 1
-            print("Ball found at %s, distance %s" % (center, 1.0/radius))
+            print("Ball found at %s, distance %s" % (center, 1.0 / radius))
         else:
             print("No ball found")

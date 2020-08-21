@@ -20,8 +20,8 @@ types_int_to_byte = {
     3: 'H',
     4: 'l',
     5: 'L',
-    6: 'q', # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
-    7: 'd', # double
+    6: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
+    7: 'd',  # double
 }
 
 types_byte_to_int = {
@@ -31,8 +31,8 @@ types_byte_to_int = {
     'H': 3,
     'l': 4,
     'L': 5,
-    'q': 6, # int64
-    'd': 7, # double
+    'q': 6,  # int64
+    'd': 7,  # double
 }
 
 
@@ -87,7 +87,7 @@ class RoveCommEthernetUdp:
 
         self.callbacks = {}
         self.logger = logger
-        
+
         # logging file
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
@@ -120,7 +120,8 @@ class RoveCommEthernetUdp:
             if packet.ip_address != ('0.0.0.0', 0):
                 self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
                 return 1
-        except:
+        except Exception as ex:
+            self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to write UDP packet".format(exception=ex))
             return 0
 
     def read(self):
@@ -134,7 +135,6 @@ class RoveCommEthernetUdp:
             rovecomm_version, data_id, data_count, data_type = struct.unpack(
                 ROVECOMM_HEADER_FORMAT, packet[0:header_size])
             data = packet[header_size:]
-
 
             if rovecomm_version != 2:
                 return_packet = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
@@ -155,7 +155,8 @@ class RoveCommEthernetUdp:
             return_packet.ip_address = remote_ip
             return return_packet
 
-        except:
+        except Exception as ex:
+            self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to read UDP packet".format(exception=ex))
             return_packet = RoveCommPacket()
             return return_packet
 
@@ -165,9 +166,10 @@ class RoveCommEthernetUdp:
         that can then be referenced within other scripts.
         '''
         while True:
-            packet = self.read()            
+            packet = self.read()
             try:
                 self.callbacks[packet.data_id](packet)
                 self.logger.write_line(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data))
-            except:
+            except Exception as ex:
+                self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to process callbacks in UDP listener thread".format(exception=ex))
                 pass
