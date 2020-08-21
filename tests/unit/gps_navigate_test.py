@@ -1,9 +1,9 @@
-from drivers.nav_board import NavBoard
-from drivers.gps.gpsNavboard import GPS
-from drivers.rovecomm import RoveComm
-from drivers.drive_board import DriveBoard
+from interfaces.nav_board import NavBoard
+from core.gps.gpsNavboard import GPS
+from core.rovecomm import RoveComm
+from interfaces.drive_board import DriveBoard
 # from drivers.lidar import LiDAR
-from drivers.notify import Notify
+from core.notify import Notify
 from gpsNavigate import GPSNavigate
 from algorithms.geomath import Coordinate
 from algorithms.quaternion import Quaternion

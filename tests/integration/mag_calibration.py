@@ -7,8 +7,8 @@ import json
 
 import datetime
 
-from drivers.nav_board import NavBoard
-from drivers.rovecomm import RoveComm
+from interfaces.nav_board import NavBoard
+from core.rovecomm import RoveComm
 
 
 def handle_ctrl_c(signal, frame):

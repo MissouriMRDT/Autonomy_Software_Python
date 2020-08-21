@@ -1,0 +1,17 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+numpy = "*"
+opencv-contrib-python = "*"
+simplejson = "*"
+pynmea2 = "*"
+serial = "*"
+pytest = "*"
+flake8 = "*"
+pytest-cov = "*"
+pytest-html = "*"

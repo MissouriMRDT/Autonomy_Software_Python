@@ -1,12 +1,12 @@
 import logging
 import time
-import constants
-import rover_states
+import core.constants
+import core.rover_states
 import algorithms.marker_search as marker_search
 import algorithms.gps_navigate as gps_nav
 
-state_switcher = rover_states.StateSwitcher()
-state_switcher.state = rover_states.Searching()
+state_switcher = core.rover_states.StateSwitcher()
+state_switcher.state = core.rover_states.Searching()
 gps_data = gps_nav.GPSData()
 
 gps_data.start = constants.Coordinate(37.950271, -91.777770)
@@ -16,7 +16,7 @@ print("Origin: " + str(gps_data.start.lat) + ", " + str(gps_data.start.lon))
 
 while True:
 
-    if state_switcher.state == rover_states.Searching():
+    if state_switcher.state == core.rover_states.Searching():
 
         print()
         goal, start = gps_data.data()
