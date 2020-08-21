@@ -21,3 +21,6 @@
 logs/
 *.log
 *.avi
+
+#Coverage files
+*.coverage
