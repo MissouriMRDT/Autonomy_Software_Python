@@ -51,7 +51,7 @@ class ObjectTracker(object):
         self.radius = 0
         self.firstRun = 0
         self.testing = testing
-        finalVideoOut = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # for outputting the video stream with tennis ball tracking
+        finalVideoOut = "objtracker" + time.strftime("%Y%m%d-%H%M%S") + ".avi" # for outputting the video stream with tennis ball tracking
         # self.circle = np.array([[[375, 52]], [[232, 84]], [[138, 200]], [[162, 337]], [[226, 403]], [[286, 427]],
                                 # [[415, 407]], [[475, 359]], [[511, 293]], [[503, 156]], [[453, 90]]])
 

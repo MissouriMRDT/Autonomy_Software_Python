@@ -1,5 +1,5 @@
 import time
-
+import os
 
 class LogWriter:
     """
@@ -7,7 +7,11 @@ class LogWriter:
     """
 
     def __init__(self, filename):
-        self.filename = filename
+        self.filename = "logs/" + filename
+
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+
         with open(self.filename, 'w') as f:
             f.write(time.strftime("%Y%m%d-%H%M%S") + "\n")
 
