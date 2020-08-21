@@ -3,7 +3,7 @@ from collections import deque
 import math
 
 import core.rover_states as rs
-import core.constants
+import core.constants as constants
 from core.constants import ApproachState
 from core.rovecomm import RoveCommEthernetUdp
 from interfaces.drive_board import DriveBoard

@@ -22,11 +22,12 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Install dependencies
+    - name: Install dependencies with pipenv
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov pytest-html
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest pytest-cov pytest-html pipenv
+        pipenv install
+        pipenv shell
     - name: Unit and coverage test with pytest
       run: |
         pytest --cov --html=report.html
