@@ -21,7 +21,15 @@ pip install pipenv
 ```
 pipenv install
 ```
-4. You should now be set up (bar any issues), you can go ahead and run our unit tests or linter using the following commands:
+4. Now that you have configured the virtual environment, if you want to run python code for the autonomy repo make sure to always do one of the following:
+```
+pipenv run <file you want to run>
+```
+or the preffered option which will spawn a shell subprocess with which you can start running commands within the environment: 
+```
+pipenv shell
+```
+5. You should now be set up (bar any issues), so go ahead and run our unit tests or linter using the following commands:
 ```
 pytest --cov # unit tests and coverage
 
