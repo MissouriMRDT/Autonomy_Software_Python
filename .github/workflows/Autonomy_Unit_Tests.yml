@@ -29,7 +29,7 @@ jobs:
         pipenv install
     - name: Unit and coverage test with pytest
       run: |
-        pipenv run pytest --cov --html=report.html
+        pipenv run pytest -v --cov=../Autonomy_Software --html=report.html
     - name: Archive unit test results
       uses: actions/upload-artifact@v2
       with:
