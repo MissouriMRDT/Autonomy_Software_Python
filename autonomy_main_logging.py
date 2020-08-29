@@ -15,7 +15,7 @@ import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
 import algorithms.geomath as geomath
-import algorithms.follow_ball as follow_ball
+import algorithms.follow_marker as follow_marker
 
 outString = time.strftime("%Y%m%d-%H%M%S") + ".txt"
 Logger = LogWriter(outString)
@@ -203,7 +203,7 @@ while True:
         
         print("Ball Radius: " + str(radius))
         if ball_in_frame:
-            (left, right), distance = follow_ball.drive_to_marker(75, drive, center, radius, nav_board)
+            (left, right), distance = follow_marker.drive_to_marker(75, drive, center, radius, nav_board)
             print("Ball in Frame")
             # distance = 2 # for testing, comment out later
             if distance < .5:
