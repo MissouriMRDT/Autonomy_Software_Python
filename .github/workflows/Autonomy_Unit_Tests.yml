@@ -33,6 +33,7 @@ jobs:
       run: |
         pipenv run pytest -v --cov=../Autonomy_Software
     - name: Archive output
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: search-pattern-output
