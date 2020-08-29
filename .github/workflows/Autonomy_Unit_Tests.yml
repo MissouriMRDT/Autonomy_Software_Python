@@ -32,4 +32,9 @@ jobs:
     - name: Unit and coverage test with pytest
       run: |
         pipenv run pytest -v --cov=../Autonomy_Software
+    - name: Archive output
+      uses: actions/upload-artifact@v2
+      with:
+        name: search-pattern-output
+        path: resources/tests/output_search_pattern.eps
 
