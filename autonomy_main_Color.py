@@ -14,7 +14,7 @@ from algorithms.color_based_tracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
-import algorithms.follow_markerer afollow_markerrker
+import algorithms.follow_marker as follow_marker
 
 # Hardware Setup
 rovecomm_node = RoveCommEthernetUdp()
@@ -132,7 +132,7 @@ while True:
         ball_in_frame, center, radius = tracker.track_ball()
         print("Ball Radius: " + str(radius))
         if ball_in_frame:
-            (left, right), distance = follow_markerer.drive_to_marker(50, drive, center, radius)
+            (left, right), distance = follow_marker.drive_to_marker(50, drive, center, radius)
 
             if distance < .5:
                 rovecomm_node.write(drive.send_drive(0, 0))

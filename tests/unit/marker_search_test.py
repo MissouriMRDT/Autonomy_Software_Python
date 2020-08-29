@@ -35,9 +35,6 @@ def drawLogarithmicSpiral(r=50, fileName="resources/tests/output_search_pattern.
     '''
     Draws and outputs the pattern provided by marker_search using the turtle module
     '''
-
-    window = turtle.Screen()
-    window.bgcolor("white")
     t = turtle.Turtle()
     t.up()
 
@@ -50,6 +47,8 @@ def drawLogarithmicSpiral(r=50, fileName="resources/tests/output_search_pattern.
 
     t.setpos(x, y)
     t.down()
+    t.hideturtle()
+    t.speed(0)
 
     for i in range(r):
         # generate the next point in spiral
