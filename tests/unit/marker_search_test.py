@@ -26,7 +26,10 @@ def compareOutputs(output, expected):
 
     # the only difference between the files should be the creation date
     if len(diff) == 1 and 'CreationDate' in next(iter(diff)):
+        for line in diff:
+            print(line)
         return True
+
     else:
         for line in diff:
             print(line)
