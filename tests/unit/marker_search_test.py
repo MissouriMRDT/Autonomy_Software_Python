@@ -1,5 +1,4 @@
 import turtle
-import sys
 import algorithms.marker_search as marker_search
 import core.constants as constants
 
@@ -32,7 +31,7 @@ def compareOutputs(output, expected):
     return False
 
 
-def drawLogarithmicSpiral(r=50, fileName="resources/tests/output.eps"):
+def drawLogarithmicSpiral(r=50, fileName="resources/tests/output_search_pattern.eps"):
     '''
     Draws and outputs the pattern provided by marker_search using the turtle module
     '''
@@ -45,7 +44,7 @@ def drawLogarithmicSpiral(r=50, fileName="resources/tests/output.eps"):
     x = 0
     y = 0
 
-    #pick the same GPS coord for starting and curren pos
+    # pick the same GPS coord for starting and curren pos
     start_coord = constants.Coordinate(37.951424, -91.768959)
     end_coord = constants.Coordinate(37.951424, -91.768959)
 
@@ -76,11 +75,11 @@ def test_calculate_next_coordinate():
     '''
     Compare the generated marker search with the expected, assert that they are the same
     '''
-    
+
     drawLogarithmicSpiral()
-    assert compareOutputs('resources/tests/output.eps', 'resources/tests/expected.eps') == True
+    assert compareOutputs('resources/tests/output_search_pattern.eps', 'resources/tests/expected_search_pattern.eps') == True
 
 
 if __name__ == "__main__":
-    drawLogarithmicSpiral(fileName="resources/tests/expected.eps")
+    drawLogarithmicSpiral(fileName="resources/tests/expected_search_pattern.eps")
     turtle.mainloop()
