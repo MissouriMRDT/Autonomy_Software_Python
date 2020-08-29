@@ -7,6 +7,12 @@ import algorithms.gps_navigate as gps_nav
 import time
 from core.logging import LogWriter
 
+'''
+UNIT TEST
+FILE: gps_navigate.py
+
+This file provides unit tests for both the get_approach_status and calculate_move() 
+'''
 
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
@@ -58,8 +64,8 @@ def test_get_approach_status_approaching():
 
 
 def test_calculate_move_right():
-    # set up our goal position to be north west of our current
-    # heading is 0
+    # set up our goal position to be west of our current
+    # heading is 0 (we are pointing straight north)
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.0025)
 
@@ -72,22 +78,22 @@ def test_calculate_move_right():
 
 
 def test_calculate_move_left():
-    # set up our goal position to be north west of our current
-    # heading is 0
+    # set up our goal position to be east of our current
+    # heading is 0 (we are pointing straight north)
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.0025)
 
     drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord, drive_board, nav_board)
 
-    # should be turning to the right
+    # should be turning to the left
     assert right > 0
     assert left < 0
 
 
 def test_calculate_move_straight():
-    # set up our goal position to be north west of our current
-    # heading is 0
+    # set up our goal position to be north of our current
+    # heading is 0 (we are pointing straight north)
     goal_coord = constants.Coordinate(rolla_coord.lat + 0.0004, rolla_coord.lon)
     current_coord = constants.Coordinate(rolla_coord.lat + 0.0002, rolla_coord.lon)
 
