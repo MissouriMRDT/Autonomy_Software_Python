@@ -1,7 +1,7 @@
 
-import numpy as np 
+import numpy as np
 import matplotlib.testing.compare as plt_tst
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import algorithms.marker_search as marker_search
 import core.constants as constants
 
@@ -14,6 +14,7 @@ to that of a previously correctly generated one.
 
 PROCEDURES: If any changes are made, place this file in the root directory and run it directly to confirm and update the expected output.
 '''
+
 
 def drawLogarithmicSpiral(r=50, fileName='resources/tests/output_search_pattern.png'):
     '''
@@ -37,9 +38,9 @@ def drawLogarithmicSpiral(r=50, fileName='resources/tests/output_search_pattern.
         dx = new_coord.lon - end_coord.lon
         dy = new_coord.lat - end_coord.lat
 
-        # scale deltas to make visible on screen
-        x += dx * 500000
-        y += dy * 500000
+        # update position on screen
+        x += dx
+        y += dy
 
         end_coord = constants.Coordinate(new_coord.lat, new_coord.lon)
         li.append((x, y))
