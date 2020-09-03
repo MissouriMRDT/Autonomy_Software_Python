@@ -54,7 +54,7 @@ def test_calculate_next_coordinate():
     '''
     Draw pattern and make sure it is the same as expected
     '''
-
+    
     drawLogarithmicSpiral()
     assert plt_tst.compare_images('resources/tests/expected/expected_search_pattern.png', 'resources/tests/output/output_search_pattern.png', 0.001) == None
 
