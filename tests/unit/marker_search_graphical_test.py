@@ -16,7 +16,7 @@ PROCEDURES: If any changes are made, place this file in the root directory and r
 '''
 
 
-def drawLogarithmicSpiral(r=50, fileName='resources/tests/output_search_pattern.png'):
+def drawLogarithmicSpiral(r=50, fileName='resources/tests/output/output_search_pattern.png'):
     '''
     Draws and outputs the pattern provided by marker_search using the matplotlib module
     '''
@@ -56,9 +56,9 @@ def test_calculate_next_coordinate():
     '''
 
     drawLogarithmicSpiral()
-    assert plt_tst.compare_images('resources/tests/expected_search_pattern.png', 'resources/tests/output_search_pattern.png', 0.001) == None
+    assert plt_tst.compare_images('resources/tests/expected/expected_search_pattern.png', 'resources/tests/output/output_search_pattern.png', 0.001) == None
 
 
 if __name__ == "__main__":
-    drawLogarithmicSpiral(fileName='resources/tests/expected_search_pattern.png')
+    drawLogarithmicSpiral(fileName='resources/tests/expected/expected_search_pattern.png')
     plt.show()

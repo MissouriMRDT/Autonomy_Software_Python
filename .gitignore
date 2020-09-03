@@ -22,5 +22,8 @@ logs/
 *.log
 *.avi
 
+#Output files from unit tests
+resources/tests/output/*
+
 #Coverage files
 *.coverage

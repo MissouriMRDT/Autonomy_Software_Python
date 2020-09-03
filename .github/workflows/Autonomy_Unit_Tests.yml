@@ -22,8 +22,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Install XVFB
-      run: sudo apt install xvfb
     - name: Install dependencies with pipenv
       run: |
         python -m pip install --upgrade pip
