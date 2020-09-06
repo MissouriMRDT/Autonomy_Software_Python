@@ -64,7 +64,7 @@ def test_get_approach_status_approaching():
 
 
 def test_calculate_move_right():
-    # set up our goal position to be west of our current
+    # set up our goal position to be east of our current
     # heading is 0 (we are pointing straight north)
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.0025)
@@ -78,7 +78,7 @@ def test_calculate_move_right():
 
 
 def test_calculate_move_left():
-    # set up our goal position to be east of our current
+    # set up our goal position to be west of our current
     # heading is 0 (we are pointing straight north)
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.0025)
