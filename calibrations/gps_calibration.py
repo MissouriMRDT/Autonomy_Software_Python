@@ -1,8 +1,8 @@
 import time
 import json
 
-from drivers.nav_board import NavBoard
-from drivers.rovecomm import RoveComm
+from interfaces.nav_board import NavBoard
+from core.rovecomm import RoveComm
 from algorithms.quaternion import Quaternion
 
 headingOffset = 0

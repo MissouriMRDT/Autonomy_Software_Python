@@ -8,7 +8,7 @@
 
 import math
 import numpy as np
-from constants import Coordinate
+from core.constants import Coordinate
 
 
 # Haversine Function for calculating bearing and distance
@@ -16,8 +16,8 @@ from constants import Coordinate
 # http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
 def haversine(lat1, lon1, lat2, lon2):
     """
-    Calculate the bearing and great circle distance between two points 
-    on the earth (specified in decimal degrees) using 
+    Calculate the bearing and great circle distance between two points
+    on the earth (specified in decimal degrees) using
     the haversine formula. Assumes a perfectly spherical earth,
     so take the results with a grain of salt.
     
@@ -25,25 +25,25 @@ def haversine(lat1, lon1, lat2, lon2):
     -------
         bearing : float
             bearing to target as degrees clockwise from due north
-        distance : float (kilometers)  
+        distance : float (kilometers)
             distance to target in kilometers
     """
-    # convert decimal degrees to radians 
+    # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
 
-    # haversine formula 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
     c = 2 * math.asin(math.sqrt(a))
     r = 6371  # Radius of earth in kilometers. Use 3956 for miles
     distance = c * r
-    
-    bearing = math.atan2(math.sin(lon2 - lon1) * math.cos(lat2), math.cos(lat1)*math.sin(lat2)
-                         - math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1))
+
+    bearing = math.atan2(math.sin(lon2 - lon1) * math.cos(lat2), math.cos(lat1) * math.sin(lat2)
+                         - math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
     bearing = math.degrees(bearing)
     bearing = (bearing + 360) % 360
-    
+
     return bearing, distance
 
 
@@ -65,15 +65,15 @@ def crosstrack_error_vector(source, destination, location):
     Returns
     --------
         bearing  : float (degrees)
-            Angle (degrees clockwise of due north) of most 
+            Angle (degrees clockwise of due north) of most
             direct path back to the line between <source> and destination
         distance : float (kilometers)
             Deviation from direct path in km
     """
-    
+
     # Warning: Linear Algebra beyond this point
 
-    # Represent the destination and location as 
+    # Represent the destination and location as
     # vectors relative to the source
     dest_vector = (destination.lat - source.lat, destination.lon - source.lon)
     loc_vector = (location.lat - source.lat, location.lon - source.lon)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     print("Starting self test")
 
     def almost_equal(x, y, tolerance=0.0001):
-        return abs(x-y) < tolerance
+        return abs(x - y) < tolerance
 
     a = Coordinate(52.10000, 5.50000)  # Source
     b = Coordinate(52.26000, 5.45000)  # Destination
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     d = Coordinate(52.18507, 5.47346)  # Precalculated closest point to c on a->b
     # These coordinates come from example 2 at
     # http://geo.javawa.nl/coordcalc/index_en.html
-    
+
     precalculated_crosstrack_error = 3.619  # kilometers
 
     print("Expected Distance  : ", precalculated_crosstrack_error)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     f = 10
     g = 180
 
-    h = weighted_average_angles([e, f], [0.5,   0.5])
+    h = weighted_average_angles([e, f], [0.5, 0.5])
     i = weighted_average_angles([f, g], [0.999, 0.001])
     assert(h == 0)
     assert(almost_equal(i, 10, tolerance=0.01))

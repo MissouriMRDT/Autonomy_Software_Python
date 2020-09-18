@@ -3,8 +3,8 @@ import time
 # import datetime
 # import os
 
-from drivers.rovecomm import RoveComm
-from drivers.nav_board import NavBoard
+from core.rovecomm import RoveComm
+from interfaces.nav_board import NavBoard
 from algorithms.quaternion import Quaternion
 
 rovecomm_node = RoveComm()

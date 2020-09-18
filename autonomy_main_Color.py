@@ -1,22 +1,20 @@
 import time
 from collections import deque
 import logging
-import struct
-import math
 
-import rover_states as rs
-import constants
-from drivers.rovecomm import RoveCommEthernetUdp
-from drivers.drive_board import DriveBoard
-from drivers.nav_board import NavBoard
+import core.rover_states as rs
+import core.constants as constants
+from core.constants import ApproachState
+from core.rovecomm import RoveCommEthernetUdp
+from interfaces.drive_board import DriveBoard
+from interfaces.nav_board import NavBoard
 # from algorithms.objecttracking import ObjectTracker
-from algorithms.ColorBasedTracking import ObjectTracker
+from algorithms.color_based_tracking import ObjectTracker
 # from algorithms.CannyTracking import ObjectTracker
 import algorithms.gps_navigate as gps_nav
 import algorithms.marker_search as marker_search
 from algorithms.gps_navigate import GPSData
-import algorithms.geomath as geomath
-import algorithms.followBall as follow_ball
+import algorithms.follow_ball as follow_ball
 
 # Hardware Setup
 rovecomm_node = RoveCommEthernetUdp()
@@ -87,7 +85,7 @@ while True:
     # Travel Point to Point (P2P) from the current GPS to the target given from Basestation
     if state_switcher.state == rs.Navigating():
         goal, start = gps_data.data()
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
 
             # If there are more points, set the new one and start from top
             if waypoints.count > 0:
@@ -107,12 +105,11 @@ while True:
         left, right = gps_nav.calculate_move(goal, nav_board.location(), start, drive, nav_board)
         rovecomm_node.write(drive.send_drive(left, right))
 
-
     # Search Pattern:
     # Travel in a defined pattern to find the target object, the tennis ball
     elif state_switcher.state == rs.Searching():
         goal, start = gps_data.data()
-        if gps_nav.reached_goal(goal, nav_board.location(), start):
+        if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
             goal = marker_search.calculate_next_coordinate(start, nav_board.location())
             gps_data.goal = goal
 
