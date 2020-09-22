@@ -1,0 +1,10 @@
+STATE_CHANGE:
+  data_id: 4242
+  data_type: b
+  values:
+    SHUTDOWN: [1]
+    IDLE: [2]
+    NAVIGATING: [3]
+WAYPOINT:
+  data_id: 4243
+  data_type: h
