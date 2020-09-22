@@ -16,7 +16,7 @@ class RoveCommHandlerNumerical(RoveCommHandlerTCP):
         Initializes the handler
         """
         RoveCommHandlerTCP.__init__(self, target_host, target_port)
-        self.event_list = open('values.yaml', 'r').read()
+        self.event_list = open('logging/values.yaml', 'r').read()
         self.event_list = yaml.load(self.event_list, Loader=CLoader)
 
     def emit(self, s):
@@ -39,7 +39,7 @@ class RoveCommHandlerNumerical(RoveCommHandlerTCP):
                     value = tuple(event['values'][data[1]])
                 else:
                     logging.warning(
-                            f'{data[1]} is not a valid value for {data[0]}')
+                        f'{data[1]} is not a valid value for {data[0]}')
                     value = ()
             # Otherwise evaluate the string as the tuple it should be
             else:

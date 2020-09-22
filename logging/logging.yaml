@@ -4,6 +4,9 @@ formatters:
     format: '%(asctime)s - %(module)s - %(funcName)s - %(levelname)s - %(message)s'
   condensed:
     format: '%(name)s - %(funcName)s - %(levelname)s - %(message)s'
+  csv:
+    format: '%(asctime)s.%(msecs)03d, %(module)s, %(funcName)s, %(levelname)s, %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
 filters:
   numericalData:
     (): rove_comm_handler_numerical.NumericalDataFilter
@@ -17,8 +20,15 @@ handlers:
     class: logging.handlers.WatchedFileHandler
     level: 0
     formatter: simple
-    filename: example.log
+    filename: logging/example.log
     mode: a
+    delay: False
+  csv:
+    class: csv_handler.CsvHandler
+    level: 0
+    formatter: csv
+    format_string: TIMESTAMP MODULE FUNCTION LEVEL MESSAGE
+    filename: logging/example.csv
     delay: False
   RoveCommUDP:
     class: rove_comm_handler.RoveCommHandler
@@ -44,4 +54,4 @@ loggers:
     handlers: [RoveCommTCP, RoveCommNumerical]
 root:
   level: 0
-  handlers: [console, file]
+  handlers: [console, csv]

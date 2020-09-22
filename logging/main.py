@@ -15,7 +15,7 @@ RoveCommTCP = RoveCommEthernetTCP(HOST='127.0.0.1', PORT=11112)
 # Setup Logging
 # RoveCommHandler.sock = RoveCommEthernetUdp(port=11000)
 RoveCommHandlerTCP.sock = RoveCommEthernetTCP(HOST='127.0.0.1', PORT=11111)
-yaml_conf = yaml.load(open('logging.yaml', 'r').read(), Loader=CLoader)
+yaml_conf = yaml.load(open('logging/logging.yaml', 'r').read(), Loader=CLoader)
 logging.config.dictConfig(yaml_conf)
 logging.addLevelName(21, "NUMERICAL_INFO")
 
