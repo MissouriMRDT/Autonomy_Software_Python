@@ -1,4 +1,8 @@
-import argparse, logging
+import argparse
+import logging
+import logging.config
+import yaml
+from yaml import CLoader
 import core
 # Import files that should be calleable from run.py here
 import example
@@ -19,23 +23,11 @@ def setup_logger() -> logging.Logger:
     '''
 
     # logging file
-    logger = logging.getLogger('Autonomy_Logger')
-    logger.setLevel(logging.DEBUG)
+    yaml_conf = yaml.load(open('logging_files/logging.yaml', 'r').read(), Loader=CLoader)
+    logging.config.dictConfig(yaml_conf)
+    logging.addLevelName(21, "NUMERICAL_INFO")
 
-    c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler(filename='logging.csv', mode='w')
-
-    # Create formatters and add it to handlers
-    c_format = logging.Formatter('%(name)s, %(levelname)s, %(module)s, %(message)s')
-    f_format = logging.Formatter('%(asctime)s, %(name)s, %(levelname)s, %(module)s, %(message)s')
-    c_handler.setFormatter(c_format)
-    f_handler.setFormatter(f_format)
-
-    # Add handlers to the logger
-    logger.addHandler(c_handler)
-    logger.addHandler(f_handler)
-
-    return logger
+    return logging.getLogger('Autonomy_Logger')
 
 
 def main() -> None:

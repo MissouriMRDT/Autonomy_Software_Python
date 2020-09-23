@@ -1,5 +1,5 @@
-from RoveComm_Python import RoveCommPacket
-from rove_comm_handler_tcp import RoveCommHandlerTCP
+from core.rovecomm import RoveCommPacket
+from logging_files.rove_comm_handler_tcp import RoveCommHandlerTCP
 import logging
 import yaml
 from yaml import CLoader
@@ -16,7 +16,7 @@ class RoveCommHandlerNumerical(RoveCommHandlerTCP):
         Initializes the handler
         """
         RoveCommHandlerTCP.__init__(self, target_host, target_port)
-        self.event_list = open('logging/values.yaml', 'r').read()
+        self.event_list = open('logging_files/values.yaml', 'r').read()
         self.event_list = yaml.load(self.event_list, Loader=CLoader)
 
     def emit(self, s):

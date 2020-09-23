@@ -1,9 +1,9 @@
-from RoveComm_Python import RoveCommPacket
+from core.rovecomm import RoveCommPacket
+import core
 import logging
 
 
 class RoveCommHandler(logging.Handler):
-    sock = None
 
     def __init__(self, target_host, target_port):
         """
@@ -17,7 +17,7 @@ class RoveCommHandler(logging.Handler):
         """
         Encodes and sends the log message over RoveComm
         """
-        if RoveCommHandler.sock is None:
+        if core.rovecomm_node is None:
             logging.warning('UDP Handler called with no socket')
             return
 
