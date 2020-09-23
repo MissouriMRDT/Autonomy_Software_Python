@@ -1,4 +1,4 @@
-from core.rovecomm import RoveCommPacket
+from logging_files.RoveComm_Python import RoveCommPacket
 from logging_files.rove_comm_handler_tcp import RoveCommHandlerTCP
 import logging
 import yaml
@@ -53,6 +53,7 @@ class RoveCommHandlerNumerical(RoveCommHandlerTCP):
                                     self.target_port
                                     )
             packet.SetIp(self.target_host)
+            packet.print()
             self.sock.write(packet)
         else:
             logging.warning(f'{data[0]} is not a valid event')

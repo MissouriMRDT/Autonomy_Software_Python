@@ -33,4 +33,4 @@ class RoveCommHandler(logging.Handler):
                                 self.target_port
                                 )
         packet.SetIp(self.target_host)
-        self.sock.write(packet)
+        core.rovecomm_node.write(packet)

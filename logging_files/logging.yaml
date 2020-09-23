@@ -52,6 +52,6 @@ loggers:
   Autonomy_Logger:
     level: DEBUG
     handlers: [console, csv]
-root:
-  level: 0
-  handlers: []
+  Logging_Test:
+    level: DEBUG
+    handlers: [console, csv, RoveCommTCP, RoveCommNumerical]

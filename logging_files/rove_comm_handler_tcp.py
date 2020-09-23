@@ -1,4 +1,4 @@
-from core.rovecomm import RoveCommPacket
+from logging_files.RoveComm_Python import RoveCommPacket
 import logging
 
 

@@ -59,10 +59,10 @@ class RoveCommPacket:
         else:
             self.address = ('0.0.0.0', port)
         return
-    
+
     def SetIp(self, ip_address):
         self.address = (ip_address, self.address[1])
-    
+
     def print(self):
         print('----------')
         print('{0:6s} {1}'.format('ID:', self.data_id))
@@ -72,8 +72,8 @@ class RoveCommPacket:
         print('{0:6s} {1}'.format('Port:', self.address[1]))
         print('{0:6s} {1}'.format('Data:', self.data))
         print('----------')
-    
-    
+
+
 class RoveCommEthernetUdp:
     def __init__(self, port=ROVECOMM_PORT):
         self.rove_comm_port = port
@@ -96,7 +96,7 @@ class RoveCommEthernetUdp:
 
             for subscriber in self.subscribers:
                     self.RoveCommSocket.sendto(rovecomm_packet, (subscriber))
-            
+
             if (packet.address != ('0.0.0.0', 0) and not (packet.address in self.subscribers)):
                 self.RoveCommSocket.sendto(rovecomm_packet, packet.address)
 
@@ -172,14 +172,15 @@ class RoveCommEthernetTCP:
             # packet.print()
             if not isinstance(packet.data, tuple):
                 raise ValueError('Must pass data as a tuple, Data: ' + str(data))
-
+            
             rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
                                             types_byte_to_int[packet.data_type])
             for i in packet.data:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
-            
+
             #establish a new connection if the destination has not yet been connected to yet
             self.connect(packet.address)
+
 
             if (packet.address != ('0.0.0.0', 0)):
                 self.open_sockets[packet.address].send(rovecomm_packet)
@@ -208,19 +209,19 @@ class RoveCommEthernetTCP:
                 rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
                 data_type_byte = types_int_to_byte[data_type]
                 data = self.open_sockets[socket].recv(data_count*types_byte_to_size[data_type_byte])
-            
+
                 if(rovecomm_version != 2):
                     returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
                     returnPacket.SetIp(remote_ip)
                     return returnPacket
-        
+
                 data_type = types_int_to_byte[data_type]
                 data = struct.unpack('>' + data_type * data_count, data)
-        
+
                 returnPacket = RoveCommPacket(data_id, data_type, data, '')
                 returnPacket.SetIp(socket[0])
                 packets.append(returnPacket)
-        
+
             except Exception as e: 
                 returnPacket = RoveCommPacket()
                 packets.append(returnPacket)

@@ -6,9 +6,10 @@ from yaml import CLoader
 import core
 # Import files that should be calleable from run.py here
 import example
+import logging_test
 
 # Map all calleable file names to their respective mains here
-FUNCTIONS = {'example.py': example.main}
+FUNCTIONS = {'example.py': example.main, 'logging_test.py': logging_test.main}
 
 
 def setup_logger() -> logging.Logger:
