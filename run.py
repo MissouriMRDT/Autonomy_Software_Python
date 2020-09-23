@@ -7,7 +7,7 @@ import example
 FUNCTIONS = {'example.py': example.main}
 
 
-def setupLogger() -> logging.Logger:
+def setup_logger() -> logging.Logger:
     '''
     Sets up the logger used in the autonomy project with appropriate
     handlers and formatting
@@ -40,7 +40,7 @@ def setupLogger() -> logging.Logger:
 
 def main() -> None:
 
-    logger = setupLogger()
+    logger = setup_logger()
 
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveCommEthernetUdp()
