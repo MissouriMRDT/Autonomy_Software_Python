@@ -20,7 +20,7 @@ def haversine(lat1, lon1, lat2, lon2):
     on the earth (specified in decimal degrees) using
     the haversine formula. Assumes a perfectly spherical earth,
     so take the results with a grain of salt.
-    
+
     Returns
     -------
         bearing : float
