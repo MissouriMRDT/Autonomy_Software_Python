@@ -2,6 +2,7 @@ import socket
 import struct
 import threading
 import time
+import logging
 
 ROVECOMM_PORT = 11000
 ROVECOMM_VERSION = 2
@@ -38,7 +39,8 @@ types_byte_to_int = {
 
 class RoveCommPacket:
     '''
-    The RoveComm packet is the encapsulation of a message sent across the rover network that can be parsed by all rover computing systems.
+    The RoveComm packet is the encapsulation of a message sent across the rover 
+    network that can be parsed by all rover computing systems.
 
     A RoveComm Packet contains:
         - A data id
@@ -74,21 +76,20 @@ class RoveCommPacket:
 
 class RoveCommEthernetUdp:
     '''
-    The UDP implementation for RoveComm. UDP is a fast connectionless transport protocol that guarantees no data corruption
-    but does not guarantee delivery, and if it delivers does not guarantee it being in the same order it was sent.
+    The UDP implementation for RoveComm. UDP is a fast connectionless transport
+    protocol that guarantees no data corruption but does not guarantee delivery,
+    and if it delivers does not guarantee it being in the same order it was
+    sent.
 
     Implements:
         - Write (to both the target ip and all subscribers)
         - Read
     '''
-    def __init__(self, logger, port=ROVECOMM_PORT):
+    def __init__(self, port=ROVECOMM_PORT):
         self.rove_comm_port = port
         self.subscribers = []
 
         self.callbacks = {}
-        self.logger = logger
-
-        # logging file
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
         self.RoveCommSocket.setblocking(True)
@@ -99,11 +100,20 @@ class RoveCommEthernetUdp:
         self.thread.start()
 
     def subscribe(self, ip_octet):
+
         self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
 
     def write(self, packet):
         '''
-        Transmits a packet to the destination IP (if there is one) and all active subscribers.
+        Transmits a packet to the destination IP (if there is one) and all active
+        subscribers.
+
+        Parameters:
+            packet (RoveCommPacket): A packet containing the data and header info
+            to be transmitted over the rover network
+        Returns:
+            success (int): An integer, either 0 or 1 depending on whether or not
+            an exception occured during writing
         '''
         try:
             if not isinstance(packet.data, tuple):
@@ -121,12 +131,16 @@ class RoveCommEthernetUdp:
                 self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
                 return 1
         except Exception as ex:
-            self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to write UDP packet".format(exception=ex))
             return 0
 
     def read(self):
         '''
-        Unpacks the UDP packet and packs it into a RoveComm Packet for easy parsing in other code.
+        Unpacks the UDP packet and packs it into a RoveComm Packet for easy
+        parsing in other code.
+
+        Returns:
+            return_packet (RoveCommPacket): A RoveCommPacket that contains a
+            RoveComm message received over the network
         '''
         try:
             packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
@@ -156,20 +170,18 @@ class RoveCommEthernetUdp:
             return return_packet
 
         except Exception as ex:
-            self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to read UDP packet".format(exception=ex))
             return_packet = RoveCommPacket()
             return return_packet
 
     def listen(self):
         '''
-        Starts listener that will read in packets and populate appropriate callbacks (functional a dictionary of data ids)
+        Starts listener that will read in packets and populate appropriate
+        callbacks (functionally a dictionary of data ids)
         that can then be referenced within other scripts.
         '''
         while True:
             packet = self.read()
             try:
                 self.callbacks[packet.data_id](packet)
-                self.logger.write_line(time.strftime("%H%M%S") + " Packet Received: IP: " + str(packet.ip_address) + ", ID: " + str(packet.data_id) + ", " + str(packet.data))
             except Exception as ex:
-                self.logger.write_line(time.strftime("%H%M%S") + " {exception} occured when trying to process callbacks in UDP listener thread".format(exception=ex))
                 pass
