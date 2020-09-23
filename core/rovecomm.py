@@ -1,7 +1,6 @@
 import socket
 import struct
 import threading
-import time
 import logging
 
 ROVECOMM_PORT = 11000
@@ -39,7 +38,7 @@ types_byte_to_int = {
 
 class RoveCommPacket:
     '''
-    The RoveComm packet is the encapsulation of a message sent across the rover 
+    The RoveComm packet is the encapsulation of a message sent across the rover
     network that can be parsed by all rover computing systems.
 
     A RoveComm Packet contains:

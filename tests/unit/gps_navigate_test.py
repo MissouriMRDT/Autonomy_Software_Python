@@ -3,8 +3,6 @@ from core import constants
 from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 import algorithms.gps_navigate as gps_nav
-import time
-from core.logging import LogWriter
 
 
 # Rolla GPS coordinates
