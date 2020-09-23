@@ -28,7 +28,7 @@ handlers:
     level: 0
     formatter: csv
     format_string: TIMESTAMP MODULE FUNCTION LEVEL MESSAGE
-    filename: logging/example.csv
+    filename: logging/csv_logs/example.csv
     delay: False
   RoveCommUDP:
     class: rove_comm_handler.RoveCommHandler
