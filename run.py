@@ -1,4 +1,5 @@
-import argparse, logging, core
+import argparse, logging
+import core
 # Import files that should be calleable from run.py here
 import example
 
@@ -60,14 +61,11 @@ def main() -> None:
 
         try:
             logger.info("Calling module: %s", args.file)
-            packet = core.RoveCommPacket(100, 'b', (1, 2), '')
-            packet.SetIp('127.0.0.1')
-            core.rovecomm_node.write(packet)
             func()
         except Exception as e:
             logger.exception("Tried to run: %s had exception %s", args.file, e)
     else:
-        # Execute autonomy_main code here
+        # Execute autonomy_main code here (not set up to be called yet)
         logger.info("Calling Autonomy main()")
 
 
