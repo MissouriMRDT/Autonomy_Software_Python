@@ -131,7 +131,7 @@ def main() -> None:
                 Logger.write_line(time.strftime("%H%M%S") + " Navigating: reached goal (" + str(nav_board._location[0]) + "," + str(nav_board._location[1]) + ")")
                 # If there are more points, set the new one and start from top
                 if waypoints:
-                    
+
                     print("Reached mid point!")
                     set_gps_waypoint()
                     Logger.write_line(time.strftime("%H%M%S") + " Navigating: Reached midpoint, grabbing new point " + str(goal[0]) + "," + str(goal[1]))
@@ -157,7 +157,7 @@ def main() -> None:
         elif state_switcher.state == rs.Searching():
             goal, start = gps_data.data()
             print(goal)
-            
+
             if gps_nav.get_approach_status(goal, nav_board.location(), start) != ApproachState.APPROACHING:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 time.sleep(1)
@@ -165,7 +165,7 @@ def main() -> None:
                 print("New Goal: " + str(goal.lat) + ", " + str(goal.lon))
                 lat, lon = nav_board.location()
                 Logger.write_line(time.strftime("%H%M%S") + " Searching: Reached Waypoint " + str(goal[0]) + "," + str(goal[1]))
-                
+
                 gps_data.goal = goal
 
             print("...searching for marker...")
@@ -177,7 +177,7 @@ def main() -> None:
             if ball_in_frame:
                 rovecomm_node.write(drive.send_drive(0, 0))
                 time.sleep(1)
-                
+
                 Logger.write_line("Marker seen at %s with r=%i, locking on..." % (center, radius))
                 state_switcher.handle_event(rs.AutonomyEvents.MARKER_SIGHTED, rs.Searching())
                 Logger.write_line(time.strftime("%H%M%S") + " Searching: Marker Sighted, entering ApproachingMarker()")
@@ -198,8 +198,8 @@ def main() -> None:
                 # state_switcher.handle_event(rs.AutonomyEvents.OBSTACLE_AVOIDANCE, rs.ApproachingMarker())
                 # continue
             ball_in_frame, center, radius = tracker.track_ball()
-            
-            
+
+
             print("Ball Radius: " + str(radius))
             if ball_in_frame:
                 (left, right), distance = follow_ball.drive_to_marker(75, drive, center, radius, nav_board)
@@ -207,12 +207,12 @@ def main() -> None:
                 # distance = 2 # for testing, comment out later
                 if distance < .5:
                     rovecomm_node.write(drive.send_drive(0, 0))
-                    
+
                     # state_switcher.handle_event(rs.AutonomyEvents.REACHED_MARKER, rs.ApproachingMarker()) # commented for testing, remove the commenting for running
-                    
-                    
+
+
                     Logger.write_line(time.strftime("%H%M%S") + " ApproachingMarker: Reached Marker, entering Idle()")
-                    
+
                     notify.notify_finish()
                     continue
                 else:
@@ -224,14 +224,14 @@ def main() -> None:
                 state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN, rs.ApproachingMarker())
                 Logger.write_line(time.strftime("%H%M%S") + " ApproachingMarker: lost sight of marker, returning to Searching()")
                 print("Throwing MARKER_UNSEEN")
-            
+
         elif state_switcher.state == rs.Shutdown():
             Logger.write_line(time.strftime("%H%M%S") + " Shutdown: shutdown")
             pass
 
         elif state_switcher.state == rs.Idle():
             Logger.write_line(time.strftime("%H%M%S") + " Idle: IDLING")
-        
+
             pass
 
         elif state_switcher.state == rs.ObstacleAvoidance():
@@ -294,8 +294,5 @@ def main() -> None:
         print(state_switcher.state)
 
 if __name__ == "__main__":
-    #Run main()
-    try:
-        main()
-    except:
-        logging.exception("Failed to run main() for unknown reason")
+    # Run main()
+    main()

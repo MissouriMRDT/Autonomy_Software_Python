@@ -53,10 +53,15 @@ class DriveBoard:
         self.enabled = True
 
 
-if __name__ == '__main__':
-    motors = DriveBoard("testytest.txt")
+def main() -> None:
+    motors = DriveBoard()
     motors.enable()
     for i in range(-180, 181):
         left, right = motors.calculate_move(100, i)
         motors.send_drive(left, right)
         print(left, right)
+
+
+if __name__ == '__main__':
+    # Run main
+    main()
