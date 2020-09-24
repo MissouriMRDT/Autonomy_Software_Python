@@ -7,10 +7,8 @@ def main() -> None:
     '''
     Main function for example script, tests geomath code
     '''
-
-    logger = logging.getLogger('Autonomy_Logger')
+    logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
-
     bearing, distance = algorithms.geomath.haversine(37.951424, -91.768959, 37.951524, -91.768100)
 
     # Test sending RoveComm packets
@@ -18,8 +16,8 @@ def main() -> None:
     packet.SetIp('127.0.0.1')
     core.rovecomm_node.write(packet)
 
-    logger.info("Calculated bearing: %s", bearing)
-    logger.info("Calculate distance: %s", distance)
+    logger.info(f"Calculated bearing: {bearing}")
+    logger.info(f"Calculate distance: {distance}")
 
 
 if __name__ == "__main__":
