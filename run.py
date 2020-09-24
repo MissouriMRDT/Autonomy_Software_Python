@@ -1,10 +1,12 @@
-import argparse, logging
+import argparse
+import logging
 import core
 # Import files that should be calleable from run.py here
 import example
+import RoveCommTest
 
 # Map all calleable file names to their respective mains here
-FUNCTIONS = {'example.py': example.main}
+FUNCTIONS = {'example.py': example.main, 'RoveCommTest.py': RoveCommTest.main}
 
 
 def setup_logger() -> logging.Logger:
@@ -23,7 +25,7 @@ def setup_logger() -> logging.Logger:
     logger.setLevel(logging.DEBUG)
 
     c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler(filename='logging.csv', mode='w')
+    f_handler = logging.FileHandler(filename='logs/logging.csv', mode='w')
 
     # Create formatters and add it to handlers
     c_format = logging.Formatter('%(name)s, %(levelname)s, %(module)s, %(message)s')
