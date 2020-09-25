@@ -41,12 +41,13 @@ class RoveCommHandlerNumerical(RoveCommHandlerTCP):
                 value = eval(data[1])
 
             # Pack up and send the data
-            packet = RoveCommPacket(data_id,
-                                    data_type,
-                                    value,
-                                    "",
-                                    self.target_port
-                                    )
+            packet = RoveCommPacket(
+                data_id,
+                data_type,
+                value,
+                "",
+                self.target_port
+            )
             packet.SetIp(self.target_host)
             packet.print()
             self.sock.write(packet)

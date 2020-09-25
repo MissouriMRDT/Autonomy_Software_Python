@@ -56,9 +56,9 @@ handlers:
     filters: [debug]
     formatter: debug
 loggers:
-  Autonomy_Logger:
-    level: DEBUG
-    handlers: [console, csv]
   Logging_Test:
     level: DEBUG
-    handlers: [console, csv, RoveCommTCP, RoveCommNumerical, Debug]
+    handlers: [RoveCommTCP, RoveCommNumerical, Debug]
+root:
+  level: DEBUG
+  handlers: [console, csv]

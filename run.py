@@ -24,7 +24,7 @@ def setup_logger(level) -> logging.Logger:
     logging.config.dictConfig(yaml_conf)
     logging.addLevelName(21, "NUMERICAL_INFO")
 
-    return logging.getLogger()
+    return logging.getLogger(__name__)
 
 
 def main() -> None:

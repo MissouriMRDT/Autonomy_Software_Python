@@ -26,11 +26,12 @@ class RoveCommHandlerTCP(logging.Handler):
         if len(msg) > 255:
             msg = msg[:252] + "..."
 
-        packet = RoveCommPacket(4242,
-                                's',
-                                tuple([char.encode('utf-8') for char in msg]),
-                                "",
-                                self.target_port
-                                )
+        packet = RoveCommPacket(
+            4242,
+            's',
+            tuple([char.encode('utf-8') for char in msg]),
+            "",
+            self.target_port
+        )
         packet.SetIp(self.target_host)
         self.sock.write(packet)
