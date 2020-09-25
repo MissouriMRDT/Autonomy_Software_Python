@@ -5,11 +5,6 @@ import yaml
 from yaml import CLoader
 
 
-class NumericalDataFilter(logging.Filter):
-    def filter(self, record):
-        return (record.levelno == 21)
-
-
 class RoveCommHandlerNumerical(RoveCommHandlerTCP):
     def __init__(self, target_host, target_port):
         """

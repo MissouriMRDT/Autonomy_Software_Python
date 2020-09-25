@@ -1,15 +1,17 @@
 version: 1
 formatters:
   simple:
-    format: '%(module)s - %(funcName)s - %(levelname)s - %(message)s'
-  condensed:
-    format: '%(name)s - %(funcName)s - %(levelname)s - %(message)s'
+    format: '%(module)s, %(funcName)s, %(levelname)s, %(message)s'
   csv:
     format: '%(asctime)s.%(msecs)03d, %(module)s, %(funcName)s, %(levelname)s, %(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
+  debug:
+    format: "%(name)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
 filters:
   numericalData:
-    (): logging_files.rove_comm_handler_numerical.NumericalDataFilter
+    (): logging_files.filters.NumericalDataFilter
+  debug:
+    (): logging_files.filters.DebugFilter
 handlers:
   console:
     class: logging.StreamHandler
@@ -33,13 +35,13 @@ handlers:
   RoveCommUDP:
     class: logging_files.rove_comm_handler.RoveCommHandler
     level: 0
-    formatter: condensed
+    formatter: simple
     target_host: 127.0.0.1
     target_port: 10999
   RoveCommTCP:
     class: logging_files.rove_comm_handler_tcp.RoveCommHandlerTCP
     level: 0
-    formatter: condensed
+    formatter: simple
     target_host: 127.0.0.1
     target_port: 11112
   RoveCommNumerical:
@@ -48,10 +50,15 @@ handlers:
     filters: [numericalData]
     target_host: 127.0.0.1
     target_port: 11112
+  Debug:
+    class: logging.StreamHandler
+    level: DEBUG
+    filters: [debug]
+    formatter: debug
 loggers:
   Autonomy_Logger:
     level: DEBUG
     handlers: [console, csv]
   Logging_Test:
     level: DEBUG
-    handlers: [console, csv, RoveCommTCP, RoveCommNumerical]
+    handlers: [console, csv, RoveCommTCP, RoveCommNumerical, Debug]
