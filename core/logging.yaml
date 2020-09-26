@@ -8,8 +8,6 @@ formatters:
   debug:
     format: "%(name)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
 filters:
-  numericalData:
-    (): core.logging_filters.NumericalDataFilter
   debug:
     (): core.logging_filters.DebugFilter
 handlers:
