@@ -51,7 +51,7 @@ loggers:
   Logging_Test:
     level: DEBUG
     handlers: [RoveCommTCP]
-  core.rovecomm_caller:
+  core.rovecomm_send:
     level: DEBUG
     handlers: [RoveCommTCP]
 root:

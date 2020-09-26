@@ -2,7 +2,7 @@ import logging
 # from logging_files.RoveComm_Python import RoveCommEthernetUDP
 import core
 from core.rovecomm_TCP import RoveCommEthernetTCP
-from core.rovecomm_caller import rovecomm_send
+from core.rovecomm_send import rovecomm_send
 
 # Use of the UDP handler will require the 's' data type to be added to core.rovecomm
 
