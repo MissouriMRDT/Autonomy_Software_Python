@@ -20,7 +20,7 @@ def setup_logger(level) -> logging.Logger:
     '''
 
     # logging file
-    yaml_conf = yaml.load(open('logging_files/logging.yaml', 'r').read(), Loader=CLoader)
+    yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
     logging.config.dictConfig(yaml_conf)
     logging.addLevelName(21, "NUMERICAL_INFO")
 

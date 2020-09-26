@@ -9,9 +9,9 @@ formatters:
     format: "%(name)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
 filters:
   numericalData:
-    (): logging_files.filters.NumericalDataFilter
+    (): core.logging_filters.NumericalDataFilter
   debug:
-    (): logging_files.filters.DebugFilter
+    (): core.logging_filters.DebugFilter
 handlers:
   console:
     class: logging.StreamHandler
@@ -26,26 +26,26 @@ handlers:
     mode: a
     delay: True
   csv:
-    class: logging_files.csv_handler.CsvHandler
+    class: core.logging_handlers.CsvHandler
     level: 0
     formatter: csv
     format_string: TIMESTAMP MODULE FUNCTION LEVEL MESSAGE
     filename: logs/example.csv
     delay: False
   RoveCommUDP:
-    class: logging_files.rove_comm_handler.RoveCommHandler
+    class: core.logging_handlers.RoveCommHandlerUDP
     level: 0
     formatter: simple
     target_host: 127.0.0.1
     target_port: 10999
   RoveCommTCP:
-    class: logging_files.rove_comm_handler_tcp.RoveCommHandlerTCP
+    class: core.logging_handlers.RoveCommHandlerTCP
     level: 0
     formatter: simple
     target_host: 127.0.0.1
     target_port: 11112
   RoveCommNumerical:
-    class: logging_files.rove_comm_handler_numerical.RoveCommHandlerNumerical
+    class: core.logging_handlers.RoveCommHandlerNumerical
     level: 0
     filters: [numericalData]
     target_host: 127.0.0.1
