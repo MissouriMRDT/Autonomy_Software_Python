@@ -1,6 +1,8 @@
 from enum import IntEnum, Enum
 import collections
 import math
+import yaml
+from yaml import CLoader
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -22,6 +24,10 @@ LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
 VISION_RANGE = 0.007  # kilometers
 
 Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
+
+# RoveComm Numerical Values
+rovecomm_event_list = open('core/rovecomm_values.yaml', 'r').read()
+rovecomm_event_list = yaml.load(rovecomm_event_list, Loader=CLoader)
 
 
 # RoveComm Autonomy Control DataIDs

@@ -1,7 +1,8 @@
 import logging
 # from logging_files.RoveComm_Python import RoveCommEthernetUDP
+import core
 from core.rovecomm_TCP import RoveCommEthernetTCP
-from core.logging_handlers import RoveCommHandlerTCP
+from core.rovecomm_caller import rovecomm_send
 
 # Use of the UDP handler will require the 's' data type to be added to core.rovecomm
 
@@ -12,7 +13,7 @@ def main() -> None:
     RoveCommTCP = RoveCommEthernetTCP(HOST='127.0.0.1', PORT=11112)
 
     # sets up TCP handler
-    RoveCommHandlerTCP.sock = RoveCommEthernetTCP(HOST='127.0.0.1', PORT=11111)
+    core.rovecomm_node_tcp = RoveCommEthernetTCP(HOST='127.0.0.1', PORT=11111)
 
     # some output
     logger = logging.getLogger("Logging_Test")
@@ -21,8 +22,8 @@ interface, and am now sending to send a very long message to see if it is \
 going to send properly or not. The limit appears to be 255 characters and \
 this string should go over it"""
     logger.debug(testString)
-    logger.log(21, "STATE_CHANGE - IDLE - Other information in the message")
-    logger.log(21, "WAYPOINT - (12, 27, 3, 4)")
+    rovecomm_send("STATE_CHANGE", "IDLE", "Other information in the message")
+    rovecomm_send("WAYPOINT", (12, 27, 3, 4), "Hello")
 
     # read in RoveComm logs
     print("----------------Sent through RoveComm----------------")
@@ -45,5 +46,5 @@ this string should go over it"""
 
     # clean up
     RoveCommTCP.close_sockets()
-    RoveCommHandlerTCP.sock.close_sockets()
+    core.rovecomm_node_tcp.close_sockets()
     # RoveCommUDP.RoveCommSocket.close()

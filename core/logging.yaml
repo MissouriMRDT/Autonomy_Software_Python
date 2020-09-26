@@ -44,12 +44,6 @@ handlers:
     formatter: simple
     target_host: 127.0.0.1
     target_port: 11112
-  RoveCommNumerical:
-    class: core.logging_handlers.RoveCommHandlerNumerical
-    level: 0
-    filters: [numericalData]
-    target_host: 127.0.0.1
-    target_port: 11112
   Debug:
     class: logging.StreamHandler
     level: DEBUG
@@ -58,7 +52,10 @@ handlers:
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [RoveCommTCP, RoveCommNumerical, Debug]
+    handlers: [RoveCommTCP]
+  core.rovecomm_caller:
+    level: DEBUG
+    handlers: [RoveCommTCP]
 root:
   level: DEBUG
-  handlers: [console, csv]
+  handlers: [console, csv, Debug]
