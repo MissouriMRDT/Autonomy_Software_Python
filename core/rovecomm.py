@@ -91,27 +91,32 @@ class RoveCommCollection:
     Creates a separate thread to read all RoveComm connections
     '''
     connections = []
+    shutdown_event = None
 
     def __init__(self):
+        self.shutdown_event = threading.Event()
         self.thread = threading.Thread(target=self.listen)
-        self.thread.daemon = True
         self.thread.start()
 
     def listen(self):
-        while True:
+        while threading.main_thread().is_alive() and not self.shutdown_event.isSet():
             for connection in self.connections:
                 result = connection.read()
                 if not isinstance(result, list):
-                    if result is None:
-                        result = []
-                    else:
-                        result = [result, ]
+                    result = [result, ]
                 for packet in result:
-                    if packet.data_id != 0:
+                    if packet is not None and packet.data_id != 0:
                         try:
                             connection.callbacks[packet.data_id](packet)
                         except Exception:
                             pass
+        for connection in self.connections:
+            if isinstance(connection, RoveCommEthernetTcp):
+                connection.close_sockets()
+
+    def close_thread(self):
+        self.shutdown_event.set()
+        self.thread.join()
 
 
 class RoveCommEthernetUdp:
@@ -183,7 +188,7 @@ class RoveCommEthernetUdp:
             RoveComm message received over the network
         '''
         ready = select.select([self.RoveCommSocket], [], [], 0)
-        if len(ready[0]) != 0:
+        if ready[0]:
             try:
                 packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
                 header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
@@ -227,7 +232,7 @@ class RoveCommEthernetTcp:
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=11111):
         self.callbacks = {}
         self.open_sockets = {}
-        # create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifyingit
+        # create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifying it
         self.sem = threading.Semaphore()
         # configure a TCP socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -239,14 +244,6 @@ class RoveCommEthernetTcp:
         if core.rovecomm.collection is None:
             core.rovecomm.collection = RoveCommCollection()
         core.rovecomm.collection.connections.append(self)
-
-    def handle_incoming_connection(self):
-        # keep adding sockets to our dictionary as clients connect
-        while True:
-            conn, addr = self.server.accept()
-            self.sem.acquire()
-            self.open_sockets[addr[0]] = conn
-            self.sem.release()
 
     def close_sockets(self):
         self.sem.acquire()
@@ -291,11 +288,7 @@ class RoveCommEthernetTcp:
         self.sem.release()
 
     def read(self):
-
         self.sem.acquire()
-        # self.sem.release()
-
-        # self.sem.acquire()
 
         packets = []
 
