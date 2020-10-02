@@ -22,14 +22,14 @@ class NavBoard:
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
-        self.rove_comm_node = core.rovecomm_node
+        self.rove_comm_node = core.rovecomm.udp_node
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
-        self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
-        self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
+        core.rovecomm.set_callback(IMU_DATA_ID, self.process_imu_data)
+        core.rovecomm.set_callback(GPS_DATA_ID, self.process_gps_data)
+        core.rovecomm.set_callback(LIDAR_DATA_ID, self.process_lidar_data)
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
