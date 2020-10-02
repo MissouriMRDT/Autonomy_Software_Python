@@ -5,8 +5,7 @@ import core
 import select
 import logging
 
-ROVECOMM_UDP_PORT       = 11000
-ROVECOMM_TCP_PORT       = 11111
+ROVECOMM_PORT           = 11000
 ROVECOMM_VERSION        = 2
 ROVECOMM_HEADER_FORMAT  = ">BHBB"
 
@@ -63,7 +62,7 @@ class RoveCommPacket:
 
     The autonomy implementation also includes the remote ip of the sender.
     '''
-    def __init__(self, data_id=0, data_type='b', data=(), ip_octet_4='', port=ROVECOMM_UDP_PORT):
+    def __init__(self, data_id=0, data_type='b', data=(), ip_octet_4='', port=ROVECOMM_PORT):
         self.data_id = data_id
         self.data_type = data_type
         self.data_count = len(data)
@@ -75,11 +74,7 @@ class RoveCommPacket:
         return
 
     def SetIp(self, address):
-        # If the address comes with a port, use it
-        if (isinstance(address, tuple)):
-            self.ip_address = address
-        else:
-            self.ip_address = (address, self.ip_address[1])
+        self.ip_address = (address, self.ip_address[1])
 
     def print(self):
         print('----------')
@@ -91,51 +86,37 @@ class RoveCommPacket:
         print('----------')
 
 
-class RoveComm:
+class RoveCommCollection:
     '''
     Creates a separate thread to read all RoveComm connections
     '''
+    connections = []
+    shutdown_event = None
 
-    def __init__(
-            self,
-            udp_port=ROVECOMM_UDP_PORT,
-            tcp_addr=(
-                socket.gethostbyname(socket.gethostname()),
-                ROVECOMM_TCP_PORT)
-    ):
-        self.callbacks = {}
-
-        self.udp_node = RoveCommEthernetUdp(udp_port)
-        self.tcp_node = RoveCommEthernetTcp(*tcp_addr)
-
+    def __init__(self):
         self.shutdown_event = threading.Event()
         self.thread = threading.Thread(target=self.listen)
         self.thread.start()
 
     def listen(self):
         while threading.main_thread().is_alive() and not self.shutdown_event.isSet():
-            packets = self.tcp_node.read()
-            packets.append(self.udp_node.read())
-
-            for packet in packets:
-                if packet is not None and packet.data_id != 0:
-                    try:
-                        self.callbacks[packet.data_id](packet)
-                    except Exception:
-                        pass
-        self.udp_node.close_socket()
-        self.tcp_node.close_sockets()
-        logging.getLogger(__name__).debug('Rovecomm sockets closed')
+            for connection in self.connections:
+                result = connection.read()
+                if not isinstance(result, list):
+                    result = [result, ]
+                for packet in result:
+                    if packet is not None and packet.data_id != 0:
+                        try:
+                            connection.callbacks[packet.data_id](packet)
+                        except Exception:
+                            pass
+        for connection in self.connections:
+            if isinstance(connection, RoveCommEthernetTcp):
+                connection.close_sockets()
 
     def close_thread(self):
         self.shutdown_event.set()
         self.thread.join()
-
-    def write(self, packet, reliable=False):
-        if (reliable):
-            self.tcp_node.write(packet)
-        else:
-            self.udp_node.write(packet)
 
 
 class RoveCommEthernetUdp:
@@ -149,21 +130,23 @@ class RoveCommEthernetUdp:
         - Write (to both the target ip and all subscribers)
         - Read
     '''
-    def __init__(self, port=ROVECOMM_UDP_PORT):
+    def __init__(self, port=ROVECOMM_PORT):
         self.rove_comm_port = port
         self.subscribers = []
+
+        self.callbacks = {}
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
         self.RoveCommSocket.setblocking(True)
         self.RoveCommSocket.bind(("", self.rove_comm_port))
 
+        if core.rovecomm.collection is None:
+            core.rovecomm.collection = RoveCommCollection()
+        core.rovecomm.collection.connections.append(self)
+
     def subscribe(self, ip_octet):
 
         self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
-
-    def close_socket(self):
-        self.RoveCommSocket.shutdown(1)
-        self.RoveCommSocket.close()
 
     def write(self, packet):
         '''
@@ -246,7 +229,8 @@ class RoveCommEthernetTcp:
         - Write
         - Read
     '''
-    def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
+    def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=11111):
+        self.callbacks = {}
         self.open_sockets = {}
         # create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifying it
         self.sem = threading.Semaphore()
@@ -257,6 +241,10 @@ class RoveCommEthernetTcp:
         # accept up to 5 simulataneous connections, before we start discarding them
         self.server.listen(5)
 
+        if core.rovecomm.collection is None:
+            core.rovecomm.collection = RoveCommCollection()
+        core.rovecomm.collection.connections.append(self)
+
     def close_sockets(self):
         self.sem.acquire()
         for open_socket in self.open_sockets:
@@ -264,7 +252,6 @@ class RoveCommEthernetTcp:
             self.open_sockets[open_socket].shutdown(1)
             self.open_sockets[open_socket].close()
         self.sem.release()
-        self.server.close()
 
     def write(self, packet):
         try:
@@ -296,7 +283,7 @@ class RoveCommEthernetTcp:
             try:
                 TCPSocket.connect(address)
             except Exception as e:
-                logging.getLogger(__name__).error("Something's wrong. Exception is %s" % (e))
+                logging.error("Something's wrong. Exception is %s" % (e))
             self.open_sockets[address] = TCPSocket
         self.sem.release()
 
@@ -339,3 +326,6 @@ class RoveCommEthernetTcp:
 
         self.sem.release()
         return packets
+
+
+collection = None

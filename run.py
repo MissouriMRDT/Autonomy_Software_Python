@@ -66,7 +66,7 @@ def main() -> None:
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
-    core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
+    core.rovecomm_node = core.RoveCommEthernetUdp()
 
     try:
         # Remove .py and directly import module
