@@ -15,7 +15,7 @@ def main() -> None:
     packet.SetIp('127.0.0.1')
     core.rovecomm.write(packet, False)
 
-    packet2 = RoveCommPacket(4242, 'b', (1, 3), "", 11111)
+    packet2 = RoveCommPacket(4242, 'b', (1, 4), "", 11111)
     packet2.SetIp('127.0.0.1')
     core.rovecomm.write(packet2, True)
 
@@ -23,7 +23,7 @@ def main() -> None:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(("127.0.0.1", 11111))
     rovecomm_packet = struct.pack(">BHBB", 2, 4242, 2, 0)
-    for i in (1, 3):
+    for i in (1, 5):
         rovecomm_packet = rovecomm_packet + struct.pack('>b', i)
 
     for i in range(5):

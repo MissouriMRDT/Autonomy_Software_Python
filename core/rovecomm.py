@@ -113,6 +113,7 @@ class RoveComm:
 
     def listen(self):
         while threading.main_thread().is_alive() and not self.shutdown_event.isSet():
+            self.tcp_node.handle_incoming_connection()
             packets = self.tcp_node.read()
             packets.append(self.udp_node.read())
 
@@ -122,6 +123,8 @@ class RoveComm:
                         self.callbacks[packet.data_id](packet)
                     except Exception:
                         pass
+
+
         self.udp_node.close_socket()
         self.tcp_node.close_sockets()
         logging.getLogger(__name__).debug('Rovecomm sockets closed')
@@ -205,7 +208,7 @@ class RoveCommEthernetUdp:
             RoveComm message received over the network
         '''
         ready = select.select([self.RoveCommSocket], [], [], 0)
-        if ready[0]:
+        if len(ready[0]) > 0:
             try:
                 packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
                 header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
@@ -304,42 +307,48 @@ class RoveCommEthernetTcp:
             self.open_sockets[address] = TCPSocket
         self.sem.release()
 
+    def handle_incoming_connection(self):
+        if len(select.select([self.server], [], [], 0)[0]) > 0:
+            conn, addr = self.server.accept()
+            self.sem.acquire()
+            self.open_sockets[addr[0]] = conn
+            self.sem.release()
+
     def read(self):
         self.sem.acquire()
 
         packets = []
 
-        available_sockets = [self.server]
+        available_sockets = []
         for key, value in self.open_sockets.items():
             available_sockets.append(value)
 
-        available_sockets = select.select(available_sockets, [], [], 0)
+        if len(available_sockets) > 0:
+            available_sockets = select.select(available_sockets, [], [], 0)[0]
+        else:
+            available_sockets = []
 
-        for open_socket in available_sockets[0]:
-            if open_socket is self.server:
-                conn, addr = self.server.accept()
-                self.open_sockets[addr[0]] = conn
-            else:
-                try:
-                    header = open_socket.recv(5)
-                    rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
-                    data_type_byte = types_int_to_byte[data_type]
-                    data = open_socket.recv(data_count * types_byte_to_size[data_type_byte])
+        for open_socket in available_sockets:
+            try:
+                header = open_socket.recv(5)
+                rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
+                data_type_byte = types_int_to_byte[data_type]
+                data = open_socket.recv(data_count * types_byte_to_size[data_type_byte])
 
-                    if(rovecomm_version != 2):
-                        returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
-                        returnPacket.SetIp(open_socket.getpeername())
-                        return returnPacket
-
-                    data_type = types_int_to_byte[data_type]
-                    data = struct.unpack('>' + data_type * data_count, data)
-
-                    returnPacket = RoveCommPacket(data_id, data_type, data, '')
+                if(rovecomm_version != 2):
+                    returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
                     returnPacket.SetIp(open_socket.getpeername())
-                    packets.append(returnPacket)
-                except Exception:
-                    returnPacket = RoveCommPacket()
-                    packets.append(returnPacket)
+                    return returnPacket
+
+                data_type = types_int_to_byte[data_type]
+                data = struct.unpack('>' + data_type * data_count, data)
+
+                returnPacket = RoveCommPacket(data_id, data_type, data, '')
+                returnPacket.SetIp(open_socket.getpeername())
+                packets.append(returnPacket)
+            except Exception:
+                returnPacket = RoveCommPacket()
+                packets.append(returnPacket)
 
         self.sem.release()
         return packets
