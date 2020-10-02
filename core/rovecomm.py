@@ -124,7 +124,6 @@ class RoveComm:
                     except Exception:
                         pass
 
-
         self.udp_node.close_socket()
         self.tcp_node.close_sockets()
         logging.getLogger(__name__).debug('Rovecomm sockets closed')
@@ -165,7 +164,6 @@ class RoveCommEthernetUdp:
         self.RoveCommSocket.bind(("", self.rove_comm_port))
 
     def subscribe(self, ip_octet):
-
         self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
 
     def write(self, packet):
@@ -207,8 +205,11 @@ class RoveCommEthernetUdp:
             return_packet (RoveCommPacket): A RoveCommPacket that contains a
             RoveComm message received over the network
         '''
-        ready = select.select([self.RoveCommSocket], [], [], 0)
-        if len(ready[0]) > 0:
+        # The select function is used to poll the socket and check whether
+        # there is data available to be read, preventing the read from
+        # blocking the thread waiting for a packet
+        available_sockets = select.select([self.RoveCommSocket], [], [], 0)[0]
+        if len(available_sockets) > 0:
             try:
                 packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
                 header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
@@ -255,8 +256,6 @@ class RoveCommEthernetTcp:
     '''
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
-        # create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifying it
-        self.sem = threading.Semaphore()
         # configure a TCP socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # bind the socket to the current machines local network IP by default (can be specified as well)
@@ -265,12 +264,10 @@ class RoveCommEthernetTcp:
         self.server.listen(5)
 
     def close_sockets(self):
-        self.sem.acquire()
         for open_socket in self.open_sockets:
             # notifies other end that we are terminating the connection
             self.open_sockets[open_socket].shutdown(1)
             self.open_sockets[open_socket].close()
-        self.sem.release()
         self.server.close()
 
     def write(self, packet):
@@ -297,7 +294,6 @@ class RoveCommEthernetTcp:
             return 0
 
     def connect(self, address):
-        self.sem.acquire()
         if address not in self.open_sockets:
             TCPSocket = socket.socket(type=socket.SOCK_STREAM)
             try:
@@ -305,17 +301,16 @@ class RoveCommEthernetTcp:
             except Exception as e:
                 logging.getLogger(__name__).error("Something's wrong. Exception is %s" % (e))
             self.open_sockets[address] = TCPSocket
-        self.sem.release()
 
     def handle_incoming_connection(self):
+        # The select function is used to poll the socket and check whether
+        # there is an incoming connection to accept, preventing the read
+        # from blocking the thread waiting for a request
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
-            self.sem.acquire()
             self.open_sockets[addr[0]] = conn
-            self.sem.release()
 
     def read(self):
-        self.sem.acquire()
 
         packets = []
 
@@ -324,6 +319,9 @@ class RoveCommEthernetTcp:
             available_sockets.append(value)
 
         if len(available_sockets) > 0:
+            # The select function is used to poll the socket and check whether
+            # there is data available to be read, preventing the read from
+            # blocking the thread waiting for a packet
             available_sockets = select.select(available_sockets, [], [], 0)[0]
         else:
             available_sockets = []
@@ -350,5 +348,4 @@ class RoveCommEthernetTcp:
                 returnPacket = RoveCommPacket()
                 packets.append(returnPacket)
 
-        self.sem.release()
         return packets
