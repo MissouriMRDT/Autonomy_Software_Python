@@ -10,11 +10,16 @@ rovecomm_test.variable = 0
 
 
 def main() -> None:
+    # sends over UDP
     core.rovecomm.set_callback(4242, handlePacket)
     packet = RoveCommPacket(4242, 'b', (1, 3), "", 11000)
     packet.SetIp('127.0.0.1')
     core.rovecomm.write(packet, False)
 
+    # The RoveCommTcp class includes both a server socket and
+    # a dictionary of connection sockets, allowing it to create
+    # a TCP connection between its server and one of the dictionary
+    # sockets
     packet2 = RoveCommPacket(4242, 'b', (1, 4), "", 11111)
     packet2.SetIp('127.0.0.1')
     core.rovecomm.write(packet2, True)
@@ -30,9 +35,6 @@ def main() -> None:
         s.send(rovecomm_packet)
         time.sleep(.5)
         print(rovecomm_test.variable)
-    # Closes the RoveComm listener thread, it closes itself when
-    #   the program terminates
-    # core.rovecomm.close_thread()
     print(threading.enumerate())
 
 

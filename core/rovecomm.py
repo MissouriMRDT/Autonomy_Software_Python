@@ -73,14 +73,29 @@ class RoveCommPacket:
             self.ip_address = ('0.0.0.0', port)
         return
 
-    def SetIp(self, address):
-        # If the address comes with a port, use it
-        if (isinstance(address, tuple)):
-            self.ip_address = address
-        else:
-            self.ip_address = (address, self.ip_address[1])
+    def SetIp(self, ip, port=None):
+        '''
+        Sets packet's IP to address parameter
+
+        Parameters:
+            ip (String)
+            port (Integer)
+        '''
+        if port is None:
+            port = self.ip_address[1]
+        self.ip_address = (ip, port)
 
     def print(self):
+        '''
+        Format:
+            ----------
+            ID:    _
+            Type:  _
+            Count: _
+            IP:    _
+            Data:  _
+            ----------
+        '''
         print('----------')
         print('{0:6s} {1}'.format('ID:', self.data_id))
         print('{0:6s} {1}'.format('Type:', self.data_type))
@@ -93,6 +108,11 @@ class RoveCommPacket:
 class RoveComm:
     '''
     Creates a separate thread to read all RoveComm connections
+
+    Implements:
+        write
+        set_callback
+        close_thread
     '''
 
     def __init__(
@@ -112,6 +132,10 @@ class RoveComm:
         self.thread.start()
 
     def listen(self):
+        '''
+        Loops over RoveComm connections to read packets and execute callbacks;
+        closes when main thread closes or close_thread() is called
+        '''
         while threading.main_thread().is_alive() and not self.shutdown_event.isSet():
             self.tcp_node.handle_incoming_connection()
             packets = self.tcp_node.read()
@@ -128,18 +152,35 @@ class RoveComm:
         self.tcp_node.close_sockets()
         logging.getLogger(__name__).debug('Rovecomm sockets closed')
 
-    def close_thread(self):
-        self.shutdown_event.set()
-        self.thread.join()
-
     def set_callback(self, data_id, func):
+        '''
+        Sets the callback function for any incoming packets with the given data id
+
+        Parameters:
+            data_id (Integer)
+            func (Function): The function to be called
+        '''
         self.callbacks[data_id] = func
 
     def write(self, packet, reliable=False):
+        '''
+        Writes the given packet to its destination address
+
+        Parameters:
+            packet (RoveCommPacket)
+            reliable (Bool): Whether to send over TCP or UDP
+        '''
         if (reliable):
             self.tcp_node.write(packet)
         else:
             self.udp_node.write(packet)
+
+    def close_thread(self):
+        '''
+        Shuts down the listener thread
+        '''
+        self.shutdown_event.set()
+        self.thread.join()
 
 
 class RoveCommEthernetUdp:
@@ -152,12 +193,12 @@ class RoveCommEthernetUdp:
     Implements:
         - Write (to both the target ip and all subscribers)
         - Read
+        - Subscribe
+        - close_socket
     '''
     def __init__(self, port=ROVECOMM_UDP_PORT):
         self.rove_comm_port = port
         self.subscribers = []
-
-        self.callbacks = {}
 
         self.RoveCommSocket = socket.socket(type=socket.SOCK_DGRAM)
         self.RoveCommSocket.setblocking(True)
@@ -182,8 +223,13 @@ class RoveCommEthernetUdp:
             if not isinstance(packet.data, tuple):
                 raise ValueError('Must pass data as a list, Data: ' + str(packet.data))
 
-            rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
-                                          types_byte_to_int[packet.data_type])
+            rovecomm_packet = struct.pack(
+                ROVECOMM_HEADER_FORMAT,
+                ROVECOMM_VERSION,
+                packet.data_id,
+                packet.data_count,
+                types_byte_to_int[packet.data_type]
+            )
             for i in packet.data:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
@@ -242,6 +288,9 @@ class RoveCommEthernetUdp:
                 return return_packet
 
     def close_socket(self):
+        '''
+        Closes the UDP socket
+        '''
         self.RoveCommSocket.shutdown(1)
         self.RoveCommSocket.close()
 
@@ -264,6 +313,9 @@ class RoveCommEthernetTcp:
         self.server.listen(5)
 
     def close_sockets(self):
+        '''
+        Closes all active TCP connections
+        '''
         for open_socket in self.open_sockets:
             # notifies other end that we are terminating the connection
             self.open_sockets[open_socket].shutdown(1)
@@ -271,6 +323,16 @@ class RoveCommEthernetTcp:
         self.server.close()
 
     def write(self, packet):
+        '''
+        Transmits a packet to the destination IP (if there is one)
+
+        Parameters:
+            packet (RoveCommPacket): A packet containing the data and header info
+            to be transmitted over the rover network
+        Returns:
+            success (int): An integer, either 0 or 1 depending on whether or not
+            an exception occured during writing
+        '''
         try:
             if not isinstance(packet.data, tuple):
                 raise ValueError('Must pass data as a tuple, Data: ' + str(packet.data))
@@ -294,6 +356,9 @@ class RoveCommEthernetTcp:
             return 0
 
     def connect(self, address):
+        '''
+        Opens a socket connection to the address given as a parameter
+        '''
         if address not in self.open_sockets:
             TCPSocket = socket.socket(type=socket.SOCK_STREAM)
             try:
@@ -303,6 +368,9 @@ class RoveCommEthernetTcp:
             self.open_sockets[address] = TCPSocket
 
     def handle_incoming_connection(self):
+        '''
+        Polls for an incoming connection, accepts it if one exists
+        '''
         # The select function is used to poll the socket and check whether
         # there is an incoming connection to accept, preventing the read
         # from blocking the thread waiting for a request
@@ -311,6 +379,14 @@ class RoveCommEthernetTcp:
             self.open_sockets[addr[0]] = conn
 
     def read(self):
+        '''
+        Unpacks the UDP packet and packs it into a RoveComm Packet for easy
+        parsing in other code.
+
+        Returns:
+            packets (tuple of RoveCommPacket instances): RoveCommPackets
+            that contain RoveComm messages received over the network
+        '''
 
         packets = []
 
@@ -335,14 +411,14 @@ class RoveCommEthernetTcp:
 
                 if(rovecomm_version != 2):
                     returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
-                    returnPacket.SetIp(open_socket.getpeername())
+                    returnPacket.SetIp(*open_socket.getpeername())
                     return returnPacket
 
                 data_type = types_int_to_byte[data_type]
                 data = struct.unpack('>' + data_type * data_count, data)
 
                 returnPacket = RoveCommPacket(data_id, data_type, data, '')
-                returnPacket.SetIp(open_socket.getpeername())
+                returnPacket.SetIp(*open_socket.getpeername())
                 packets.append(returnPacket)
             except Exception:
                 returnPacket = RoveCommPacket()
