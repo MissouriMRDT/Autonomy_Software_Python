@@ -157,7 +157,7 @@ class RoveComm:
         Sets the callback function for any incoming packets with the given data id
 
         Parameters:
-            data_id (Integer)
+            data_id (Integer): Data id to call the function for
             func (Function): The function to be called
         '''
         self.callbacks[data_id] = func
@@ -167,7 +167,7 @@ class RoveComm:
         Writes the given packet to its destination address
 
         Parameters:
-            packet (RoveCommPacket)
+            packet (RoveCommPacket): The packet to send
             reliable (Bool): Whether to send over TCP or UDP
         '''
         if (reliable):
@@ -194,7 +194,7 @@ class RoveCommEthernetUdp:
         - Write (to both the target ip and all subscribers)
         - Read
         - Subscribe
-        - close_socket
+        - Close Socket
     '''
     def __init__(self, port=ROVECOMM_UDP_PORT):
         self.rove_comm_port = port
@@ -205,6 +205,10 @@ class RoveCommEthernetUdp:
         self.RoveCommSocket.bind(("", self.rove_comm_port))
 
     def subscribe(self, ip_octet):
+        '''
+        Parameters:
+            ip_octet (String): The ip to subscribe to
+        '''
         self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
 
     def write(self, packet):
@@ -302,6 +306,8 @@ class RoveCommEthernetTcp:
     Implements:
         - Write
         - Read
+        - Close Sockets
+        - Handle Incoming Connections
     '''
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
