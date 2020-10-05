@@ -61,6 +61,12 @@ class RoveCommPacket:
         - The data itself
 
     The autonomy implementation also includes the remote ip of the sender.
+
+    Methods:
+        SetIp(ip, port):
+            Sets packet's IP to address parameter
+        print():
+            Prints the packet'c contents
     '''
     def __init__(self, data_id=0, data_type='b', data=(), ip_octet_4='', port=ROVECOMM_UDP_PORT):
         self.data_id = data_id
@@ -109,10 +115,13 @@ class RoveComm:
     '''
     Creates a separate thread to read all RoveComm connections
 
-    Implements:
-        write
-        set_callback
-        close_thread
+    Methods:
+        write(packet, reliable):
+            Writes the given packet to its destination address
+        set_callback(data_id, func):
+            Sets the callback function for any incoming packets with the given data id
+        close_thread():
+            Shuts down the listener thread
     '''
 
     def __init__(
@@ -169,11 +178,15 @@ class RoveComm:
         Parameters:
             packet (RoveCommPacket): The packet to send
             reliable (Bool): Whether to send over TCP or UDP
+
+        Returns:
+            success (int): An integer, either 0 or 1 depending on whether or not
+            an exception occured during writing
         '''
         if (reliable):
-            self.tcp_node.write(packet)
+            return self.tcp_node.write(packet)
         else:
-            self.udp_node.write(packet)
+            return self.udp_node.write(packet)
 
     def close_thread(self):
         '''
@@ -190,11 +203,16 @@ class RoveCommEthernetUdp:
     and if it delivers does not guarantee it being in the same order it was
     sent.
 
-    Implements:
-        - Write (to both the target ip and all subscribers)
-        - Read
-        - Subscribe
-        - Close Socket
+    Methods:
+        write(packet):
+            Transmits a packet to the destination IP and all active subscribers.
+        read():
+            Unpacks the UDP packet and packs it into a RoveComm Packet for easy
+            parsing in other code.
+        subscribe(ip_octet):
+            Subscribes to UDP packets from the given ip
+        close_socket():
+            Closes the UDP socket
     '''
     def __init__(self, port=ROVECOMM_UDP_PORT):
         self.rove_comm_port = port
@@ -257,7 +275,7 @@ class RoveCommEthernetUdp:
         '''
         # The select function is used to poll the socket and check whether
         # there is data available to be read, preventing the read from
-        # blocking the thread waiting for a packet
+        # blocking the thread while waiting for a packet
         available_sockets = select.select([self.RoveCommSocket], [], [], 0)[0]
         if len(available_sockets) > 0:
             try:
@@ -303,11 +321,17 @@ class RoveCommEthernetTcp:
     '''
     The TCP implementation for RoveComm.
 
-    Implements:
-        - Write
-        - Read
-        - Close Sockets
-        - Handle Incoming Connections
+    Methods:
+        write(packet):
+            Transmits a packet to the destination IP and all active subscribers.
+        read():
+            Receives all TCP packets from open sockets and packs data into RoveCommPacket instances
+        connect(ip_octet):
+            Opens a socket connection to the given address
+        close_sockets():
+            Closes the server socket and all open sockets
+        handle_incoming_connections():
+            Accepts socket connection requests
     '''
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
@@ -379,7 +403,7 @@ class RoveCommEthernetTcp:
         '''
         # The select function is used to poll the socket and check whether
         # there is an incoming connection to accept, preventing the read
-        # from blocking the thread waiting for a request
+        # from blocking the thread while waiting for a request
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
             self.open_sockets[addr[0]] = conn
@@ -403,7 +427,7 @@ class RoveCommEthernetTcp:
         if len(available_sockets) > 0:
             # The select function is used to poll the socket and check whether
             # there is data available to be read, preventing the read from
-            # blocking the thread waiting for a packet
+            # blocking the thread while waiting for a packet
             available_sockets = select.select(available_sockets, [], [], 0)[0]
         else:
             available_sockets = []
