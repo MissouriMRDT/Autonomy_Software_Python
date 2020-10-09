@@ -436,8 +436,6 @@ class RoveCommEthernetTcp:
             # there is data available to be read, preventing the read from
             # blocking the thread while waiting for a packet
             available_sockets = select.select(available_sockets, [], [], 0)[0]
-        else:
-            available_sockets = []
 
         for open_socket in available_sockets:
             try:

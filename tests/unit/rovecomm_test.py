@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from io import StringIO
 from unittest.mock import Mock
 
+# Dict of packets, each test will use a different data_id so they don't interfere
 global responses
 responses = {}
 
@@ -115,6 +116,7 @@ def test_callback_exception():
 def test_print_packet():
     packet = RoveCommPacket(4236, 'b', (1, 4), "", 11111)
     packet.SetIp('127.0.0.1')
+    # Temporarily changes stdout to write into an easily accessible output
     with captured_output() as (out, err):
         packet.print()
         output = out.getvalue().strip()
@@ -144,7 +146,7 @@ def test_invalid_write_tcp():
 
 def test_udp_subscribe():
     assert core.rovecomm.udp_node.subscribe('0') == 1
-    # Can't test receipt of packet because it sends to external IP
+    # Couldn't test receipt of packet because it sends to external IP
 
     global responses
     core.rovecomm.set_callback(3, handle_packet)
@@ -155,7 +157,6 @@ def test_udp_subscribe():
 
     time.sleep(.05)
     assert responses[3].data_id == packet.data_id
-
     assert len(core.rovecomm.udp_node.subscribers) == 1
 
     # Main target should be invalid
@@ -182,7 +183,6 @@ def test_udp_unsubscribe():
 
     time.sleep(.05)
     assert responses[4].data_id == packet.data_id
-
     assert len(core.rovecomm.udp_node.subscribers) == 0
 
     # Main target should be invalid
@@ -249,6 +249,7 @@ def test_read_exception_udp():
     # 0 is the data id for the default packet, sent when exception is raised
     core.rovecomm.set_callback(0, handle_packet)
 
+    # A mock socket to throw an exception when a read occurs
     mock = Mock()
     mock.recvfrom.side_effect = Exception
     temp = core.rovecomm.udp_node.RoveCommSocket
@@ -268,12 +269,14 @@ def test_read_exception_udp():
 
     # Give the listener thread a moment to catch the packet
     time.sleep(.05)
-    core.rovecomm.udp_node.RoveCommSocket = temp
     # Match the packet to the blank packet
     assert responses[0].data == ()
     assert responses[0].data_type == 'b'
     assert responses[0].data_count == 0
     assert responses[0].data_id == 0
+
+    # Gives the udp node its socket back
+    core.rovecomm.udp_node.RoveCommSocket = temp
 
 
 def test_listener_shutdown():
