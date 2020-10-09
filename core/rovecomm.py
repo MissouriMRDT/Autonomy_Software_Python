@@ -151,7 +151,7 @@ class RoveComm:
             packets.append(self.udp_node.read())
 
             for packet in packets:
-                if packet is not None and packet.data_id != 0:
+                if packet is not None:
                     try:
                         self.callbacks[packet.data_id](packet)
                     except Exception:
@@ -160,6 +160,7 @@ class RoveComm:
         self.udp_node.close_socket()
         self.tcp_node.close_sockets()
         logging.getLogger(__name__).debug('Rovecomm sockets closed')
+        return
 
     def set_callback(self, data_id, func):
         '''
@@ -226,8 +227,11 @@ class RoveCommEthernetUdp:
         '''
         Parameters:
             ip_octet (String): The ip to subscribe to
+        Returns:
+            success (int): An integer, either 0 or 1 depending on whether or not
+            an exception occured during writing
         '''
-        self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
+        return self.write(RoveCommPacket(data_id=3, ip_octet_4=ip_octet))
 
     def write(self, packet):
         '''
@@ -260,7 +264,7 @@ class RoveCommEthernetUdp:
 
             if packet.ip_address != ('0.0.0.0', 0):
                 self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
-                return 1
+            return 1
         except Exception:
             return 0
 
@@ -292,7 +296,7 @@ class RoveCommEthernetUdp:
                     return return_packet
 
                 if data_id == ROVECOMM_SUBSCRIBE_REQUEST:
-                    if self.subscribers.count(remote_ip == 0):
+                    if self.subscribers.count(remote_ip) == 0:
                         self.subscribers.append(remote_ip)
                 elif data_id == ROVECOMM_UNSUBSCRIBE_REQUEST:
                     if self.subscribers.count(remote_ip) != 0:
@@ -377,7 +381,8 @@ class RoveCommEthernetTcp:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
             # establish a new connection if the destination has not yet been connected to yet
-            self.connect(packet.ip_address)
+            if self.connect(packet.ip_address) == 0:
+                return 0
 
             if (packet.ip_address != ('0.0.0.0', 0)):
                 self.open_sockets[packet.ip_address].send(rovecomm_packet)
@@ -395,7 +400,9 @@ class RoveCommEthernetTcp:
                 TCPSocket.connect(address)
             except Exception as e:
                 logging.getLogger(__name__).error("Something's wrong. Exception is %s" % (e))
+                return 0
             self.open_sockets[address] = TCPSocket
+        return 1
 
     def handle_incoming_connection(self):
         '''
@@ -439,17 +446,18 @@ class RoveCommEthernetTcp:
                 data_type_byte = types_int_to_byte[data_type]
                 data = open_socket.recv(data_count * types_byte_to_size[data_type_byte])
 
-                if(rovecomm_version != 2):
+                if (rovecomm_version != 2):
                     returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
                     returnPacket.SetIp(*open_socket.getpeername())
-                    return returnPacket
+                    packets.append(returnPacket)
 
-                data_type = types_int_to_byte[data_type]
-                data = struct.unpack('>' + data_type * data_count, data)
+                else:
+                    data_type = types_int_to_byte[data_type]
+                    data = struct.unpack('>' + data_type * data_count, data)
 
-                returnPacket = RoveCommPacket(data_id, data_type, data, '')
-                returnPacket.SetIp(*open_socket.getpeername())
-                packets.append(returnPacket)
+                    returnPacket = RoveCommPacket(data_id, data_type, data, '')
+                    returnPacket.SetIp(*open_socket.getpeername())
+                    packets.append(returnPacket)
             except Exception:
                 returnPacket = RoveCommPacket()
                 packets.append(returnPacket)
