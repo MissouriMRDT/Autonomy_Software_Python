@@ -1,0 +1,14 @@
+# PyCharm files
+.idea/
+
+# Mac Temp Files
+.DS_Store
+
+# Python temp files
+*.pyc
+
+#Our Log Files
+*/logs/
+logs/
+*.log
+*.avi

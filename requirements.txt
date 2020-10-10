@@ -1,0 +1,7 @@
+numpy
+opencv-python
+pip
+simplejson
+pynmea2
+serial
+time
