@@ -193,10 +193,10 @@ def test_udp_unsubscribe():
 
     # Packet should not still be recieved because we unsubscribed
     time.sleep(.05)
-    assert responses.get(4233, (1, 2, 3)) == (1, 2, 3)
+    assert responses.get(4233) is None
 
 
-def test_old_version_tcp():
+def test_invalid_rovecomm_version_tcp():
     global responses
     # 5 is the data id for the invalid version return packet
     core.rovecomm.set_callback(5, handle_packet)
@@ -219,7 +219,7 @@ def test_old_version_tcp():
     assert responses[5].data_id == 5
 
 
-def test_old_version_udp():
+def test_invalid_rovecomm_version_udp():
     global responses
     responses.pop(5, None)
     # 5 is the data id for the invalid version return packet
@@ -280,9 +280,20 @@ def test_read_exception_udp():
 
 
 def test_listener_shutdown():
+    # Store data to recreate the instance afterwards
+    callbacks = core.rovecomm.callbacks
+    udp_port = core.rovecomm.udp_node.rove_comm_port
+    tcp_addr = core.rovecomm.tcp_node.server.getsockname()
+
+    # Run the test
     assert core.rovecomm.thread.is_alive()
     core.rovecomm.close_thread()
     assert not core.rovecomm.thread.is_alive()
+
+    # Reopen the thread to avoid any problems with other tests
+    core.rovecomm = core.RoveComm(udp_port, tcp_addr)
+    core.rovecomm.callbacks = callbacks
+    assert core.rovecomm.thread.is_alive()
 
 
 def handle_packet(packet):
