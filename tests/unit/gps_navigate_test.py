@@ -1,4 +1,3 @@
-import core
 from core import constants
 from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
@@ -8,8 +7,6 @@ import algorithms.gps_navigate as gps_nav
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
 
-# set up dependancies
-core.rovecomm_node = core.RoveCommEthernetUdp()
 
 # set up interfaces
 drive_board = DriveBoard()
