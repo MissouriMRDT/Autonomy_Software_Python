@@ -1,7 +1,7 @@
 # using  a zed 2 camera and the ZED SDK for obstacle detection
 # need to import pyzed.sl as sl
 import time
-import numpy as npimpor
+import numpy as np
 
 
 class ZEDDetector:
