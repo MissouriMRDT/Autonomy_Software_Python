@@ -58,7 +58,10 @@ def test_calculate_next_coordinate():
     drawLogarithmicSpiral()
     assert plt_tst.compare_images('resources/tests/expected/expected_search_pattern.png', 'resources/tests/output/output_search_pattern.png', 0.001) == None
 
-
-if __name__ == "__main__":
+def main():
     drawLogarithmicSpiral(fileName='resources/tests/expected/expected_search_pattern.png')
     plt.show()
+
+if __name__ == "__main__":
+    # Call main()
+    main()
