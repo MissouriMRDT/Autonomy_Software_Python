@@ -19,33 +19,36 @@ types_int_to_byte = {
     0: 'b',
     1: 'B',
     2: 'h',
-    3: 's',  # String
+    3: 'H',
     4: 'l',
     5: 'L',
     6: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
     7: 'd',  # double
+    8: 's',
 }
 
 types_byte_to_int = {
     'b': 0,
     'B': 1,
     'h': 2,
-    's': 3,  # String
+    'H': 3,
     'l': 4,
     'L': 5,
     'q': 6,  # int64
     'd': 7,  # double
+    's': 8,  # String
 }
 
 types_byte_to_size = {
     'b': 1,
     'B': 1,
     'h': 2,
-    's': 1,
+    'H': 2,
     'l': 4,
     'L': 4,
     'q': 8,
     'd': 8,
+    's': 1,
 }
 
 
