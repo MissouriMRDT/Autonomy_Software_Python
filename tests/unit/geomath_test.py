@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from core.constants import Coordinate
 import algorithms.geomath as geomath

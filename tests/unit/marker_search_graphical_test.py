@@ -1,5 +1,3 @@
-
-import numpy as np
 import matplotlib.testing.compare as plt_tst
 import matplotlib.pyplot as plt
 import algorithms.marker_search as marker_search
@@ -54,13 +52,15 @@ def test_compare_search_pattern():
     '''
     Draw pattern and make sure it is the same as expected
     '''
-    
+
     drawLogarithmicSpiral()
-    assert plt_tst.compare_images('resources/tests/expected/expected_search_pattern.png', 'resources/tests/output/output_search_pattern.png', 0.001) == None
+    assert plt_tst.compare_images('resources/tests/expected/expected_search_pattern.png', 'resources/tests/output/output_search_pattern.png', 0.001) is None
+
 
 def main():
     drawLogarithmicSpiral(fileName='resources/tests/expected/expected_search_pattern.png')
     plt.show()
+
 
 if __name__ == "__main__":
     # Call main()

@@ -24,9 +24,9 @@ def get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board):
 if __name__ == "__main__":
 
     rovecomm_node = RoveCommEthernetUdp("")
-    drive = DriveBoard("")
+    drive = DriveBoard()
     drive.enable()
-    nav_board = NavBoard(rovecomm_node, "")
+    nav_board = NavBoard()
 
     while True:
         print("Heading: " + str(nav_board.heading()))

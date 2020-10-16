@@ -7,7 +7,7 @@ import algorithms.gps_navigate as gps_nav
 UNIT TEST
 FILE: gps_navigate.py
 
-This file provides unit tests for both the get_approach_status and calculate_move() 
+This file provides unit tests for both the get_approach_status and calculate_move()
 '''
 
 # Rolla GPS coordinates
