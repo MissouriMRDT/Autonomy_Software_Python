@@ -50,7 +50,7 @@ handlers:
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [RoveCommTCP]
+    handlers: [RoveCommTCP, RoveCommUDP, Debug]
   core.basestation_send:
     level: DEBUG
     handlers: [RoveCommTCP]

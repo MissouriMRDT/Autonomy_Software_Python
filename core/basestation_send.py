@@ -5,7 +5,11 @@ import logging
 
 def basestation_send(event, value, log_msg):
     """
-    Sends some data over the socket based on log message
+    Sends some numerical data over the socket
+
+    Returns:
+        success (int): An integer, either 0 or 1 depending on whether or not
+            an exception occured during writing
     """
     logger = logging.getLogger(__name__)
 
@@ -35,8 +39,7 @@ def basestation_send(event, value, log_msg):
             11111
         )
         packet.SetIp("127.0.0.1")
-        packet.print()
         logger.info(f"{event} - {value} - {log_msg}")
-        core.rovecomm.write(packet, True)
+        return core.rovecomm.write(packet, True)
     else:
         logger.warning(f'{event} is not a valid event')

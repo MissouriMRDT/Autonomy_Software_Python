@@ -32,10 +32,6 @@ class RoveCommHandlerUDP(logging.Handler):
         """
         Encodes and sends the log message over RoveComm
         """
-        if core.rovecomm_node is None:
-            logging.warning('UDP Handler called with no socket')
-            return
-
         msg = self.format(s)
         # Max string size is 255 characters, truncate the rest and flag it
         if len(msg) > 255:
