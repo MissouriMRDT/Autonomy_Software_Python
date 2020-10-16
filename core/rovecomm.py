@@ -19,7 +19,7 @@ types_int_to_byte = {
     0: 'b',
     1: 'B',
     2: 'h',
-    3: 'H',
+    3: 's',  # String
     4: 'l',
     5: 'L',
     6: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
@@ -30,7 +30,7 @@ types_byte_to_int = {
     'b': 0,
     'B': 1,
     'h': 2,
-    'H': 3,
+    's': 3,  # String
     'l': 4,
     'L': 5,
     'q': 6,  # int64
@@ -41,7 +41,7 @@ types_byte_to_size = {
     'b': 1,
     'B': 1,
     'h': 2,
-    'H': 2,
+    's': 1,
     'l': 4,
     'L': 4,
     'q': 8,

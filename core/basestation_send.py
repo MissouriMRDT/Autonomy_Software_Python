@@ -1,16 +1,13 @@
 import core
-from core.rovecomm_TCP import RoveCommPacket as RoveCommPacketTCP
+from core.rovecomm import RoveCommPacket
 import logging
 
 
-def rovecomm_send(event, value, log_msg):
+def basestation_send(event, value, log_msg):
     """
     Sends some data over the socket based on log message
     """
     logger = logging.getLogger(__name__)
-    if core.rovecomm_node_tcp is None:
-        logger.warning('TCP Handler called with no socket')
-        return
 
     # Matches log 'event' to event from predefined dict
     if event in core.constants.rovecomm_event_list:
@@ -30,16 +27,16 @@ def rovecomm_send(event, value, log_msg):
             data_value = value
 
         # Pack up and send the data
-        packet = RoveCommPacketTCP(
+        packet = RoveCommPacket(
             data_id,
             data_type,
             data_value,
             "",
-            11112
+            11111
         )
         packet.SetIp("127.0.0.1")
         packet.print()
         logger.info(f"{event} - {value} - {log_msg}")
-        core.rovecomm_node_tcp.write(packet)
+        core.rovecomm.write(packet, True)
     else:
         logger.warning(f'{event} is not a valid event')

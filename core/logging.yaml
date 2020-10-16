@@ -35,13 +35,13 @@ handlers:
     level: 0
     formatter: simple
     target_host: 127.0.0.1
-    target_port: 10999
+    target_port: 11000
   RoveCommTCP:
     class: core.logging_handlers.RoveCommHandlerTCP
     level: 0
     formatter: simple
     target_host: 127.0.0.1
-    target_port: 11112
+    target_port: 11111
   Debug:
     class: logging.StreamHandler
     level: DEBUG
@@ -51,9 +51,9 @@ loggers:
   Logging_Test:
     level: DEBUG
     handlers: [RoveCommTCP]
-  core.rovecomm_send:
+  core.basestation_send:
     level: DEBUG
     handlers: [RoveCommTCP]
 root:
   level: DEBUG
-  handlers: [console, csv, Debug]
+  handlers: [console, csv]

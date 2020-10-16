@@ -1,5 +1,4 @@
 from core.rovecomm import RoveCommPacket
-from core.rovecomm_TCP import RoveCommPacket as RoveCommPacketTCP
 import core
 import logging
 from datetime import datetime
@@ -50,7 +49,7 @@ class RoveCommHandlerUDP(logging.Handler):
             self.target_port
         )
         packet.SetIp(self.target_host)
-        core.rovecomm_node.write(packet)
+        core.rovecomm.write(packet, False)
 
 
 class RoveCommHandlerTCP(logging.Handler):
@@ -66,21 +65,18 @@ class RoveCommHandlerTCP(logging.Handler):
         """
         Encodes and sends the log message over RoveComm
         """
-        if core.rovecomm_node_tcp is None:
-            logging.warning('TCP Handler called with no socket')
-            return
 
         msg = self.format(s)
         # Max string size is 255 characters, truncate the rest and flag it
         if len(msg) > 255:
             msg = msg[:252] + "..."
 
-        packet = RoveCommPacketTCP(
-            4242,
+        packet = RoveCommPacket(
+            4241,
             's',
             tuple([char.encode('utf-8') for char in msg]),
             "",
             self.target_port
         )
         packet.SetIp(self.target_host)
-        core.rovecomm_node_tcp.write(packet)
+        core.rovecomm.write(packet, True)
