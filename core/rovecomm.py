@@ -162,7 +162,9 @@ class RoveComm:
 
         self.udp_node.close_socket()
         self.tcp_node.close_sockets()
-        logging.getLogger(__name__).debug('Rovecomm sockets closed')
+        # Logger throws an error when logging to console with main thread closed
+        if not threading.main_thread().is_alive():
+            logging.getLogger(__name__).debug('Rovecomm sockets closed')
         return
 
     def set_callback(self, data_id, func):
