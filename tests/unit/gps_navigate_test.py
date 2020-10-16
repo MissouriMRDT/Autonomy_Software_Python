@@ -1,11 +1,7 @@
-import core.constants as constants
-from core.constants import ApproachState
-from core.rovecomm import RoveCommEthernetUdp
+from core import constants
 from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 import algorithms.gps_navigate as gps_nav
-import time
-from core.logging import LogWriter
 
 '''
 UNIT TEST
@@ -17,14 +13,10 @@ This file provides unit tests for both the get_approach_status and calculate_mov
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
 
-# set up dependancies
-outString = time.strftime("%Y%m%d-%H%M%S") + ".txt"
-Logger = LogWriter(outString)
-rovecomm_node = RoveCommEthernetUdp(Logger)
 
 # set up interfaces
 drive_board = DriveBoard()
-nav_board = NavBoard(rovecomm_node, Logger)
+nav_board = NavBoard()
 
 
 def test_get_approach_status_past_goal():
@@ -33,7 +25,7 @@ def test_get_approach_status_past_goal():
     current_coord = constants.Coordinate(rolla_coord.lat + 0.003, rolla_coord.lon)
 
     # this will trigger a past goal warning, as our target bearing has now effectively flipped
-    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == ApproachState.PAST_GOAL
+    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == constants.ApproachState.PAST_GOAL
 
 
 def test_get_approach_status_close_enough():
@@ -44,7 +36,7 @@ def test_get_approach_status_close_enough():
     current_coord = constants.Coordinate(goal_coord.lat - 0.000001, goal_coord.lon)
 
     # this should trigger a CLOSE_ENOUGH state as we are within a tiny threshold
-    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == ApproachState.CLOSE_ENOUGH
+    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == constants.ApproachState.CLOSE_ENOUGH
 
 
 def test_get_approach_status_approaching():
@@ -53,14 +45,14 @@ def test_get_approach_status_approaching():
     current_coord = constants.Coordinate(goal_coord.lat - 0.0001, goal_coord.lon)
 
     # this should trigger a APPROACHING state as we are a decent ways away
-    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == ApproachState.APPROACHING
+    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == constants.ApproachState.APPROACHING
 
     # set up goal to be due north of Rolla coordinates, set up current location to be south of start
     goal_coord = constants.Coordinate(37.951524, -91.768959)
     current_coord = constants.Coordinate(37.951224, -91.768959)
 
     # this will should not trigger a past goal warning, we haven't past the goal yet and are not close enough
-    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == ApproachState.APPROACHING
+    assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == constants.ApproachState.APPROACHING
 
 
 def test_calculate_move_right():

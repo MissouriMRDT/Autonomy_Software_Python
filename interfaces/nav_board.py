@@ -1,5 +1,4 @@
-from core.rovecomm import RoveCommEthernetUdp
-import core.constants as constants
+import core
 import time
 
 NAV_IP_ADDRESS = "136"
@@ -15,23 +14,22 @@ class NavBoard:
     This interface collects and stores the data received from the navboard so it can be used elsewhere.
     """
 
-    def __init__(self, rove_comm, logger):
+    def __init__(self):
         self._pitch = 0
         self._roll = 0
         self._heading = 0
-        self._location = constants.Coordinate(0, 0)
+        self._location = core.constants.Coordinate(0, 0)
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
-        self.rove_comm_node = rove_comm
+        self.rove_comm_node = core.rovecomm.udp_node
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
-        self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
-        self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
-        self.logger = logger  # see CannyTracking to add logging
+        core.rovecomm.set_callback(IMU_DATA_ID, self.process_imu_data)
+        core.rovecomm.set_callback(GPS_DATA_ID, self.process_gps_data)
+        core.rovecomm.set_callback(LIDAR_DATA_ID, self.process_lidar_data)
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
@@ -50,7 +48,7 @@ class NavBoard:
         print(str(time.time()))
         print(self._location)
         self._lastTime = time.time()
-        self._location = constants.Coordinate(lat, lon)
+        self._location = core.constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
         self._distToGround, self._lidarQuality = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
@@ -68,9 +66,8 @@ class NavBoard:
         return self._location
 
 
-if __name__ == '__main__':
-    rove_comm_node = RoveCommEthernetUdp()
-    nav = NavBoard(rove_comm_node)
+def main() -> None:
+    nav = NavBoard()
     while True:
         print(nav.location())
         print(nav.heading())
@@ -78,3 +75,8 @@ if __name__ == '__main__':
         print(nav.roll())
         print("...")
         time.sleep(1)
+
+
+if __name__ == '__main__':
+    # Run main
+    main()
