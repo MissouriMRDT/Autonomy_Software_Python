@@ -50,7 +50,7 @@ def drawLogarithmicSpiral(r=50, fileName='resources/tests/output/output_search_p
     plt.savefig(fileName)
 
 
-def test_calculate_next_coordinate():
+def test_compare_search_pattern():
     '''
     Draw pattern and make sure it is the same as expected
     '''
