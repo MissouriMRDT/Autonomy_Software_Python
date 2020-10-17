@@ -22,9 +22,10 @@ types_int_to_byte = {
     3: 'H',
     4: 'l',
     5: 'L',
-    6: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
-    7: 'd',  # double
-    8: 's',
+    6: 'f',
+    7: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
+    8: 'd',  # double
+    9: 's',
 }
 
 types_byte_to_int = {
@@ -34,9 +35,10 @@ types_byte_to_int = {
     'H': 3,
     'l': 4,
     'L': 5,
-    'q': 6,  # int64
-    'd': 7,  # double
-    's': 8,  # String
+    'f': 6,
+    'q': 7,  # int64
+    'd': 8,  # double
+    's': 9,  # String
 }
 
 types_byte_to_size = {
@@ -46,6 +48,7 @@ types_byte_to_size = {
     'H': 2,
     'l': 4,
     'L': 4,
+    'f': 4,
     'q': 8,
     'd': 8,
     's': 1,
