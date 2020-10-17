@@ -163,7 +163,7 @@ class RoveComm:
         self.udp_node.close_socket()
         self.tcp_node.close_sockets()
         # Logger throws an error when logging to console with main thread closed
-        if not threading.main_thread().is_alive():
+        if threading.main_thread().is_alive():
             logging.getLogger(__name__).debug('Rovecomm sockets closed')
         return
 
