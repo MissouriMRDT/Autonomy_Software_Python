@@ -2,7 +2,8 @@ import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
 import core.constants as constants
 from core.constants import ApproachState
-from interfaces import drive_board, nav_board
+from interfaces import nav_board
+
 
 def get_approach_status(goal, location, start):
     (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
