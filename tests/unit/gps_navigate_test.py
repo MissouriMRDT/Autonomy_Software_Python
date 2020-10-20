@@ -1,6 +1,8 @@
 from core import constants
 from interfaces import drive_board, nav_board
 import algorithms.gps_navigate as gps_nav
+from unittest.mock import MagicMock
+import pytest
 
 '''
 UNIT TEST
@@ -13,6 +15,11 @@ This file provides unit tests for both the get_approach_status and calculate_mov
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
 
 
+def setup_module(module):
+    # Set up the test module by mocking the nav_board heading to be always 0
+    # This way we can rely on our heading to always be 0 for testing purposes
+    nav_board.heading = MagicMock(return_value=0)
+
 def test_get_approach_status_past_goal():
     # set up goal to be due north of Rolla coordinates, set up current location to be further north
     goal_coord = constants.Coordinate(rolla_coord.lat + 0.001, rolla_coord.lon)
@@ -20,7 +27,6 @@ def test_get_approach_status_past_goal():
 
     # this will trigger a past goal warning, as our target bearing has now effectively flipped
     assert gps_nav.get_approach_status(goal_coord, current_coord, rolla_coord) == constants.ApproachState.PAST_GOAL
-
 
 def test_get_approach_status_close_enough():
     # set up our current position and target position to be within 0.1m
