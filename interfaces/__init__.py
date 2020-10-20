@@ -1,2 +1,7 @@
-import interfaces.drive_board
-import interfaces.nav_board
+from interfaces.drive_board import DriveBoard
+from interfaces.nav_board import NavBoard
+
+# Create instances of all interfaces
+drive_board = DriveBoard()
+nav_board = NavBoard()
+

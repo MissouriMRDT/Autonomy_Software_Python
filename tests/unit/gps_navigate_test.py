@@ -1,6 +1,5 @@
 from core import constants
-from interfaces.drive_board import DriveBoard
-from interfaces.nav_board import NavBoard
+from interfaces import drive_board, nav_board
 import algorithms.gps_navigate as gps_nav
 
 '''
@@ -12,11 +11,6 @@ This file provides unit tests for both the get_approach_status and calculate_mov
 
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
-
-
-# set up interfaces
-drive_board = DriveBoard()
-nav_board = NavBoard()
 
 
 def test_get_approach_status_past_goal():
@@ -62,7 +56,7 @@ def test_calculate_move_right():
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.0025)
 
     drive_board.enable()
-    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord, drive_board, nav_board)
+    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the right
     assert right < 0
@@ -76,7 +70,7 @@ def test_calculate_move_left():
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.0025)
 
     drive_board.enable()
-    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord, drive_board, nav_board)
+    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the left
     assert right > 0
@@ -90,7 +84,7 @@ def test_calculate_move_straight():
     current_coord = constants.Coordinate(rolla_coord.lat + 0.0002, rolla_coord.lon)
 
     drive_board.enable()
-    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord, drive_board, nav_board)
+    left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should not have to turn
     assert right == left
