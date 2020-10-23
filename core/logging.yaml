@@ -27,8 +27,9 @@ handlers:
     class: core.logging_handlers.CsvHandler
     level: 0
     formatter: csv
-    format_string: TIMESTAMP MODULE FUNCTION LEVEL MESSAGE
+    format_string: TIMESTAMP, MODULE, FUNCTION, LEVEL, MESSAGE
     filename: logs/example.csv
+    new_file: True
     delay: False
   RoveCommUDP:
     class: core.logging_handlers.RoveCommHandlerUDP
