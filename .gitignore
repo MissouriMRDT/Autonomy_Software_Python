@@ -22,5 +22,9 @@ logs/
 *.log
 *.avi
 
+#Output files from unit tests
+resources/tests/output/* 
+!resources/tests/output/.keep 
+
 #Coverage files
 *.coverage
