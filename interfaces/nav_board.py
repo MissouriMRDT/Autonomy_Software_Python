@@ -1,5 +1,6 @@
 import core
 import time
+import logging
 
 NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
@@ -22,7 +23,10 @@ class NavBoard:
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
+
+        # Set up RoveComm and Logger
         self.rove_comm_node = core.rovecomm.udp_node
+        self.logger = logging.getLogger(__name__)
 
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
@@ -33,20 +37,15 @@ class NavBoard:
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
-        """
-        self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
-        if abs(self._heading - packet.data[1]) < 30: # attempt to filter inappropriate values, experimentally i've never seen the rover turn more than 120 degrees per second.
-            self._heading = packet.data[1]
-        self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
-        """
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
-        lon, lat = packet.data
+        lat, lon = packet.data
         lat = lat * 1e-7
-        lon = -lon * 1e-7
-        print(str(time.time()))
-        print(self._location)
+        lon = lon * 1e-7
+
+        self.logger.debug(f"Received GPS coordinate: lat ({lat}), lon ({lon})")
+
         self._lastTime = time.time()
         self._location = core.constants.Coordinate(lat, lon)
 

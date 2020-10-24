@@ -1,3 +1,4 @@
+import logging
 from core.state import RoverState
 from enum import Enum
 
@@ -10,7 +11,7 @@ class StateSwitcher(object):
     def __init__(self, filename):
         self.state = Idle()  # default state
         self.previousState = Idle()
-        self.outString = filename  # see example in CannyTracking to add logging to functions
+        self.logger = logging.getLogger(__name__)
 
     def handle_event(self, event, previousState, then=None):
         if event == AutonomyEvents.END_OBSTACLE_AVOIDANCE:
@@ -19,6 +20,10 @@ class StateSwitcher(object):
         else:
             self.previousState = previousState
             self.state = self.state.handle_event(event)
+
+        self.logger.info(f"Handling event: {event}")
+        self.logger.info(f"Previous state: {EventsToString[self.previousState]} -> New state: {EventsToString[self.state]}")
+
         if then:
             then()  # callback
 
@@ -144,3 +149,18 @@ class AutonomyEvents(Enum):
     RESTART = 9
     OBSTACLE_AVOIDANCE = 10
     END_OBSTACLE_AVOIDANCE = 11
+
+
+EventsToString = {
+    1: "START",
+    2: "REACHED_GPS_COORDINATE",
+    3: "MARKER_SIGHTED",
+    4: "SEARCH_FAILED",
+    5: "MARKER_UNSEEN",
+    6: "REACHED_MARKER",
+    7: "ALL_MARKERS_REACHED",
+    8: "ABORT",
+    9: "RESTART",
+    10: "OBSTACLE_AVOIDANCE",
+    11: "END_OBSTACLE_AVOIDANCE",
+}
