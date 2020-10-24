@@ -8,7 +8,7 @@ class StateSwitcher(object):
     The state machine "handler" which will deal with switching between various states
     """
 
-    def __init__(self, filename):
+    def __init__(self):
         self.state = Idle()  # default state
         self.previousState = Idle()
         self.logger = logging.getLogger(__name__)
@@ -152,15 +152,10 @@ class AutonomyEvents(Enum):
 
 
 EventsToString = {
-    1: "START",
-    2: "REACHED_GPS_COORDINATE",
-    3: "MARKER_SIGHTED",
-    4: "SEARCH_FAILED",
-    5: "MARKER_UNSEEN",
-    6: "REACHED_MARKER",
-    7: "ALL_MARKERS_REACHED",
-    8: "ABORT",
-    9: "RESTART",
-    10: "OBSTACLE_AVOIDANCE",
-    11: "END_OBSTACLE_AVOIDANCE",
+    Idle(): "IDLE",
+    Navigating(): "NAVIGATING",
+    Searching(): "SEARCHING",
+    ApproachingMarker(): "APPROACHING MARKER",
+    Shutdown(): "SHUTDOWN",
+    ObstacleAvoidance(): "OBSTACLE AVOIDANCE",
 }

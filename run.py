@@ -23,6 +23,10 @@ def setup_logger(level) -> logging.Logger:
     yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
     logging.config.dictConfig(yaml_conf)
 
+    # Set log level of root logger to command line argument
+    logger = logging.getLogger()
+    logger.setLevel(level)
+
     return logging.getLogger(__name__)
 
 
@@ -53,6 +57,7 @@ def main() -> None:
         # Couldn't find module because file doesn't exist or tried to import
         # from package
         logger.error(f"Failed to import module '{args.file}'")
+        #logger.error(error)
         core.rovecomm.close_thread()
         exit(1)
     except NameError:

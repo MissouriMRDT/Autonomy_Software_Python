@@ -15,4 +15,3 @@ def drive_to_marker(speed, drive_board, center, radius, nav_board):
     left, right = hh.get_motor_power_from_heading(speed, goal_heading, drive_board, nav_board)
     print(str(left) + "," + str(right))
     return (left, right), distance
-    # return drive_board.calculate_move(speed, angle_to_ball), distance

@@ -77,7 +77,14 @@ Every branch should contain the naming pattern feature/<feature name>. Once the 
 
 Pull requests will not be accepted if they cause unit tests to break or have syntatical errors. If you are adding a new algorithm, make sure to add a corresponding unit test, or it will most likely not be accepted.
 
+## Known Issues
 
+To properly install pyyaml:
+```
+pip install --global-option='--with-libyaml' pyyaml
+sudo apt-get install python-dev   # for python2.x installs
+sudo apt-get install python3.8-dev  # for python3.8 installs
+```
 
 
 

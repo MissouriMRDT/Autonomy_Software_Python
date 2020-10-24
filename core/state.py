@@ -18,5 +18,8 @@ class RoverState(object):
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __hash__(self):
+        return hash(self.__class__.__name__)
+
     def __ne__(self, other):
         return str(self) != str(other)
