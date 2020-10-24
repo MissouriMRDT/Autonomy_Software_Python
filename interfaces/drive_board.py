@@ -1,3 +1,4 @@
+import logging
 import core.constants as constants
 from core.rovecomm import RoveCommPacket
 
@@ -21,6 +22,7 @@ class DriveBoard:
         self._targetSpdLeft = 0
         self._targetSpdRight = 0
         self.enabled = False
+        self.logger = logging.getLogger(__name__)
 
     def __del__(self):
         self.disable()
@@ -38,6 +40,7 @@ class DriveBoard:
 
         self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
         self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
         if self.enabled:
             return self._targetSpdLeft, self._targetSpdRight

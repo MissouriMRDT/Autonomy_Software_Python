@@ -1,5 +1,6 @@
 import core
 import time
+import logging
 
 NAV_IP_ADDRESS = "136"
 GPS_DATA_ID = 5100
@@ -24,6 +25,7 @@ class NavBoard:
         self._lastTime = time.time()
         self.rove_comm_node = core.rovecomm.udp_node
 
+        self.logger = logging.getLogger(__name__)
         self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
@@ -42,10 +44,10 @@ class NavBoard:
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
-        lon, lat = packet.data
+        lat, lon = packet.data
         lat = lat * 1e-7
-        lon = -lon * 1e-7
-        
+        lon = lon * 1e-7
+        self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
         self._location = core.constants.Coordinate(lat, lon)
 
