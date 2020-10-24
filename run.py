@@ -22,7 +22,7 @@ def setup_logger(level) -> logging.Logger:
     # logging file
     yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
 
-    # Set log level of root logger to command line argument
+    # Set log level of console logger to command line argument
     yaml_conf['handlers']['console']['level'] = level
 
     logging.config.dictConfig(yaml_conf)
