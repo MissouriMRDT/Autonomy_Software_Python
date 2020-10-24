@@ -21,11 +21,11 @@ def setup_logger(level) -> logging.Logger:
 
     # logging file
     yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
-    logging.config.dictConfig(yaml_conf)
 
     # Set log level of root logger to command line argument
-    logger = logging.getLogger()
-    logger.setLevel(level)
+    yaml_conf['handlers']['console']['level'] = level
+
+    logging.config.dictConfig(yaml_conf)
 
     return logging.getLogger(__name__)
 
@@ -53,16 +53,17 @@ def main() -> None:
         # Remove .py and directly import module
         module = importlib.import_module(os.path.splitext(args.file)[0])
         module.main()
-    except ImportError:
+    except ImportError as error:
         # Couldn't find module because file doesn't exist or tried to import
         # from package
         logger.error(f"Failed to import module '{args.file}'")
-        #logger.error(error)
+        logger.error(error)
         core.rovecomm.close_thread()
         exit(1)
-    except NameError:
+    except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
+        logger.error(error)
         core.rovecomm.close_thread()
         exit(1)
     else:
