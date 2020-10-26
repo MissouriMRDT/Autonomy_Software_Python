@@ -1,8 +1,7 @@
 from enum import IntEnum, Enum
 import collections
 import math
-import yaml
-from yaml import CLoader
+import json
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -26,8 +25,8 @@ VISION_RANGE = 0.007  # kilometers
 Coordinate = collections.namedtuple('Coordinate', ['lat', 'lon'])
 
 # RoveComm Numerical Values
-rovecomm_event_list = open('core/rovecomm_values.yaml', 'r').read()
-rovecomm_event_list = yaml.load(rovecomm_event_list, Loader=CLoader)
+rovecomm_event_list = open('core/rovecomm_values.json', 'r').read()
+rovecomm_event_list = json.loads(rovecomm_event_list)
 
 
 # RoveComm Autonomy Control DataIDs
