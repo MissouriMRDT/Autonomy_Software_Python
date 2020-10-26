@@ -20,7 +20,7 @@ def main() -> None:
     for line in lines:
         f2.write(','.join(line) + '\n')
 
-    # Graphs left vs right difference over time
+    # Gets motor differential data
     timestamps = []
     ratios = []
     with open("logs/newformat-20201024-133704.csv") as csvfile:
@@ -31,6 +31,7 @@ def main() -> None:
                 ratios.append(speeds[0] - speeds[1])
                 timestamps.append(datetime.strptime(row['TIMESTAMP'], "%Y-%m-%d %H:%M:%S.%f"))
 
+    # Graph the data with matplot
     fig, ax = plt.subplots()
     ax.plot(timestamps, ratios)
     plt.title("Motor Differential over Time")
