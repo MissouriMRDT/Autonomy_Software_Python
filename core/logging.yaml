@@ -35,12 +35,14 @@ handlers:
     class: core.logging_handlers.RoveCommHandlerUDP
     level: 0
     formatter: simple
+    level: INFO
     target_host: 127.0.0.1
     target_port: 11000
   RoveCommTCP:
     class: core.logging_handlers.RoveCommHandlerTCP
     level: 0
     formatter: simple
+    level: INFO
     target_host: 127.0.0.1
     target_port: 11111
   Debug:

@@ -25,7 +25,7 @@ def basestation_send(event, value, log_msg):
             else:
                 logger.warning(
                     f'{value} is not a valid value for {event}')
-                value = ()
+                data_value = ()
         # Otherwise take the value literally
         else:
             data_value = value
