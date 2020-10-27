@@ -16,13 +16,6 @@ handlers:
     level: 0
     formatter: simple
     stream: ext://sys.stdout
-  file:
-    class: logging.handlers.WatchedFileHandler
-    level: 0
-    formatter: simple
-    filename: logs/example.log
-    mode: a
-    delay: True
   csv:
     class: core.logging_handlers.CsvHandler
     level: 0
