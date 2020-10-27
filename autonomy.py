@@ -28,10 +28,11 @@ def enable_autonomy(packet_contents):
             gps_data = waypoints.set_gps_waypoint()
         elif state_switcher.state == rover_states.Shutdown():
             state_switcher.handle_event(rover_states.AutonomyEvents.RESTART, rover_states.Shutdown())
-        drive_board.enable()
+       # drive_board.enable()
     else:
         # eventually display an error on basestation
         pass
+    drive_board.enable()
 
 
 def disable_autonomy(packet_contents):
@@ -61,11 +62,11 @@ def main():
             temp = nav_board._location
             logger.debug(f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({temp[0]}, {temp[1]}")
 
-            if algorithms.gps_nav.get_approach_status(goal, nav_board.location(), start) != constants.ApproachState.APPROACHING:
+            if algorithms.gps_navigate.get_approach_status(goal, nav_board.location(), start) != constants.ApproachState.APPROACHING:
                 logger.info(f"Navigating: Reached goal ({nav_board._location[0]}, {nav_board._location[1]})")
 
                 # If there are more points, set the new one and start from top
-                if waypoints:
+                if waypoints.waypoints:
                     gps_data = waypoints.set_gps_waypoint()
                     logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                     continue
@@ -73,13 +74,13 @@ def main():
                 state_switcher.handle_event(rover_states.AutonomyEvents.REACHED_GPS_COORDINATE, rover_states.Navigating())
                 gps_data.start = nav_board.location()
                 gps_data.goal = nav_board.location()
-                core.RoveComm.write(drive_board.send_drive(0, 0))
+                core.rovecomm.write(drive_board.send_drive(0, 0))
 
                 continue
 
-            left, right = algorithms.gps_nav.calculate_move(goal, nav_board.location(), start, 250)
+            left, right = algorithms.gps_navigate.calculate_move(goal, nav_board.location(), start, 250)
             logger.debug(f"Navigating: Driving at ({left}, {right})")
-            core.RoveComm.write(drive_board.send_drive(left, right))
+            core.rovecomm.write(drive_board.send_drive(left, right))
 
         # Search Pattern:
         # Travel in a defined pattern to find the target object, the tennis ball
@@ -87,8 +88,8 @@ def main():
             goal, start = gps_data.data()
             logger.debug(f"Searching: Location ({nav_board._location[0]},{nav_board._location[1]}) to Goal ({goal[0]}, {goal[1]})")
 
-            if algorithms.gps_nav.get_approach_status(goal, nav_board.location(), start) != constants.ApproachState.APPROACHING:
-                core.RoveComm.write(drive_board.send_drive(0, 0))
+            if algorithms.gps_navigate.get_approach_status(goal, nav_board.location(), start) != constants.ApproachState.APPROACHING:
+                core.rovecomm.write(drive_board.send_drive(0, 0))
 
                 time.sleep(1)
                 goal = algorithms.marker_search.calculate_next_coordinate(start, goal)
@@ -98,10 +99,10 @@ def main():
 
             logger.debug(f"Searching: Target Waypoint is ({goal[0]},{goal[1]}")
 
-            left, right = algorithms.gps_nav.calculate_move(goal, nav_board.location(), start, 100)
+            left, right = algorithms.gps_navigate.calculate_move(goal, nav_board.location(), start, 100)
             logger.debug(time.strftime("%H%M%S") + "Searching: Driving speeds (" + str(left) + "," + str(right))
 
-            core.RoveComm.write(drive_board.send_drive(left, right))
+            core.rovecomm.write(drive_board.send_drive(left, right))
 
         elif state_switcher.state == rover_states.Shutdown():
             pass
