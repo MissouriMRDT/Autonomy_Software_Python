@@ -2,7 +2,9 @@
 # need to import pyzed.sl as sl
 import time
 import numpy as npimpor
-
+import pyzed.sl as sl 
+import cv2
+import time
 
 class ZEDDetector:
 
@@ -12,7 +14,7 @@ class ZEDDetector:
         self.depth = sl.Mat()  # will be a multi-dimensional array representing image depth
 
         # create camera object
-        self.zed = sl.camera
+        self.zed = sl.Camera()
 
         # Create InitParameters object, set parameters
         init_params = sl.InitParameters()
@@ -20,7 +22,7 @@ class ZEDDetector:
         init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         init_params.coordinate_units = sl.UNIT.METER
         # x increases to the right, y increases down, z increases the farther away you are
-        init_params.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_DOWN
+        #init_params.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_DOWN
         init_params.sdk_verbose = True
 
         # open camera
@@ -29,7 +31,7 @@ class ZEDDetector:
             self.working = False
         else:
             self.runtime_parameters = sl.RuntimeParameters()
-            self.runtime_parameters.sensing_mode = sl.SENSING_MODE_STANDARD  # options can be explored here
+            #self.runtime_parameters.sensing_mode = sl.SENSING_MODE.SENSING_MODE_STANDARD  # options can be explored here
             # set depth confidence parameters
             self.runtime_parameters.confidence_threshold = 100
             self.runtime_parameters.textureness_confidence_threshold = 100
@@ -48,7 +50,7 @@ class ZEDDetector:
         while current_time_ms - start_time_ms < timeout:
             current_time_ms = time.time() * 1000
             # a new image is available if grab() returns success
-            if self.zed.grab(self.runtime_parameters) == s1.ERROR_CODE_SUCCESS:
+            if self.zed.grab(self.runtime_parameters) == sl.ERROR_CODE.SUCCESS:
                 # get the left image from the zed camera
                 self.zed.retrieve_image(self.image, sl.VIEW.LEFT)
                 # get the depth map
@@ -58,7 +60,14 @@ class ZEDDetector:
 
         return False  # failed to update the image and depth before the timeout
 
-    def search_for_cliffs(self) -> np.array:
+    def write_depth(self):
+        print(self.depth.shape)
+        #cv2.imwrite('depth.jpg', self.depth)
+        while True:
+            cv2.imshow('depth', self.depth)
+        time.sleep(5)
+
+    def search_for_cliffs(self) -> npimpor.array:
         """
         use the current image to look for cliffs, using a convolution of the image
         """
@@ -128,3 +137,8 @@ class ZEDDetector:
 
     def close(self):
         self.zed.close()
+
+if __name__ == '__main__':
+    d = ZEDDetector()
+    d.update_image()
+    d.write_depth()
