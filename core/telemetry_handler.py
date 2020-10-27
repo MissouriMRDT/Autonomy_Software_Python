@@ -38,7 +38,7 @@ def telemetry_handler(event, value, log_msg):
             "",
             0
         )
-        logger.info(f"{event} - {value} - {log_msg}")
+        logger.info(f"{event}: {value} - {log_msg}")
         return core.rovecomm.write(packet, True)
     else:
         logger.warning(f'{event} is not a valid event')
