@@ -3,7 +3,7 @@ from core.rovecomm import RoveCommPacket
 import logging
 
 
-def basestation_send(event, value, log_msg):
+def telemetry_handler(event, value, log_msg):
     """
     Sends some numerical data over the socket
 

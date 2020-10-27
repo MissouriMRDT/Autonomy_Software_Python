@@ -1,6 +1,6 @@
 import logging
 import core
-from core.basestation_send import basestation_send
+from core.telemetry_handler import telemetry_handler
 import time
 from core.rovecomm import RoveCommPacket
 from core.rovecomm import ROVECOMM_SUBSCRIBE_REQUEST
@@ -43,8 +43,8 @@ this string should go over it"""
     # Run logging events
 
     logger.info(test_string)
-    assert basestation_send("STATE_CHANGE", "IDLE", "Other information in the message")
-    assert basestation_send("WAYPOINT", (12, 27, 3, 4), "Hello")
+    assert telemetry_handler("STATE_CHANGE", "IDLE", "Other information in the message")
+    assert telemetry_handler("WAYPOINT", (12, 27, 3, 4), "Hello")
 
     # read in RoveComm logs
     i = 0

@@ -46,7 +46,7 @@ loggers:
     level: DEBUG
     handlers: [console, csv, RoveComm, Debug]
     propagate: False
-  core.basestation_send:
+  core.telemetry_handler:
     level: DEBUG
     handlers: [console, csv]
     propagate: False
