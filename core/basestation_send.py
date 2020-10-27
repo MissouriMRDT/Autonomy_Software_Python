@@ -38,7 +38,6 @@ def basestation_send(event, value, log_msg):
             "",
             11111
         )
-        packet.SetIp("127.0.0.1")
         logger.info(f"{event} - {value} - {log_msg}")
         return core.rovecomm.write(packet, True)
     else:

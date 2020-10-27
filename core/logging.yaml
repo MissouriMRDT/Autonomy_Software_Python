@@ -31,20 +31,12 @@ handlers:
     filename: logs/log.csv
     new_file: True
     delay: False
-  RoveCommUDP:
-    class: core.logging_handlers.RoveCommHandlerUDP
+  RoveComm:
+    class: core.logging_handlers.RoveCommHandler
     level: 0
     formatter: simple
     level: INFO
-    target_host: 127.0.0.1
-    target_port: 11000
-  RoveCommTCP:
-    class: core.logging_handlers.RoveCommHandlerTCP
-    level: 0
-    formatter: simple
-    level: INFO
-    target_host: 127.0.0.1
-    target_port: 11111
+    reliable: False
   Debug:
     class: logging.StreamHandler
     formatter: debug
@@ -52,7 +44,7 @@ handlers:
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [console, csv, RoveCommTCP, RoveCommUDP, Debug]
+    handlers: [console, csv, RoveComm, Debug]
     propagate: False
   core.basestation_send:
     level: DEBUG
@@ -64,4 +56,4 @@ loggers:
     propagate: False
 root:
   level: DEBUG
-  handlers: [csv, console, RoveCommTCP]
+  handlers: [csv, console, RoveComm]
