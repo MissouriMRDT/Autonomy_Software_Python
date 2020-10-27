@@ -6,8 +6,11 @@
         "values": 
         {
             "SHUTDOWN": [1], 
-            "IDLE": [2], 
-            "NAVIGATING": [3]
+            "IDLE": [2],
+            "NAVIGATING": [3],
+            "SEARCHING": [4],
+            "APPROACHING MARKER": [5],
+            "OBSTACLE AVOIDANCE": [6]
         }
     }, 
     "WAYPOINT": 

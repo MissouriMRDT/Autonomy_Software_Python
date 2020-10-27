@@ -48,17 +48,20 @@ handlers:
   Debug:
     class: logging.StreamHandler
     formatter: debug
+    level: DEBUG
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [RoveCommTCP, RoveCommUDP, Debug]
+    handlers: [console, csv, RoveCommTCP, RoveCommUDP, Debug]
+    propagate: False
   core.basestation_send:
     level: DEBUG
-    handlers: [RoveCommTCP]
+    handlers: [console, csv]
+    propagate: False
   matplotlib:
     level: INFO
     handlers: [console, csv]
     propagate: False
 root:
   level: DEBUG
-  handlers: [csv, Debug]
+  handlers: [csv, console, RoveCommTCP]
