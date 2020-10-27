@@ -48,6 +48,7 @@ class RoveCommHandler(logging.Handler):
             4241,
             's',
             tuple([char.encode('utf-8') for char in msg]),
-            ""
+            "",
+            0
         )
         core.rovecomm.write(packet, self.reliable)

@@ -398,7 +398,8 @@ class RoveCommEthernetTcp:
 
             if (packet.ip_address != ('0.0.0.0', 0)):
                 self.open_sockets[packet.ip_address].send(rovecomm_packet)
-                return 1
+
+            return 1
         except Exception:
             return 0
 

@@ -36,7 +36,7 @@ def basestation_send(event, value, log_msg):
             data_type,
             data_value,
             "",
-            11111
+            0
         )
         logger.info(f"{event} - {value} - {log_msg}")
         return core.rovecomm.write(packet, True)
