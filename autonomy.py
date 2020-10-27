@@ -1,26 +1,15 @@
 import logging
 import core
-<<<<<<< HEAD
 import time
 import algorithms
 from core import rovecomm, rover_states, constants, waypoints
-=======
-import constants
-import waypoints
-import time
-from core import RoveComm, rover_states
->>>>>>> feature/logging
 from interfaces import drive_board, nav_board
 from algorithms.gps_navigate import GPSData
 
 logger = logging.getLogger(__name__)
 state_switcher = core.rover_states.StateSwitcher()
 gps_data = GPSData
-<<<<<<< HEAD
 loopDelay = 0.07
-=======
-loopDelay = 0.1
->>>>>>> feature/logging
 
 
 def enable_autonomy(packet_contents):
@@ -33,19 +22,16 @@ def enable_autonomy(packet_contents):
     elif state_switcher.state == rover_states.Shutdown():
         state_switcher.handle_event(rover_states.AutonomyEvents.RESTART, rover_states.Shutdown())
 
-<<<<<<< HEAD
     if waypoints.waypoints:
         if state_switcher.state == rover_states.Idle():
             state_switcher.handle_event(rover_states.AutonomyEvents.START, rover_states.Idle())
             gps_data = waypoints.set_gps_waypoint()
         elif state_switcher.state == rover_states.Shutdown():
             state_switcher.handle_event(rover_states.AutonomyEvents.RESTART, rover_states.Shutdown())
-       # drive_board.enable()
+       drive_board.enable()
     else:
         # eventually display an error on basestation
         pass
-=======
->>>>>>> feature/logging
     drive_board.enable()
 
 
