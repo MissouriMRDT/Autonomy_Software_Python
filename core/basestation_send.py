@@ -25,7 +25,7 @@ def basestation_send(event, value, log_msg):
             else:
                 logger.warning(
                     f'{value} is not a valid value for {event}')
-                value = ()
+                data_value = ()
         # Otherwise take the value literally
         else:
             data_value = value
@@ -36,9 +36,8 @@ def basestation_send(event, value, log_msg):
             data_type,
             data_value,
             "",
-            11111
+            0
         )
-        packet.SetIp("127.0.0.1")
         logger.info(f"{event} - {value} - {log_msg}")
         return core.rovecomm.write(packet, True)
     else:

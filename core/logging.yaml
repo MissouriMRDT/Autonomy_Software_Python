@@ -1,12 +1,12 @@
 version: 1
 formatters:
   simple:
-    format: '%(module)s, %(funcName)s, %(levelname)s, %(message)s'
+    format: '%(name)s, %(funcName)s, %(levelname)s, %(message)s'
   csv:
-    format: '%(asctime)s.%(msecs)03d, %(module)s, %(funcName)s, %(levelname)s, %(message)s'
+    format: '%(asctime)s.%(msecs)03d,%(module)s,%(funcName)s,%(levelname)s,"%(message)s"'
     datefmt: '%Y-%m-%d %H:%M:%S'
   debug:
-    format: "%(name)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
+    format: "%(name)s, %(funcName)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
 filters:
   debug:
     (): core.logging_filters.DebugFilter
@@ -27,34 +27,33 @@ handlers:
     class: core.logging_handlers.CsvHandler
     level: 0
     formatter: csv
-    format_string: TIMESTAMP, MODULE, FUNCTION, LEVEL, MESSAGE
-    filename: logs/example.csv
+    format_string: TIMESTAMP,MODULE,FUNCTION,LEVEL,MESSAGE
+    filename: logs/log.csv
     new_file: True
     delay: False
-  RoveCommUDP:
-    class: core.logging_handlers.RoveCommHandlerUDP
+  RoveComm:
+    class: core.logging_handlers.RoveCommHandler
     level: 0
     formatter: simple
-    target_host: 127.0.0.1
-    target_port: 11000
-  RoveCommTCP:
-    class: core.logging_handlers.RoveCommHandlerTCP
-    level: 0
-    formatter: simple
-    target_host: 127.0.0.1
-    target_port: 11111
+    level: INFO
+    reliable: False
   Debug:
     class: logging.StreamHandler
-    level: DEBUG
-    filters: [debug]
     formatter: debug
+    level: DEBUG
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [RoveCommTCP, RoveCommUDP, Debug]
+    handlers: [console, csv, RoveComm, Debug]
+    propagate: False
   core.basestation_send:
     level: DEBUG
-    handlers: [RoveCommTCP]
+    handlers: [console, csv]
+    propagate: False
+  matplotlib:
+    level: INFO
+    handlers: [console, csv]
+    propagate: False
 root:
   level: DEBUG
-  handlers: [console, csv]
+  handlers: [csv, console, RoveComm]

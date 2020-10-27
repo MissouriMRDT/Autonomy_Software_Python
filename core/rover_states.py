@@ -22,7 +22,7 @@ class StateSwitcher(object):
             self.state = self.state.handle_event(event)
 
         self.logger.info(f"Handling event: {event}")
-        self.logger.info(f"Previous state: {EventsToString[self.previousState]} -> New state: {EventsToString[self.state]}")
+        self.logger.info(f"Previous state: {self.previousState} -> New state: {self.state}")
 
         if then:
             then()  # callback
@@ -149,13 +149,3 @@ class AutonomyEvents(Enum):
     RESTART = 9
     OBSTACLE_AVOIDANCE = 10
     END_OBSTACLE_AVOIDANCE = 11
-
-
-EventsToString = {
-    Idle(): "IDLE",
-    Navigating(): "NAVIGATING",
-    Searching(): "SEARCHING",
-    ApproachingMarker(): "APPROACHING MARKER",
-    Shutdown(): "SHUTDOWN",
-    ObstacleAvoidance(): "OBSTACLE AVOIDANCE",
-}

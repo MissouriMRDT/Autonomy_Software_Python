@@ -389,13 +389,17 @@ class RoveCommEthernetTcp:
             for i in packet.data:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
+            for address in self.open_sockets:
+                self.open_sockets[address].send(rovecomm_packet)
+
             # establish a new connection if the destination has not yet been connected to yet
             if self.connect(packet.ip_address) == 0:
                 return 0
 
             if (packet.ip_address != ('0.0.0.0', 0)):
                 self.open_sockets[packet.ip_address].send(rovecomm_packet)
-                return 1
+
+            return 1
         except Exception:
             return 0
 
