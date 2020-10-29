@@ -4,7 +4,7 @@ import time
 
 
 ###################################
-widthImg=1920
+widthImg= 1920
 heightImg =1080
 
 FRAME_RATE = 10
@@ -194,7 +194,10 @@ else:
     
         stackedImages = stackImages(0.6,imageArray)
         cv2.imshow("WorkFlow", stackedImages)
-        video_out_left.write(imageArray)
+
+        stackedImages = cv2.resize(stackedImages, (1920, 1080))
+        stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
+        video_out_left.write(stackedImages)
 
         c = cv2.waitKey(1) % 256
 
