@@ -1,10 +1,13 @@
 import cv2
 import numpy as np
-import pyzed.sl as sl
+import time
+
 
 ###################################
-widthImg=540
-heightImg =640
+widthImg=1920
+heightImg =1080
+
+FRAME_RATE = 10
 #####################################
 
  
@@ -90,91 +93,113 @@ def stackImages(scale,imgArray):
         ver = hor
     return ver
 
-# Create a ZED camera object
-zed = sl.Camera()
+usingZed = False
 
-# Set configuration parameters
-input_type = sl.InputType()
-init = sl.InitParameters(input_t=input_type)
-init.camera_resolution = sl.RESOLUTION.HD1080
-init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
-init.coordinate_units = sl.UNIT.MILLIMETER
+# Set video parameters
+fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+video_filename = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") # save videos to unique files.
+video_out_left = cv2.VideoWriter(video_filename + "_left.avi", fourcc, FRAME_RATE, (1920, 1080))
 
-# Open the camera
-err = zed.open(init)
-if err != sl.ERROR_CODE.SUCCESS :
-    print(repr(err))
-    zed.close()
-    exit(1)
+if usingZed:
+    import pyzed.s1 as s1
 
-# Set runtime parameters after opening the camera
-runtime = sl.RuntimeParameters()
-runtime.sensing_mode = sl.SENSING_MODE.STANDARD
+    # Create a ZED camera object
+    zed = sl.Camera()
 
-# Prepare new image size to retrieve half-resolution images
-image_size = zed.get_camera_information().camera_resolution
-image_size.width = image_size.width /2
-image_size.height = image_size.height /2
+    # Set configuration parameters
+    input_type = sl.InputType()
+    init = sl.InitParameters(input_t=input_type)
+    init.camera_resolution = sl.RESOLUTION.HD1080
+    init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+    init.coordinate_units = sl.UNIT.MILLIMETER
 
-# Declare your sl.Mat matrices
-image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
+    # Open the camera
+    err = zed.open(init)
+    if err != sl.ERROR_CODE.SUCCESS :
+        print(repr(err))
+        zed.close()
+        exit(1)
 
-while True:
-    key = ' '
-    while key != 113 :
-        err = zed.grab(runtime)
-        if err == sl.ERROR_CODE.SUCCESS :
-            # Retrieve the left image, depth image in the half-resolution
-            zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
-            # Retrieve the RGBA point cloud in half resolution
+    # Set runtime parameters after opening the camera
+    runtime = sl.RuntimeParameters()
+    runtime.sensing_mode = sl.SENSING_MODE.STANDARD
 
-            # To recover data from sl.Mat to use it with opencv, use the get_data() method
-            # It returns a numpy array that can be used as a matrix with opencv
-            img = image_zed.get_data()
+    # Prepare new image size to retrieve half-resolution images
+    image_size = zed.get_camera_information().camera_resolution
+    image_size.width = image_size.width /2
+    image_size.height = image_size.height /2
 
-            img = cv2.resize(img,(widthImg,heightImg))
-            imgContour = img.copy()
+    # Declare your sl.Mat matrices
+    image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
+
+    while True:
+        key = ' '
+        while key != 113 :
+            err = zed.grab(runtime)
+            if err == sl.ERROR_CODE.SUCCESS :
+                # Retrieve the left image, depth image in the half-resolution
+                zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
+                # Retrieve the RGBA point cloud in half resolution
+
+                # To recover data from sl.Mat to use it with opencv, use the get_data() method
+                # It returns a numpy array that can be used as a matrix with opencv
+                img = image_zed.get_data()
+
+                img = cv2.resize(img,(widthImg,heightImg))
+                imgContour = img.copy()
+            
+                imgThres = preProcessing(img)
+                biggest = getContours(imgThres)
+                if biggest.size !=0:
+                    imgWarped=getWarp(img,biggest)
+                    # imageArray = ([img,imgThres],
+                    #           [imgContour,imgWarped])
+                    imageArray = ([imgContour, imgWarped])
+                    cv2.imshow("ImageWarped", imgWarped)
+                else:
+                    # imageArray = ([img, imgThres],
+                    #               [img, img])
+                    imageArray = ([imgContour, img])
+            
+                stackedImages = stackImages(0.6,imageArray)
+                cv2.imshow("WorkFlow", stackedImages)
+                video_out_left.write(stackedImages)
+                
+                key = cv2.waitKey(10)
+
+
+        cv2.destroyAllWindows()
+        zed.close()
+else:
+    cap = cv2.VideoCapture(1)
+    
+
+    while True:    
+        success, img = cap.read()
+        img = cv2.resize(img,(widthImg,heightImg))
+        imgContour = img.copy()
+    
+        imgThres = preProcessing(img)
+        biggest = getContours(imgThres)
+        if biggest.size !=0:
+            imgWarped=getWarp(img,biggest)
+            # imageArray = ([img,imgThres],
+            #           [imgContour,imgWarped])
+            imageArray = ([imgContour, imgWarped])
+            cv2.imshow("ImageWarped", imgWarped)
+        else:
+            # imageArray = ([img, imgThres],
+            #               [img, img])
+            imageArray = ([imgContour, img])
+    
+        stackedImages = stackImages(0.6,imageArray)
+        cv2.imshow("WorkFlow", stackedImages)
+        video_out_left.write(imageArray)
+
+        c = cv2.waitKey(1) % 256
+
+        if c == ord('a'):
+            break
+    video_out_left.release()
         
-            imgThres = preProcessing(img)
-            biggest = getContours(imgThres)
-            if biggest.size !=0:
-                imgWarped=getWarp(img,biggest)
-                # imageArray = ([img,imgThres],
-                #           [imgContour,imgWarped])
-                imageArray = ([imgContour, imgWarped])
-                cv2.imshow("ImageWarped", imgWarped)
-            else:
-                # imageArray = ([img, imgThres],
-                #               [img, img])
-                imageArray = ([imgContour, img])
-        
-            stackedImages = stackImages(0.6,imageArray)
-            cv2.imshow("WorkFlow", stackedImages)
-            key = cv2.waitKey(10)
-
-
-    cv2.destroyAllWindows()
-    zed.close()
-
-    '''
-    img = cv2.resize(img,(widthImg,heightImg))
-    imgContour = img.copy()
- 
-    imgThres = preProcessing(img)
-    biggest = getContours(imgThres)
-    if biggest.size !=0:
-        imgWarped=getWarp(img,biggest)
-        # imageArray = ([img,imgThres],
-        #           [imgContour,imgWarped])
-        imageArray = ([imgContour, imgWarped])
-        cv2.imshow("ImageWarped", imgWarped)
-    else:
-        # imageArray = ([img, imgThres],
-        #               [img, img])
-        imageArray = ([imgContour, img])
- 
-    stackedImages = stackImages(0.6,imageArray)
-    cv2.imshow("WorkFlow", stackedImages)
-    '''
-    if cv2.waitKey(1) and 0xFF == ord('q'):
-        break
+    
