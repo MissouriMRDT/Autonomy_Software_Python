@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 def main() -> None:
     '''
-    Main function for example script, tests geomath code
+    Reads some telemetry from the logs as an example of post-test analysis
     '''
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
