@@ -163,6 +163,9 @@ if usingZed:
             
                 stackedImages = stackImages(0.6,imageArray)
                 cv2.imshow("WorkFlow", stackedImages)
+
+                stackedImages = cv2.resize(stackedImages, (1920, 1080))
+                stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
                 video_out_left.write(stackedImages)
                 
                 key = cv2.waitKey(10)
