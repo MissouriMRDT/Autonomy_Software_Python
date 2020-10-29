@@ -93,7 +93,7 @@ def stackImages(scale,imgArray):
         ver = hor
     return ver
 
-usingZed = False
+usingZed = True
 
 # Set video parameters
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
@@ -101,7 +101,7 @@ video_filename = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") # save video
 video_out_left = cv2.VideoWriter(video_filename + "_left.avi", fourcc, FRAME_RATE, (1920, 1080))
 
 if usingZed:
-    import pyzed.s1 as s1
+    import pyzed.sl as sl
 
     # Create a ZED camera object
     zed = sl.Camera()
@@ -166,13 +166,14 @@ if usingZed:
 
                 stackedImages = cv2.resize(stackedImages, (1920, 1080))
                 stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-                video_out_left.write(stackedImages)
+                video_out_left.write(stackedImage)
                 
                 key = cv2.waitKey(10)
 
 
-        cv2.destroyAllWindows()
-        zed.close()
+    cv2.destroyAllWindows()
+    video_out_left.release()
+    zed.close()
 else:
     cap = cv2.VideoCapture(1)
     
@@ -200,7 +201,7 @@ else:
 
         stackedImages = cv2.resize(stackedImages, (1920, 1080))
         stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-        video_out_left.write(stackedImages)
+        video_out_left.write(stackedImage)
 
         c = cv2.waitKey(1) % 256
 
