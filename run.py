@@ -2,7 +2,6 @@ import argparse
 import logging
 import logging.config
 import yaml
-from yaml import CLoader
 import core
 import importlib
 import os
@@ -20,7 +19,7 @@ def setup_logger(level) -> logging.Logger:
     '''
 
     # logging file
-    yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
+    yaml_conf = yaml.load(open('core/logging.yaml', 'r').read())
     logging.config.dictConfig(yaml_conf)
 
     return logging.getLogger(__name__)
