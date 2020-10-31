@@ -19,7 +19,7 @@ def setup_logger(level) -> logging.Logger:
     '''
 
     # logging file
-    yaml_conf = yaml.load(open('core/logging.yaml', 'r').read())
+    yaml_conf = yaml.safe_load(open('core/logging.yaml', 'r').read())
     logging.config.dictConfig(yaml_conf)
 
     return logging.getLogger(__name__)
