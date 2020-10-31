@@ -1,6 +1,6 @@
 import logging
-import core.constants as constants
-import algorithms.heading_hold as hh  # hh to match other styles in our code base
+import Autonomy_Software.core.constants as constants
+import Autonomy_Software.algorithms.heading_hold as hh  # hh to match other styles in our code base
 
 
 def drive_to_marker(speed, drive_board, center, radius, nav_board):
