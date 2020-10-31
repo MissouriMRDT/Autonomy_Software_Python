@@ -11,19 +11,12 @@ def main() -> None:
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
 
-    # Edit csv file to match the now updated format
-    f = open("logs/example-20201024-133704.csv", "r")
-    lines = f.read().split('\n')[:-1]
-    lines[:] = [x.split(", ") for x in lines]
-    lines[:] = [x[:4] + ['"' + ','.join(x[4:]) + '"'] for x in lines]
-    f2 = open("logs/newformat-20201024-133704.csv", 'w')
-    for line in lines:
-        f2.write(','.join(line) + '\n')
+    log_file = "logs/newformat-20201024-133704.csv"
 
     # Gets motor differential data
     timestamps = []
     ratios = []
-    with open("logs/newformat-20201024-133704.csv") as csvfile:
+    with open(log_file) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if row['MESSAGE'].startswith('Driving at '):
