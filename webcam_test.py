@@ -15,12 +15,10 @@ from threading import Thread
 def stream_frames(q, num):
     camera = pyfakewebcam.FakeWebcam(f'/dev/video{num}', 640, 480)
     while True:
-        if not q.empty():
-            image_ocv = q.get()
-            image_ocv = cv2.resize(image_ocv, (640, 480))
-            img = cv2.cvtColor(image_ocv, cv2.COLOR_BGRA2RGB)
-            camera.schedule_frame(img)
-        #time.sleep(0.05)
+        image_ocv = q.get()
+        image_ocv = cv2.resize(image_ocv, (640, 480))
+        img = cv2.cvtColor(image_ocv, cv2.COLOR_BGRA2RGB)
+        camera.schedule_frame(img)
 
 
 
@@ -39,7 +37,7 @@ def main() :
     init.camera_resolution = sl.RESOLUTION.HD720
     init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
     init.coordinate_units = sl.UNIT.MILLIMETER
-   #init.camera_fps = 30
+    #init.camera_fps = 30
 
 
     # Open the camera
