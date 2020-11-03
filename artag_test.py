@@ -1,247 +1,123 @@
-import cv2
 import numpy as np
+import cv2
+from cv2 import aruco
 import time
-import pyfakewebcam
+import pyzed.sl as sl
 import multiprocessing as mp
+import pyfakewebcam
 
-###################################
-widthImg= 1920
-heightImg =1080
+# define an empty custom dictionary with 
+aruco_dict = aruco.custom_dictionary(2, 5, 1)
+# add empty bytesList array to fill with 3 markers later
+aruco_dict.bytesList = np.empty(shape = (2, 4, 4), dtype = np.uint8)
 
-FRAME_RATE = 10
-#####################################
+# add custom markers as defined by the ALVAR library
+mybits = np.array([[1,1,0,1,1],[1,1,0,1,1],[1,0,1,0,1],[1,1,1,1,1],[1,1,1,1,1,]], dtype = np.uint8)
+aruco_dict.bytesList[0] = aruco.Dictionary_getByteListFromBits(mybits)
 
-camera1 = pyfakewebcam.FakeWebcam(f'/dev/video2', 640, 480)
-camera2 = pyfakewebcam.FakeWebcam(f'/dev/video10', 640, 480)
+mybits_1 = np.array([[1,1,0,1,1],[1,1,0,1,1],[1,0,1,0,1],[0,0,1,1,0],[1,1,1,0,1,]], dtype = np.uint8)
+aruco_dict.bytesList[1] = aruco.Dictionary_getByteListFromBits(mybits_1)
 
-def stream_frames(q, num):
+def stream_loop(pipe, num):
     camera = pyfakewebcam.FakeWebcam(f'/dev/video{num}', 640, 480)
+    p_output, p_input = pipe
+    p_input.close()    # We are only reading
     while True:
-        if not q.empty():
-            image_ocv = q.get()
-            image_ocv = cv2.resize(image_ocv, (640, 480))
-            img = cv2.cvtColor(image_ocv, cv2.COLOR_BGRA2RGB)
-            #cv2.imshow("Image", img)
-            camera.schedule_frame(img)
-            #key = cv2.waitKey(10)
+        image_ocv = p_output.recv()
+        image_ocv = cv2.resize(image_ocv, (640, 480))
+        img = cv2.cvtColor(image_ocv, cv2.COLOR_BGRA2RGB)
+        camera.schedule_frame(img)
 
-def preProcessing(img):
-    imgGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    imgBlur = cv2.GaussianBlur(imgGray,(5,5),1)
-    imgCanny = cv2.Canny(imgBlur,200,200)
-    kernel = np.ones((5,5))
-    imgDial = cv2.dilate(imgCanny,kernel,iterations=2)
-    imgThres = cv2.erode(imgDial,kernel,iterations=1)
-    return imgThres
- 
-def getContours(img):
-    biggest = np.array([])
-    maxArea = 0
-    contours,hierarchy = cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-    for cnt in contours:
-        area = cv2.contourArea(cnt)
-        if area>5000:
-            #cv2.drawContours(imgContour, cnt, -1, (255, 0, 0), 3)
-            peri = cv2.arcLength(cnt,True)
-            approx = cv2.approxPolyDP(cnt,0.02*peri,True)
-            if area >maxArea and len(approx) == 4:
-                biggest = approx
-                maxArea = area
-    cv2.drawContours(imgContour, biggest, -1, (255, 0, 0), 20)
-    return biggest
- 
-def reorder (myPoints):
-    myPoints = myPoints.reshape((4,2))
-    myPointsNew = np.zeros((4,1,2),np.int32)
-    add = myPoints.sum(1)
-    #print("add", add)
-    myPointsNew[0] = myPoints[np.argmin(add)]
-    myPointsNew[3] = myPoints[np.argmax(add)]
-    diff = np.diff(myPoints,axis=1)
-    myPointsNew[1]= myPoints[np.argmin(diff)]
-    myPointsNew[2] = myPoints[np.argmax(diff)]
-    #print("NewPoints",myPointsNew)
-    return myPointsNew
- 
-def getWarp(img,biggest):
-    biggest = reorder(biggest)
-    pts1 = np.float32(biggest)
-    pts2 = np.float32([[0, 0], [widthImg, 0], [0, heightImg], [widthImg, heightImg]])
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    imgOutput = cv2.warpPerspective(img, matrix, (widthImg, heightImg))
- 
-    imgCropped = imgOutput[20:imgOutput.shape[0]-20,20:imgOutput.shape[1]-20]
-    imgCropped = cv2.resize(imgCropped,(widthImg,heightImg))
- 
-    return imgCropped
- 
- 
-def stackImages(scale,imgArray):
-    rows = len(imgArray)
-    cols = len(imgArray[0])
-    rowsAvailable = isinstance(imgArray[0], list)
-    width = imgArray[0][0].shape[1]
-    height = imgArray[0][0].shape[0]
-    if rowsAvailable:
-        for x in range ( 0, rows):
-            for y in range(0, cols):
-                if imgArray[x][y].shape[:2] == imgArray[0][0].shape [:2]:
-                    imgArray[x][y] = cv2.resize(imgArray[x][y], (0, 0), None, scale, scale)
-                else:
-                    imgArray[x][y] = cv2.resize(imgArray[x][y], (imgArray[0][0].shape[1], imgArray[0][0].shape[0]), None, scale, scale)
-                if len(imgArray[x][y].shape) == 2: imgArray[x][y]= cv2.cvtColor( imgArray[x][y], cv2.COLOR_GRAY2BGR)
-        imageBlank = np.zeros((height, width, 3), np.uint8)
-        hor = [imageBlank]*rows
-        hor_con = [imageBlank]*rows
-        for x in range(0, rows):
-            hor[x] = np.hstack(imgArray[x])
-        ver = np.vstack(hor)
-    else:
-        for x in range(0, rows):
-            if imgArray[x].shape[:2] == imgArray[0].shape[:2]:
-                imgArray[x] = cv2.resize(imgArray[x], (0, 0), None, scale, scale)
-            else:
-                imgArray[x] = cv2.resize(imgArray[x], (imgArray[0].shape[1], imgArray[0].shape[0]), None,scale, scale)
-            if len(imgArray[x].shape) == 2: imgArray[x] = cv2.cvtColor(imgArray[x], cv2.COLOR_GRAY2BGR)
-        hor= np.hstack(imgArray)
-        ver = hor
-    return ver
+p1_output, p1_input = mp.Pipe()
+p2_output, p2_input = mp.Pipe()
+t1 = mp.Process(target=stream_loop, args=((p1_output,p1_input),2,))
+t2 = mp.Process(target=stream_loop, args=((p2_output, p2_input),3,))
+t1.daemon = True
+t2.daemon = True
+t1.start()
+t2.start()
 
-usingZed = True
+p1_output.close()       # We don't need output on our end
+p2_output.close()       
 
-# Set video parameters
-fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-video_filename = "logs/objtracker" + time.strftime("%Y%m%d-%H%M%S") # save videos to unique files.
-video_out_left = cv2.VideoWriter(video_filename + "_left.avi", fourcc, FRAME_RATE, (1920, 1080))
+# Create a ZED camera object
+zed = sl.Camera()
 
-if usingZed:
-    import pyzed.sl as sl
+# Set configuration parameters
+input_type = sl.InputType()
+init = sl.InitParameters(input_t=input_type)
+init.camera_resolution = sl.RESOLUTION.HD720
+init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+init.coordinate_units = sl.UNIT.MILLIMETER
+init.camera_fps = 30
 
-    # Create a ZED camera object
-    zed = sl.Camera()
-
-    # Set configuration parameters
-    input_type = sl.InputType()
-    init = sl.InitParameters(input_t=input_type)
-    init.camera_resolution = sl.RESOLUTION.HD720
-    init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
-    init.coordinate_units = sl.UNIT.MILLIMETER
-
-    # Open the camera
-    err = zed.open(init)
-    if err != sl.ERROR_CODE.SUCCESS :
-        print(repr(err))
-        zed.close()
-        exit(1)
-
-    # Set runtime parameters after opening the camera
-    runtime = sl.RuntimeParameters()
-    runtime.sensing_mode = sl.SENSING_MODE.STANDARD
-
-    # Prepare new image size to retrieve half-resolution images
-    image_size = zed.get_camera_information().camera_resolution
-    image_size.width = image_size.width /2
-    image_size.height = image_size.height /2
-
-    # Declare your sl.Mat matrices
-    image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
-    image_zed_depth = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
-
-    # q1 = mp.Queue()
-    # q2 = mp.Queue()
-
-    # t1 = mp.Process(target=stream_frames, args=(q1,2,))
-    # t2 = mp.Process(target=stream_frames, args=(q2,10,))
-    # t1.start()
-    # t2.start()
-
-    while True:
-        key = ' '
-        while key != 113 :
-            err = zed.grab(runtime)
-            if err == sl.ERROR_CODE.SUCCESS :
-                # Retrieve the left image, depth image in the half-resolution
-                zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
-                zed.retrieve_image(image_zed_depth, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
-
-                # Retrieve the RGBA point cloud in half resolution
-
-                # To recover data from sl.Mat to use it with opencv, use the get_data() method
-                # It returns a numpy array that can be used as a matrix with opencv
-                img = image_zed.get_data()
-                depth_img = image_zed_depth.get_data()
-
-                img = cv2.resize(img,(widthImg,heightImg))
-                imgContour = img.copy()
-            
-                imgThres = preProcessing(img)
-                biggest = getContours(imgThres)
-                if biggest.size !=0:
-                    imgWarped=getWarp(img,biggest)
-                    # imageArray = ([img,imgThres],
-                    #           [imgContour,imgWarped])
-                    imageArray = ([imgContour, imgWarped])
-                    #cv2.imshow("ImageWarped", imgWarped)
-                else:
-                    # imageArray = ([img, imgThres],
-                    #               [img, img])
-                    imageArray = ([imgContour, img])
-            
-                stackedImages = stackImages(0.6,imageArray)
-                #cv2.imshow("WorkFlow", stackedImages)
-              
-                image_ocv = cv2.resize(stackedImages, (640, 480))
-                img = cv2.cvtColor(image_ocv, cv2.COLOR_BGRA2RGB)
-                camera1.schedule_frame(img)
-
-
-                image_depth = cv2.resize(depth_img, (640, 480))
-                img = cv2.cvtColor(image_depth, cv2.COLOR_BGRA2RGB)
-                camera2.schedule_frame(img)
-            
-
-                #stackedImages = cv2.resize(stackedImages, (1920, 1080))
-                #stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-                #video_out_left.write(stackedImage)
-                
-                key = cv2.waitKey(10)
-
-
-    cv2.destroyAllWindows()
-    video_out_left.release()
+# Open the camera
+err = zed.open(init)
+if err != sl.ERROR_CODE.SUCCESS :
+    print(repr(err))
     zed.close()
-else:
-    cap = cv2.VideoCapture(1)
-    
+    exit(1)
 
-    while True:    
-        success, img = cap.read()
-        img = cv2.resize(img,(widthImg,heightImg))
-        imgContour = img.copy()
-    
-        imgThres = preProcessing(img)
-        biggest = getContours(imgThres)
-        if biggest.size !=0:
-            imgWarped=getWarp(img,biggest)
-            # imageArray = ([img,imgThres],
-            #           [imgContour,imgWarped])
-            imageArray = ([imgContour, imgWarped])
-            cv2.imshow("ImageWarped", imgWarped)
-        else:
-            # imageArray = ([img, imgThres],
-            #               [img, img])
-            imageArray = ([imgContour, img])
-    
-        stackedImages = stackImages(0.6,imageArray)
-        cv2.imshow("WorkFlow", stackedImages)
+# Set runtime parameters after opening the camera
+runtime = sl.RuntimeParameters()
+runtime.sensing_mode = sl.SENSING_MODE.STANDARD
 
-        stackedImages = cv2.resize(stackedImages, (1920, 1080))
-        stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-        video_out_left.write(stackedImage)
+# Prepare new image size to retrieve half-resolution images
+image_size = zed.get_camera_information().camera_resolution
+image_size.width = image_size.width /2
+image_size.height = image_size.height /2
 
-        c = cv2.waitKey(1) % 256
 
-        if c == ord('a'):
-            break
-    video_out_left.release()
+# Declare your sl.Mat matrices
+image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
+depth_image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
+
+while(True):
+    err = zed.grab(runtime)
+    if err == sl.ERROR_CODE.SUCCESS :
+        # Retrieve the left image, depth image in the half-resolution
+        zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
+        zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
+        # Retrieve the RGBA point cloud in half resolution
+
+        # To recover data from sl.Mat to use it with opencv, use the get_data() method
+        # It returns a numpy array that can be used as a matrix with opencv
+        frame = image_zed.get_data()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+
+        #apply some effects to make image easy to process
+        #NOTE: good chance Aruco already done this
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        #for ALVAR tags the border is actually 2 black bits wide
+        parameters =  aruco.DetectorParameters_create()
+        parameters.markerBorderBits = 2
+        parameters.cornerRefinementMethod = 3
+        parameters.errorCorrectionRate = 0.2
+
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+        #print(corners, ids)
         
+        #draw bounding box and ID on the markers
+        frame = aruco.drawDetectedMarkers(frame, corners, ids)
+        
+        # resize frame to show even on smaller screens
+        #frame = cv2.resize(frame, None, fx = 1.6, fy = 1.6)
+        # Display the resulting frame
+        cv2.imshow('frame',frame)
+        img = depth_image_zed.get_data()
+        
+        p1_input.send(frame)
+        p2_input.send(img)
+
+        #print("Hello")
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()
+t1.join()
