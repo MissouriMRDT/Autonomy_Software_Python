@@ -68,6 +68,9 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
 
+    # Initialize the video handler
+    core.video_handler = core.VideoHandler()
+
     try:
         # Remove .py and directly import module
         module = importlib.import_module(os.path.splitext(args.file)[0])
