@@ -18,7 +18,6 @@ class VideoHandler:
         self.resolution_x = resolution_x
         self.resolution_y = resolution_y
         self.frame_rate = frame_rate
-        self.stopped = False
 
     def __del__(self):
         # Call close so we can close all the video writers
@@ -37,11 +36,7 @@ class VideoHandler:
         # Add feed to our dictionary
         self.feeds[feed_id] = feed
 
-    def start(self):
-        self.update_thread.start()
-
     def close(self):
-        self.stopped = True
         for __, feed in self.feeds.items():
             feed.video_writer.release()
 
