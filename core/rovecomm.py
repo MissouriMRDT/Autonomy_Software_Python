@@ -38,7 +38,7 @@ types_byte_to_int = {
     'f': 6,
     'q': 7,  # int64
     'd': 8,  # double
-    's': 9,  # String
+    's': 9,  # Character array
 }
 
 types_byte_to_size = {

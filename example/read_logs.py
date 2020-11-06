@@ -11,7 +11,7 @@ def main() -> None:
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
 
-    log_file = "logs/newformat-20201024-133704.csv"
+    log_file = "./logs/newformat-20201024-133704.csv"
 
     # Gets motor differential data
     timestamps = []

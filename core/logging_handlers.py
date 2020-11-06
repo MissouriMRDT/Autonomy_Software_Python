@@ -7,7 +7,7 @@ import os
 
 class CsvHandler(logging.handlers.WatchedFileHandler):
 
-    def __init__(self, filename, format_string, encoding=None, delay=False, new_file=False):
+    def __init__(self, filename, header, encoding=None, delay=False, new_file=False):
         """
         Initializes the handler
         """
@@ -21,7 +21,7 @@ class CsvHandler(logging.handlers.WatchedFileHandler):
             ):
                 os.makedirs("/".join(f'{filename[:-4]}-{timestamp}{filename[-4:]}'.split("/")[:-1]))
             f = open(f'{filename[:-4]}-{timestamp}{filename[-4:]}', 'w')
-            f.write(format_string + '\n')
+            f.write(header + '\n')
             f.close()
             logging.handlers.WatchedFileHandler.__init__(
                 self,
@@ -35,17 +35,18 @@ class CsvHandler(logging.handlers.WatchedFileHandler):
                 if not os.path.exists("/".join(filename.split("/")[:-1])):
                     os.makedirs("/".join(filename.split("/")[:-1]))
                 f = open(filename, 'w')
-                f.write(format_string + '\n')
+                f.write(header + '\n')
                 f.close()
             logging.handlers.WatchedFileHandler.__init__(self, filename, 'a', encoding, delay)
 
 
 class RoveCommHandler(logging.Handler):
-    def __init__(self, reliable):
+    def __init__(self, reliable, data_id):
         """
         Initializes the handler with given network variables
         """
         self.reliable = reliable
+        self.data_id = data_id
 
         logging.Handler.__init__(self)
 
@@ -55,11 +56,12 @@ class RoveCommHandler(logging.Handler):
         """
         msg = self.format(s)
         # Max string size is 255 characters, truncate the rest and flag it
+        # 255 coming from uint8
         if len(msg) > 255:
             msg = msg[:252] + "..."
 
         packet = RoveCommPacket(
-            4241,
+            self.data_id,
             's',
             tuple([char.encode('utf-8') for char in msg]),
             "",
