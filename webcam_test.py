@@ -13,13 +13,12 @@ def main() -> None:
     # Add video streams to handler
     core.video_handler = core.VideoHandler()
 
-    core.video_handler.add_video(sl.VIEW.DEPTH, sl.MAT_TYPE.U8_C4, 2, "regular")
-    core.video_handler.add_video(sl.VIEW.LEFT, sl.MAT_TYPE.U8_C4, 3, "depth")
-    #core.video_handler.start()
+    core.video_handler.add_video(2, "regular")
+    core.video_handler.add_video(3, "depth")
 
     try:
         while True:
-            core.video_handler.update()
+            core.video_handler.handle_frame("regular", img)
     except KeyboardInterrupt:
         core.video_handler.close()
 
