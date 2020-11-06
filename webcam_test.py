@@ -13,8 +13,8 @@ def main() -> None:
     # Add video streams to handler
     core.video_handler = core.VideoHandler()
 
-    core.video_handler.add_video(2, "regular")
-    core.video_handler.add_video(3, "depth")
+    core.video_handler.add_feed(2, "regular")
+    core.video_handler.add_feed(3, "depth")
 
     try:
         while True:

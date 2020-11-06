@@ -24,7 +24,7 @@ class VideoHandler:
         # Call close so we can close all the video writers
         self.close()
 
-    def add_video(self, camera_num, feed_id, save_video=True, stream_video=True):
+    def add_feed(self, camera_num, feed_id, save_video=True, stream_video=True):
         # Create a Feed
         feed = Feed()
 
@@ -33,10 +33,10 @@ class VideoHandler:
         if save_video:
             video_filename = f'stream_{feed_id}_' + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
             feed.video_writer = cv2.VideoWriter(video_filename + "_left.avi", self.fourcc, self.frame_rate, (self.resolution_x, self.resolution_y))  # append video writer to list of video writers
-        
+
         # Add feed to our dictionary
         self.feeds[feed_id] = feed
-    
+
     def start(self):
         self.update_thread.start()
 
