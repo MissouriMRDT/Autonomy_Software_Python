@@ -24,7 +24,8 @@ class VideoHandler:
         self.close()
 
     def add_feed(self, camera_num, feed_id, save_video=True, stream_video=True):
-        # Create a Feed
+        # Create a Feed            if err == sl.ERROR_CODE.SUCCESS :
+
         feed = Feed()
 
         if stream_video:
