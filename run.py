@@ -69,7 +69,7 @@ def main() -> None:
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
 
     # Initialize the video handler
-    core.video_handler = core.VideoHandler()
+    core.feed_handler = core.FeedHandler()
 
     try:
         # Remove .py and directly import module

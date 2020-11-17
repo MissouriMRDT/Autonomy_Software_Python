@@ -11,7 +11,7 @@ class Feed:
         self.video_writer = video_writer
     
 
-class VideoHandler:
+class FeedHandler:
     def __init__(self, resolution_x=640, resolution_y=480, frame_rate=30):
         self.feeds = {}
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -24,7 +24,7 @@ class VideoHandler:
         self.close()
 
     def add_feed(self, camera_num, feed_id, save_video=True, stream_video=True):
-        # Create a Feed            if err == sl.ERROR_CODE.SUCCESS :
+        # Create a Feed        
 
         feed = Feed()
 
