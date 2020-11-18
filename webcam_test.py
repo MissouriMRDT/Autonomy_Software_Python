@@ -15,10 +15,7 @@ def main() -> None:
 
     try:
         while True:
-            reg, depth = core.zed.grab_frames()
-            core.feed_handler.handle_frame("regular", reg)
-            core.feed_handler.handle_frame("depth", depth)
-
+            pass
     except KeyboardInterrupt:
         # Close ZED capture
         core.zed.close()
