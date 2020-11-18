@@ -3,7 +3,7 @@ import logging.config
 import importlib
 import core
 import os
-
+import sys
 
 def setup_logger(level) -> logging.Logger:
     '''
@@ -68,9 +68,6 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
 
-    # Initialize the video handler
-    core.feed_handler = core.FeedHandler()
-
     try:
         # Remove .py and directly import module
         module = importlib.import_module(os.path.splitext(args.file)[0])
@@ -86,7 +83,8 @@ def main() -> None:
         exit(1)
     else:
         exit(0)
-    
+
+    print("Hello!")
 
 if __name__ == "__main__":
     # Run main()

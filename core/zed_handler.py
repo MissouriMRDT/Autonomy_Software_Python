@@ -1,4 +1,6 @@
 import pyzed.sl as sl
+import core.feed_handler
+import threading
 
 
 class ZedHandler:
@@ -6,6 +8,7 @@ class ZedHandler:
     def __init__(self):
         # Create a ZED camera object
         self.zed = sl.Camera()
+        self.feed_handler = core.feed_handler.FeedHandler()
 
         # Set configuration parameters
         self.input_type = sl.InputType()
@@ -21,7 +24,18 @@ class ZedHandler:
             self.zed.close()
             exit(1)
 
-    def grab_frames(self):
+        # Add the desired feeds
+        self.feed_handler.add_feed(2, "regular")
+        self.feed_handler.add_feed(3, "depth")
+
+        # Create initial frames
+        self.reg_img = None
+        self.depth_img = None
+
+        # Create thread to constantly grab frames, and pass them to other processes to stream/save
+        self.thread = threading.Thread(target=self.frame_grabber, args=())
+
+    def frame_grabber(self):
         # Prepare new image size to retrieve half-resolution images
         image_size = self.zed.get_camera_information().camera_resolution
         image_size.width = image_size.width / 2
@@ -38,11 +52,24 @@ class ZedHandler:
         while True:
             err = self.zed.grab(runtime)
             if err == sl.ERROR_CODE.SUCCESS:
+                # Grab images, and grab the data as opencv/numpy matrix
                 self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
-                reg_img = image_zed.get_data()
+                self.reg_img = image_zed.get_data()
                 self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
-                depth_img = depth_image_zed.get_data()
-                return reg_img, depth_img
+                self.depth_img = depth_image_zed.get_data()
+
+                # Now let the feed_handler stream/save the frames
+                self.feed_handler.handle_frame("regular", self.reg_img)
+                self.feed_handler.handle_frame("depth", self.depth_img)
+
+    def grab_regular(self):
+        return self.reg_img
+
+    def grab_depth(self):
+        return self.depth_img
+
+    def start(self):
+        self.thread.start()
 
     def close(self):
         self.zed.close()

@@ -10,11 +10,6 @@ def main() -> None:
     '''
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
-    core.feed_handler = core.FeedHandler()
-
-    # Add video streams to handler
-    core.feed_handler.add_feed(2, "regular")
-    core.feed_handler.add_feed(3, "depth")
 
     core.zed = core.ZedHandler()
 
@@ -25,9 +20,7 @@ def main() -> None:
             core.feed_handler.handle_frame("depth", depth)
 
     except KeyboardInterrupt:
-        # Close all open video streams
-        core.feed_handler.close()
-        # Close  ZED capture
+        # Close ZED capture
         core.zed.close()
 
 if __name__ == "__main__":
