@@ -1,7 +1,7 @@
 import pyzed.sl as sl
 import core.feed_handler
 import threading
-
+import cv2
 
 class ZedHandler:
 
@@ -16,6 +16,7 @@ class ZedHandler:
         self.init.camera_resolution = sl.RESOLUTION.HD720
         self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         self.init.coordinate_units = sl.UNIT.MILLIMETER
+        self.init.camera_fps = 30
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -73,6 +74,7 @@ class ZedHandler:
 
     def close(self):
         self.zed.close()
+        self.feed_handler.close()
 
     def grab_point_cloud(self):
         pass

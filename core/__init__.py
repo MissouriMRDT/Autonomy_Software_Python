@@ -11,4 +11,4 @@ from core.zed_handler import ZedHandler
 rovecomm: RoveComm
 
 # Zed Handler, used to setup ZED and grab frames/point cloud data
-zed: ZedHandler
+zed_handler: ZedHandler

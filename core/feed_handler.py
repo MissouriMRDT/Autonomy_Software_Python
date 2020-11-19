@@ -17,16 +17,12 @@ class FeedHandler:
         self.resolution_y = resolution_y
         self.frame_rate = frame_rate
 
-    def __del__(self):
-        # Call close so we can close all the video writers
-        self.close()
-
     def feed_process(self, pipe, num, feed_id, save_video=True, stream_video=True):
         if stream_video and sys.platform == "linux":
             streamer = pyfakewebcam.FakeWebcam(f'/dev/video{num}', self.resolution_x, self.resolution_y)  # append v4l output to list of cameras        p_output, p_input = pipe
 
         if save_video:
-            video_filename = f'stream_{feed_id}_' + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
+            video_filename = f'logs/stream_{feed_id}_' + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
             video_writer = cv2.VideoWriter(video_filename + "_left.avi", self.fourcc, self.frame_rate, (self.resolution_x, self.resolution_y))  # append video writer to list of video writers
 
         p_output, p_input = pipe
@@ -34,15 +30,18 @@ class FeedHandler:
 
         while True:
             data = p_output.recv()
-            # Terminate process if we received an end signal
-            if str(data) == "END":
-                break
+            # Resize image to reduce bandwidth/size
             image = cv2.resize(data, (640, 480))
-            img = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+            # OpenCV video writer expects BGR color channels
+            save_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+            # Motion expects RGB color channels
+            stream_img = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+
+            # Stream and record video if applicable
             if stream_video and sys.platform == "linux":
-                streamer.schedule_frame(img)
+                streamer.schedule_frame(stream_img)
             if save_video:
-                video_writer.write(img)
+                video_writer.write(save_img)
 
     def add_feed(self, camera_num, feed_id, save_video=True, stream_video=True):
         # Create a process to send frames to, to be saved and scheduled to stream
@@ -56,13 +55,12 @@ class FeedHandler:
         self.feeds[feed_id] = (proc, proc_input)
 
     def close(self):
-        for process, pipe_in in self.feeds.items():
+        for feed_id, (process, pipe_in) in self.feeds.items():
             # Terminate the process by sending an END signal
-            pipe_in.send("END")
             process.join()
 
     def handle_frame(self, feed_id, img):
-        # Frames is a dictionary of (process, (pipe_out, pipe_in))
-        process, pipe_in = self.frames_process[feed_id]
+        # Frames is a dictionary of (process, pipe_in)
+        process, pipe_in = self.feeds[feed_id]
         pipe_in.send(img)
 

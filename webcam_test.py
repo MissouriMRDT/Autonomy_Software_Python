@@ -11,14 +11,14 @@ def main() -> None:
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
 
-    core.zed = core.ZedHandler()
-
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        # Close ZED capture
-        core.zed.close()
+    while True:
+        print(f"Sum {123465+122334}")
+        reg_img = core.zed_handler.grab_regular()
+        depth_img = core.zed_handler.grab_depth()
+        cv2.imshow('reg',reg_img)
+        cv2.imshow('depth',depth_img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
 if __name__ == "__main__":
     # Run main()

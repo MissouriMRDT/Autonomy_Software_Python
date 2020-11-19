@@ -4,6 +4,7 @@ import importlib
 import core
 import os
 import sys
+import time 
 
 def setup_logger(level) -> logging.Logger:
     '''
@@ -67,6 +68,11 @@ def main() -> None:
 
     # Initialize the rovecomm node
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
+    
+    # Initialize the ZED handler
+    core.zed_handler = core.ZedHandler()
+    core.zed_handler.start()
+    time.sleep(1)
 
     try:
         # Remove .py and directly import module
@@ -81,10 +87,11 @@ def main() -> None:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         exit(1)
+    except KeyboardInterrupt:
+        # Close ZED capture
+        core.zed_handler.close()
     else:
         exit(0)
-
-    print("Hello!")
 
 if __name__ == "__main__":
     # Run main()
