@@ -13,7 +13,6 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     while True:
-        print(f"Sum {123465+122334}")
         reg_img = vision.zed_handler.grab_regular()
         depth_img = vision.zed_handler.grab_depth()
         cv2.imshow('reg',reg_img)
