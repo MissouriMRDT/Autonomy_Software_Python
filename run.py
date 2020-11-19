@@ -2,6 +2,7 @@ import argparse, logging
 import logging.config
 import importlib
 import core
+import vision
 import os
 import sys
 import time 
@@ -70,8 +71,10 @@ def main() -> None:
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
     
     # Initialize the ZED handler
-    core.zed_handler = core.ZedHandler()
-    core.zed_handler.start()
+    vision.zed_handler = vision.ZedHandler()
+    vision.zed_handler.start()
+    
+    # Sleep so everything can be set up
     time.sleep(1)
 
     try:
