@@ -1,5 +1,5 @@
 from core.rovecomm import RoveCommPacket
-import core.rovecomm
+import core
 import time
 import struct
 import socket
