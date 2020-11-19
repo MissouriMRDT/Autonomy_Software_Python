@@ -1,5 +1,5 @@
 import pyzed.sl as sl
-import core.feed_handler
+from vision.feed_handler import FeedHandler
 import threading
 import cv2
 
@@ -8,7 +8,7 @@ class ZedHandler:
     def __init__(self):
         # Create a ZED camera object
         self.zed = sl.Camera()
-        self.feed_handler = core.feed_handler.FeedHandler()
+        self.feed_handler = FeedHandler()
 
         # Set configuration parameters
         self.input_type = sl.InputType()
