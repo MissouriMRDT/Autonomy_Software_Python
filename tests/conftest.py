@@ -1,5 +1,5 @@
 import pytest
-import core
+import core.rovecomm
 
 def pytest_sessionstart(session) -> None:
     # Configure RoveComm so we can use it in our tests (when applicable)
