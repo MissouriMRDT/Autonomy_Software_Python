@@ -28,8 +28,9 @@ class FeedHandler:
         Uses pipe to receive incoming frames and stream/save
         '''
 
+        # Only attempt to stream video if on Linux (due to package dependancies)
         if stream_video and sys.platform == "linux":
-            streamer = pyfakewebcam.FakeWebcam(f'/dev/video{num}', self.resolution_x, self.resolution_y)  # append v4l output to list of cameras        p_output, p_input = pipe
+            streamer = pyfakewebcam.FakeWebcam(f'/dev/video{num}', self.resolution_x, self.resolution_y)  # append v4l output to list of cameras
 
         if save_video:
             video_filename = f'logs/stream_{feed_id}_' + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files

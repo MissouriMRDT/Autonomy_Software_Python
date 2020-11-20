@@ -71,8 +71,8 @@ def main() -> None:
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
     
     # Initialize the ZED handler
-    vision.zed_handler = vision.ZedHandler()
-    vision.zed_handler.start()
+    vision.camera_handler = vision.ZedHandler()
+    vision.camera_handler.start()
     
     # Sleep so everything can be set up
     time.sleep(1)
@@ -92,7 +92,7 @@ def main() -> None:
         exit(1)
     except KeyboardInterrupt:
         # Close ZED capture
-        core.zed_handler.close()
+        vision.camera_handler.close()
     else:
         exit(0)
 

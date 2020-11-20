@@ -13,8 +13,8 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     while True:
-        reg_img = vision.zed_handler.grab_regular()
-        depth_img = vision.zed_handler.grab_depth()
+        reg_img = vision.camera_handler.grab_regular()
+        depth_img = vision.camera_handler.grab_depth()
         cv2.imshow('reg',reg_img)
         cv2.imshow('depth',depth_img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
