@@ -13,11 +13,13 @@ This file provides unit tests for both the get_approach_status and calculate_mov
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
 
-
 def setup_module(module):
     # Set up the test module by mocking the nav_board heading to be always 0
     # This way we can rely on our heading to always be 0 for testing purposes
     nav_board.heading = MagicMock(return_value=0)
+
+    # Sleep for .1 second to let the PID controller accurate compute deltas
+    time.sleep(0.1)
 
 
 def test_get_approach_status_past_goal():
