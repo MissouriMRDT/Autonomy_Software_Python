@@ -1,7 +1,7 @@
 import pyzed.sl as sl
 from vision.feed_handler import FeedHandler
 import threading
-import cv2
+
 
 class ZedHandler:
 

@@ -1,7 +1,5 @@
 import cv2
 import time
-import threading
-import time
 import sys
 import multiprocessing as mp
 
@@ -61,7 +59,7 @@ class FeedHandler:
         # Create a process to send frames to, to be saved and scheduled to stream
         proc_output, proc_input = mp.Pipe()
         proc = mp.Process(target=self.feed_process, args=((proc_output, proc_input), camera_num, feed_id, save_video, stream_video,))
-        
+
         proc.start()
         proc_output.close()  # We don't need output on our end
 
@@ -83,4 +81,3 @@ class FeedHandler:
         # Frames is a dictionary of (process, pipe_in)
         process, pipe_in = self.feeds[feed_id]
         pipe_in.send(img)
-
