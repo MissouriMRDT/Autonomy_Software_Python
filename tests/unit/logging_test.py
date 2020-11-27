@@ -54,7 +54,7 @@ this string should go over it"""
 
     packet_data = []
     for packet in packets:
-        if packet.data_type == 's':
+        if packet.data_type == 'c':
             # Reconstruct char[] into a string
             data = packet.data
             data_string = ""

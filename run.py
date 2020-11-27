@@ -22,7 +22,9 @@ def setup_logger(level) -> logging.Logger:
     yaml_conf = yaml.safe_load(open('core/logging.yaml', 'r').read())
     logging.config.dictConfig(yaml_conf)
 
-    return logging.getLogger(__name__)
+    for handler in logging.getLogger().handlers:
+        if isinstance(handler, type(logging.StreamHandler())):
+            handler.setLevel(level)
 
 
 def main() -> None:

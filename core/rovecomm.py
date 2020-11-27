@@ -25,7 +25,7 @@ types_int_to_byte = {
     6: 'f',
     7: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
     8: 'd',  # double
-    9: 's',
+    9: 'c',
 }
 
 types_byte_to_int = {
@@ -38,7 +38,7 @@ types_byte_to_int = {
     'f': 6,
     'q': 7,  # int64
     'd': 8,  # double
-    's': 9,  # Character array
+    'c': 9,  # char
 }
 
 types_byte_to_size = {
@@ -51,7 +51,7 @@ types_byte_to_size = {
     'f': 4,
     'q': 8,
     'd': 8,
-    's': 1,
+    'c': 1,
 }
 
 
@@ -350,8 +350,8 @@ class RoveCommEthernetTcp:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Allows the socket address to be reused after being closed
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # Allows the socket port to be reused after being closed
-        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        # Fixes an error on linux, while raising errors on windows
+        # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         # bind the socket to the current machines local network IP by default (can be specified as well)
         self.server.bind((HOST, PORT))
         # accept up to 5 simulataneous connections, before we start discarding them

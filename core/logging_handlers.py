@@ -62,7 +62,7 @@ class RoveCommHandler(logging.Handler):
 
         packet = RoveCommPacket(
             self.data_id,
-            's',
+            'c',
             tuple([char.encode('utf-8') for char in msg]),
             "",
             0
