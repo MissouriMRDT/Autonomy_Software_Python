@@ -346,6 +346,7 @@ class RoveCommEthernetTcp:
     '''
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
+        self.incoming_sockets = {}
         # configure a TCP socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Allows the socket address to be reused after being closed
@@ -394,8 +395,8 @@ class RoveCommEthernetTcp:
             for i in packet.data:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
-            for address in self.open_sockets:
-                self.open_sockets[address].send(rovecomm_packet)
+            for address in self.incoming_sockets:
+                self.incoming_sockets[address].send(rovecomm_packet)
 
             if (packet.ip_address != ('0.0.0.0', 0)):
                 # establish a new connection if the destination has not yet been connected to yet
@@ -432,6 +433,7 @@ class RoveCommEthernetTcp:
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
             self.open_sockets[addr[0]] = conn
+            self.incoming_sockets[addr[0]] = conn
 
     def read(self):
         '''
