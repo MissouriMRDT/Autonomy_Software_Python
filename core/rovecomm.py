@@ -350,8 +350,11 @@ class RoveCommEthernetTcp:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Allows the socket address to be reused after being closed
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # Fixes an error on linux, while raising errors on windows
-        # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        # Fixes an error on linux with opening the socket again too soon
+        try:
+            self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except AttributeError:
+            pass
         # bind the socket to the current machines local network IP by default (can be specified as well)
         self.server.bind((HOST, PORT))
         # accept up to 5 simulataneous connections, before we start discarding them
