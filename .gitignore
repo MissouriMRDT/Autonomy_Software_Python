@@ -9,6 +9,7 @@
 
 #pipenv lock file
 .lock
+Pipfile.lock
 
 # Mac Temp Files
 .DS_Store
