@@ -40,7 +40,7 @@ class FeedHandler:
         while True:
             data = p_output.recv()
             # Resize image to reduce bandwidth/size
-            image = cv2.resize(data, (640, 480))
+            image = cv2.resize(data, (self.resolution_x, self.resolution_y))
             # OpenCV video writer expects BGR color channels
             save_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
             # Motion expects RGB color channels
