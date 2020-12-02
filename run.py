@@ -47,7 +47,7 @@ def main() -> None:
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
-    core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
+    core.rovecomm_node = core.RoveComm(11000, ('127.0.0.1', 11111))
 
     # Initialize the ZED handler
     vision.camera_handler = vision.ZedHandler()
@@ -65,18 +65,18 @@ def main() -> None:
         # from package
         logger.error(f"Failed to import module '{args.file}'")
         logger.error(error)
-        core.rovecomm.close_thread()
+        core.rovecomm_node.close_thread()
         vision.camera_handler.close()
         exit(1)
     except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         logger.error(error)
-        core.rovecomm.close_thread()
+        core.rovecomm_node.close_thread()
         vision.camera_handler.close()
         exit(1)
     else:
-        core.rovecomm.close_thread()
+        core.rovecomm_node.close_thread()
         vision.camera_handler.close()
         exit(0)
 

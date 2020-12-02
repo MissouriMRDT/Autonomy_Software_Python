@@ -6,4 +6,4 @@ import core.state
 from core.manifest import *
 
 # RoveComm node, must be declared before it can be used.
-rovecomm: RoveComm
+rovecomm_node: RoveComm

@@ -20,9 +20,9 @@ going to send properly or not. The limit appears to be 255 characters and \
 this string should go over it"""
 
     # Add incoming packets to the global packets list
-    core.rovecomm.set_callback(4241, handle_packet)
-    core.rovecomm.set_callback(4242, handle_packet)
-    core.rovecomm.set_callback(4243, handle_packet)
+    core.rovecomm_node.set_callback(4241, handle_packet)
+    core.rovecomm_node.set_callback(4242, handle_packet)
+    core.rovecomm_node.set_callback(4243, handle_packet)
 
     # Subscribe to our own packets
     packet = RoveCommPacket(
@@ -33,9 +33,9 @@ this string should go over it"""
         11000
     )
     packet.SetIp('127.0.0.1')
-    core.rovecomm.write(packet, False)
+    core.rovecomm_node.write(packet, False)
 
-    core.rovecomm.tcp_node.connect(('127.0.0.1', 11111))
+    core.rovecomm_node.tcp_node.connect(('127.0.0.1', 11111))
 
     # Give some time for the subscription to go through
     time.sleep(.01)

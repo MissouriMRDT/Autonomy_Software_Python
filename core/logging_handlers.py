@@ -67,4 +67,4 @@ class RoveCommHandler(logging.Handler):
             "",
             0
         )
-        core.rovecomm.write(packet, self.reliable)
+        core.rovecomm_node.write(packet, self.reliable)

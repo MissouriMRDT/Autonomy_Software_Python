@@ -19,16 +19,15 @@ class NavBoard:
         self._lastTime = time.time()
 
         # Set up RoveComm and Logger
-        self.rove_comm_node = core.rovecomm.udp_node
         self.logger = logging.getLogger(__name__)
 
         self.logger = logging.getLogger(__name__)
-        self.rove_comm_node.subscribe(core.NAV_IP_ADDRESS)
+        core.rovecomm_node.udp_node.subscribe(core.NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        core.rovecomm.set_callback(core.IMU_DATA_ID, self.process_imu_data)
-        core.rovecomm.set_callback(core.GPS_DATA_ID, self.process_gps_data)
-        core.rovecomm.set_callback(core.LIDAR_DATA_ID, self.process_lidar_data)
+        core.rovecomm_node.set_callback(core.IMU_DATA_ID, self.process_imu_data)
+        core.rovecomm_node.set_callback(core.GPS_DATA_ID, self.process_gps_data)
+        core.rovecomm_node.set_callback(core.LIDAR_DATA_ID, self.process_lidar_data)
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data

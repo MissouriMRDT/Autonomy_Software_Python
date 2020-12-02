@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import core
-=======
 import logging
->>>>>>> feature/nav_logging
 from core.state import RoverState
 from enum import Enum
 
@@ -20,8 +17,8 @@ class StateMachine(object):
         self.disable_flag = False
 
         # Add callbacks for autonomy controls
-        core.rovecomm.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
-        core.rovecomm.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
+        core.rovecomm_node.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
+        core.rovecomm_node.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
 
     def enable(self):
         self.enable_flag = True

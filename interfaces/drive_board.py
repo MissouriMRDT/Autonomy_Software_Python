@@ -44,7 +44,7 @@ class DriveBoard:
 
     def send_drive(self, target_left, target_right):
         # Write a drive packet (UDP)
-        core.rovecomm.write(core.RoveCommPacket(core.DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP), False)
+        core.rovecomm_node.write(core.RoveCommPacket(core.DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP), False)
 
     def disable(self):
         self.enabled = False
