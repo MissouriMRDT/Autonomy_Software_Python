@@ -1,10 +1,11 @@
-
+import logging
 from algorithms.PID_controller import PIDcontroller
 
 
 from core.rovecomm import RoveCommEthernetUdp
 from interfaces import drive_board, nav_board
 
+logger  = logging.getLogger(__name__)
 
 def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)
@@ -17,6 +18,7 @@ def get_motor_power_from_heading(speed, goal_heading):
 
     heading_correction = pid.update(goal_heading, nav_board.heading())
     clamp(heading_correction, -180, 180)
+    logger.info(f"Heading: {heading_correction}, Speed: {speed}")
     return drive_board.calculate_move(speed, heading_correction)
 
 

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import core
+=======
+import logging
+>>>>>>> feature/nav_logging
 from core.state import RoverState
 from enum import Enum
 

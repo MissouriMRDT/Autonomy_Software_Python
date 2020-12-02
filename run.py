@@ -1,8 +1,13 @@
-import argparse, logging
+import argparse
+import logging
 import logging.config
-import importlib
+import yaml
 import core
+import vision
+import importlib
 import os
+import sys
+import time 
 
 
 def setup_logger(level) -> logging.Logger:
@@ -16,37 +21,13 @@ def setup_logger(level) -> logging.Logger:
         Logger: root set up for console and file logging
     '''
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    
-    # Primary handlers. Levels can be set with --level option
-    c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler(filename='logs/logging.csv', mode='w')
-    c_handler.setLevel(level)
-    f_handler.setLevel(level)
+    # logging file
+    yaml_conf = yaml.safe_load(open('core/logging.yaml', 'r').read())
+    logging.config.dictConfig(yaml_conf)
 
-    # Debug level: print out file:line for IDE's that support file navigation.
-    d_handler = logging.StreamHandler()
-    d_handler.setLevel(logging.DEBUG)
-    # Only prints out DEBUG level messages
-    d_handler.addFilter(lambda log_record: log_record.levelno <= logging.DEBUG)
-
-
-    # Create formatters and add it to handlers
-    c_format = logging.Formatter('%(name)s, %(levelname)s, %(module)s, %(message)s')
-    f_format = logging.Formatter('%(asctime)s, %(name)s, %(levelname)s, %(module)s, %(message)s')
-    d_format = logging.Formatter("%(name)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d")
-    c_handler.setFormatter(c_format)
-    f_handler.setFormatter(f_format)
-    d_handler.setFormatter(d_format)
-
-    # Add handlers to the logger
-    logger.addHandler(c_handler)
-    logger.addHandler(f_handler)
-    logger.addHandler(d_handler)
-    return logger
-
-
+    for handler in logging.getLogger().handlers:
+        if isinstance(handler, type(logging.StreamHandler())):
+            handler.setLevel(level)
 
 
 def main() -> None:
@@ -57,33 +38,47 @@ def main() -> None:
 
     # Optional parameter to set logging level
     parser.add_argument('--level', choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
-     
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
         exit(1)
-    
+
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
 
+    # Initialize the ZED handler
+    vision.camera_handler = vision.ZedHandler()
+    vision.camera_handler.start()
+
+    # Sleep so everything can be set up
+    time.sleep(1)
+
     try:
         # Remove .py and directly import module
         module = importlib.import_module(os.path.splitext(args.file)[0])
         module.main()
-    except ImportError:
+    except ImportError as error:
         # Couldn't find module because file doesn't exist or tried to import
         # from package
         logger.error(f"Failed to import module '{args.file}'")
+        logger.error(error)
+        core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(1)
-    except NameError:
+    except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
+        logger.error(error)
+        core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(1)
     else:
+        core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(0)
-    
 
 if __name__ == "__main__":
     # Run main()

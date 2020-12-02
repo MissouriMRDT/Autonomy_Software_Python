@@ -49,6 +49,28 @@ def test_tcp():
     assert responses[4241].data_id == packet.data_id
 
 
+def test_tcp_subscribers():
+    global responses
+    core.rovecomm.set_callback(4243, handle_packet)
+
+    # The RoveCommTcp class includes both a server socket and
+    # a dictionary of connection sockets, allowing it to create
+    # a TCP connection between its server and one of the dictionary
+    # sockets
+    packet = RoveCommPacket(4243, 'b', (1, 4), "", 0)
+
+    core.rovecomm.tcp_node.connect(('127.0.0.1', 11111))
+
+    assert core.rovecomm.write(packet, True) == 1
+
+    # Give the listener thread a moment to catch the packet
+    time.sleep(.05)
+    assert responses[4243].data == packet.data
+    assert responses[4243].data_type == packet.data_type
+    assert responses[4243].data_count == packet.data_count
+    assert responses[4243].data_id == packet.data_id
+
+
 def test_udp_external():
     global responses
     core.rovecomm.set_callback(4240, handle_packet)
