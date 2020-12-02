@@ -1,12 +1,6 @@
 import core
 import time
 
-NAV_IP_ADDRESS = "136"
-GPS_DATA_ID = 5100
-IMU_DATA_ID = 5101
-LIDAR_DATA_ID = 5102
-GPSADD_DATA_ID = 5103
-
 
 class NavBoard:
     """
@@ -24,12 +18,12 @@ class NavBoard:
         self._lastTime = time.time()
         self.rove_comm_node = core.rovecomm.udp_node
 
-        self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
+        self.rove_comm_node.subscribe(core.NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        core.rovecomm.set_callback(IMU_DATA_ID, self.process_imu_data)
-        core.rovecomm.set_callback(GPS_DATA_ID, self.process_gps_data)
-        core.rovecomm.set_callback(LIDAR_DATA_ID, self.process_lidar_data)
+        core.rovecomm.set_callback(core.IMU_DATA_ID, self.process_imu_data)
+        core.rovecomm.set_callback(core.GPS_DATA_ID, self.process_gps_data)
+        core.rovecomm.set_callback(core.LIDAR_DATA_ID, self.process_lidar_data)
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data

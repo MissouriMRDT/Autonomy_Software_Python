@@ -1,9 +1,5 @@
+import core
 import core.constants as constants
-from core.rovecomm import RoveCommPacket
-
-DRIVE_BOARD_IP = "134"
-DRIVE_DATA_ID = 1000
-# left/right between -1000,1000
 
 
 def clamp(n, min_n, max_n):
@@ -44,7 +40,8 @@ class DriveBoard:
         return 0, 0
 
     def send_drive(self, target_left, target_right):
-        return RoveCommPacket(DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=DRIVE_BOARD_IP)
+        # Write a drive packet (UDP)
+        core.rovecomm.write(core.RoveCommPacket(core.DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP), False)
 
     def disable(self):
         self.enabled = False

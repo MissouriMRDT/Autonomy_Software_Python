@@ -1,26 +1,42 @@
+import core
 from core.state import RoverState
 from enum import Enum
 
 
-class StateSwitcher(object):
+class StateMachine(object):
     """
     The state machine "handler" which will deal with switching between various states
     """
 
-    def __init__(self, filename):
-        self.state = Idle()  # default state
-        self.previousState = Idle()
-        self.outString = filename  # see example in CannyTracking to add logging to functions
+    def __init__(self):
+        self.state = Idle()
 
-    def handle_event(self, event, previousState, then=None):
-        if event == AutonomyEvents.END_OBSTACLE_AVOIDANCE:
-            self.state = self.previousState
-            self.previousState = previousState
-        else:
-            self.previousState = previousState
-            self.state = self.state.handle_event(event)
-        if then:
-            then()  # callback
+        # Set shutdown and start flags
+        self.enable_flag = False
+        self.disable_flag = False
+
+        # Add callbacks for autonomy controls
+        core.rovecomm.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
+        core.rovecomm.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
+
+    def enable(self):
+        self.enable_flag = True
+
+    def disable(self):
+        self.disable_flag = True
+
+    async def run(self):
+        # Handle transitions into Idle and Navigating states
+        if self.enable_flag is True:
+            self.state = Navigating()
+            self.enable_flag = False
+
+        elif self.disable_flag is True:
+            self.state = Idle()
+            self.disable_flag = False
+
+        # Run the current state
+        self.state = self.state.run()
 
 
 class Idle(RoverState):
