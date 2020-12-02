@@ -3,6 +3,7 @@ ignore = E501, E221
 exclude =
     # No need to traverse our git directory
     .git,
-    venv
+    Pipfile,
+    .gitignore
 
 max-complexity = 10
