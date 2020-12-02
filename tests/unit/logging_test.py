@@ -1,7 +1,9 @@
 import logging
 import core
-from core.basestation_send import basestation_send
+from core.telemetry_handler import telemetry_handler
 import time
+from core.rovecomm import RoveCommPacket
+from core.rovecomm import ROVECOMM_SUBSCRIBE_REQUEST
 
 global packets
 packets = []
@@ -22,11 +24,27 @@ this string should go over it"""
     core.rovecomm.set_callback(4242, handle_packet)
     core.rovecomm.set_callback(4243, handle_packet)
 
+    # Subscribe to our own packets
+    packet = RoveCommPacket(
+        ROVECOMM_SUBSCRIBE_REQUEST,
+        'b',
+        (),
+        "",
+        11000
+    )
+    packet.SetIp('127.0.0.1')
+    core.rovecomm.write(packet, False)
+
+    core.rovecomm.tcp_node.connect(('127.0.0.1', 11111))
+
+    # Give some time for the subscription to go through
+    time.sleep(.01)
+
     # Run logging events
 
-    logger.debug(test_string)
-    assert basestation_send("STATE_CHANGE", "IDLE", "Other information in the message")
-    assert basestation_send("WAYPOINT", (12, 27, 3, 4), "Hello")
+    logger.info(test_string)
+    assert telemetry_handler("STATE_CHANGE", "IDLE", "Other information in the message")
+    assert telemetry_handler("WAYPOINT", (12, 27, 3, 4), "Hello")
 
     # read in RoveComm logs
     i = 0
@@ -36,7 +54,7 @@ this string should go over it"""
 
     packet_data = []
     for packet in packets:
-        if packet.data_type == 's':
+        if packet.data_type == 'c':
             # Reconstruct char[] into a string
             data = packet.data
             data_string = ""
@@ -47,20 +65,16 @@ this string should go over it"""
             pass
             packet_data.append(packet.data)
 
-    assert packet_data[0] == """logging_test, test_rovecomm_logging, DEBUG, I have successfully added \
+    # Connecting to ourself creates two different sockets that are both considered subscribed,
+    # so we need to remove the duplicate packets that are received in that manner
+    packet_data = list(dict.fromkeys(packet_data))
+
+    assert packet_data[0] == """Logging_Test, test_rovecomm_logging, INFO, I have successfully added \
 strings into the RoveComm interface, and am now sending to send a very long message \
 to see if it is going to send properly or not. The limit appears to be 255 characters \
-and this str..."""
-    assert packet_data[1] == """logging_test, test_rovecomm_logging, DEBUG, I have successfully added \
-strings into the RoveComm interface, and am now sending to send a very long message \
-to see if it is going to send properly or not. The limit appears to be 255 characters \
-and this str..."""
-    assert packet_data[2] == """basestation_send, basestation_send, INFO, STATE_CHANGE - \
-IDLE - Other information in the message"""
-    assert packet_data[3] == (2,)
-    assert packet_data[4] == """basestation_send, basestation_send, INFO, WAYPOINT - \
-(12, 27, 3, 4) - Hello"""
-    assert packet_data[5] == (12, 27, 3, 4)
+and this stri..."""
+    assert packet_data[1] == (2,)
+    assert packet_data[2] == (12, 27, 3, 4)
 
 
 def handle_packet(packet):
