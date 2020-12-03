@@ -40,6 +40,7 @@ class ZedHandler:
         # Create thread to constantly grab frames, and pass them to other processes to stream/save
         self.thread = threading.Thread(target=self.frame_grabber, args=())
 
+    # Should this be a generator or a thread? Generator might help cuz I could schedule this in the ASYNC calls
     def frame_grabber(self):
         '''
         Function to be executed as a thread, grabs latest depth/regular images
