@@ -3,7 +3,9 @@ import logging
 import logging.config
 import yaml
 import core
-import vision
+import states
+import interfaces
+#import vision
 import importlib
 import os
 import sys
@@ -49,9 +51,16 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveComm(11000, ('127.0.0.1', 11111))
 
+    # Initialize the state machine
+    states.state_machine = states.StateMachine()
+
     # Initialize the ZED handler
-    vision.camera_handler = vision.ZedHandler()
-    vision.camera_handler.start()
+    # vision.camera_handler = vision.ZedHandler()
+    # vision.camera_handler.start()
+
+    # Initialize the Interfaces
+    interfaces.drive_board = interfaces.DriveBoard()
+    interfaces.nav_board = interfaces.NavBoard()
 
     # Sleep so everything can be set up
     time.sleep(1)
@@ -66,18 +75,18 @@ def main() -> None:
         logger.error(f"Failed to import module '{args.file}'")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        vision.camera_handler.close()
+        # vision.camera_handler.close()
         exit(1)
     except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        vision.camera_handler.close()
+        # vision.camera_handler.close()
         exit(1)
     else:
         core.rovecomm_node.close_thread()
-        vision.camera_handler.close()
+        # vision.camera_handler.close()
         exit(0)
 
 if __name__ == "__main__":

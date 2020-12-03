@@ -1,5 +1,6 @@
-from core.state import RoverState
-
+import core
+import states
+from states import RoverState
 
 class Idle(RoverState):
     """
@@ -8,5 +9,6 @@ class Idle(RoverState):
     from base station that configure the next leg’s settings and confirm them.
     """
     async def run(self):
+        print("In Idle")
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
-        pass
+        return states.Navigating()

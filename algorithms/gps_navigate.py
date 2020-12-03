@@ -1,8 +1,8 @@
+import interfaces
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
 import core.constants as constants
 from core.constants import ApproachState
-from interfaces import nav_board
 
 
 def get_approach_status(goal, location, start):
@@ -32,7 +32,7 @@ def calculate_move(goal, location, start, speed=150):
     if target_distance < 0.01:
         speed = 100
     goal_heading = target_heading
-    print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
+    print("Current heading: " + str(interfaces.nav_board.heading()) + ", Goal:" + str(goal_heading))
     return hh.get_motor_power_from_heading(speed, goal_heading)
 
      
