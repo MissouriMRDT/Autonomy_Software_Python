@@ -118,7 +118,7 @@ def main() -> None:
             # imageArray = ([img,imgThres],
             #           [imgContour,imgWarped])
             imageArray = ([imgContour, imgWarped])
-            cv2.imshow("ImageWarped", imgWarped)
+            #cv2.imshow("ImageWarped", imgWarped)
         else:
             # imageArray = ([img, imgThres],
             #               [img, img])
@@ -131,14 +131,17 @@ def main() -> None:
         vision.camera_handler.feed_handler.handle_frame("ar", stackedImages)
         
 
-        stackedImages = cv2.resize(stackedImages, (1920, 1080))
-        stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)
+        #stackedImages = cv2.resize(stackedImages, (1920, 1080))
+        #stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)
                 
         key = cv2.waitKey(10)        
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         #cv2.imshow('img', img)
         #cv2.imshow('depth', depth_img)
+
+        for i in range(10000):
+            pass
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
