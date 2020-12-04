@@ -71,7 +71,10 @@ class FeedHandler:
         Closes all feeds and waits for processes to join
         '''
         for feed_id, (process, pipe_in) in self.feeds.items():
-            # Terminate the process by sending an END signal
+            # Close the pipe
+            pipe_in.close()
+            # Terminate all the processes and wait to join
+            process.terminate()
             process.join()
 
     def handle_frame(self, feed_id, img):
