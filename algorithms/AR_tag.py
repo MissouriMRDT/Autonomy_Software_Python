@@ -4,8 +4,8 @@ import time
 
 
 ###################################
-widthImg= 1920
-heightImg =1080
+widthImg= 960 
+heightImg = 520
 
 FRAME_RATE = 10
 #####################################
@@ -93,7 +93,7 @@ def stackImages(scale,imgArray):
         ver = hor
     return ver
 
-usingZed = True
+usingZed = False
 
 # Set video parameters
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
@@ -177,7 +177,6 @@ if usingZed:
 else:
     cap = cv2.VideoCapture(1)
     
-
     while True:    
         success, img = cap.read()
         img = cv2.resize(img,(widthImg,heightImg))
@@ -201,12 +200,12 @@ else:
 
         stackedImages = cv2.resize(stackedImages, (1920, 1080))
         stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-        video_out_left.write(stackedImage)
+        #video_out_left.write(stackedImage)
 
         c = cv2.waitKey(1) % 256
 
         if c == ord('a'):
             break
-    video_out_left.release()
+    #video_out_left.release()
         
     
