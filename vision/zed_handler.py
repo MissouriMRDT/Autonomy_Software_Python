@@ -30,7 +30,7 @@ class ZedHandler:
             exit(1)
 
         # Add the desired feeds
-        self.feed_handler.add_feed(2, "regular")
+        self.feed_handler.add_feed(10, "regular", True, False)
         self.feed_handler.add_feed(3, "depth")
 
         # Create initial frames

@@ -1,6 +1,14 @@
 import vision
 import logging
 import cv2
+import numpy as np
+
+###################################
+widthImg= 960 
+heightImg = 520
+
+FRAME_RATE = 10
+#####################################
 
 def preProcessing(img):
     imgGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -11,7 +19,7 @@ def preProcessing(img):
     imgThres = cv2.erode(imgDial,kernel,iterations=1)
     return imgThres
  
-def getContours(img):
+def getContours(img, imgContour):
     biggest = np.array([])
     maxArea = 0
     contours,hierarchy = cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
@@ -70,7 +78,8 @@ def stackImages(scale,imgArray):
         imageBlank = np.zeros((height, width, 3), np.uint8)
         hor = [imageBlank]*rows
         hor_con = [imageBlank]*rows
-        for x in range(0, rows):
+        for x in range(0, rows):        # Test grabbing the latest camera frames
+
             hor[x] = np.hstack(imgArray[x])
         ver = np.vstack(hor)
     else:
@@ -91,14 +100,19 @@ def main() -> None:
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
 
+    # Add feed 
+    vision.camera_handler.feed_handler.add_feed(2, "ar")
+
     while True:
         # Test grabbing the latest camera frames
         img = vision.camera_handler.grab_regular()
         #depth_img = vision.camera_handler.grab_depth()
 
-        imgContour = reg_img.copy()
+        img = cv2.resize(img,(widthImg,heightImg))
+        imgContour = img.copy()
+    
         imgThres = preProcessing(img)
-        biggest = getContours(imgThres)
+        biggest = getContours(imgThres, imgContour)
         if biggest.size !=0:
             imgWarped=getWarp(img,biggest)
             # imageArray = ([img,imgThres],
@@ -109,18 +123,21 @@ def main() -> None:
             # imageArray = ([img, imgThres],
             #               [img, img])
             imageArray = ([imgContour, img])
-
+    
         stackedImages = stackImages(0.6,imageArray)
-        cv2.imshow("WorkFlow", stackedImages)
+        #cv2.imshow("WorkFlow", stackedImages)
+
+        # Stream the AR Tag video feed
+        vision.camera_handler.feed_handler.handle_frame("ar", stackedImages)
+        
 
         stackedImages = cv2.resize(stackedImages, (1920, 1080))
-        stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)  
-        video_out_left.write(stackedImage)
+        stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)
                 
         key = cv2.waitKey(10)        
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        cv2.imshow('img', img)
+        #cv2.imshow('img', img)
         #cv2.imshow('depth', depth_img)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
