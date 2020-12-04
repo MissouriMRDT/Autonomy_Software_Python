@@ -1,0 +1,36 @@
+{
+    "STATE_CHANGE": 
+    {
+        "data_id": 4242, 
+        "data_type": "b", 
+        "values": 
+        {
+            "SHUTDOWN": [1], 
+            "IDLE": [2],
+            "NAVIGATING": [3],
+            "SEARCHING": [4],
+            "APPROACHING MARKER": [5],
+            "OBSTACLE AVOIDANCE": [6]
+        }
+    }, 
+    "WAYPOINT": 
+    {
+        "data_id": 4243, 
+        "data_type": "h"
+    }, 
+    "DRIVING": 
+    {
+        "data_id": 4244, 
+        "data_type": "h"
+    },  
+    "GPS_COORDINATES": 
+    {
+        "data_id": 4245, 
+        "data_type": "d"
+    },
+    "HEADING": 
+    {
+        "data_id": 4246, 
+        "data_type": "d"
+    }
+}

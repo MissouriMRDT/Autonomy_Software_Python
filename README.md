@@ -13,7 +13,7 @@ There are a couple of simple steps in order to get started writing software for 
 ```
 git clone https://github.com/MissouriMRDT/Autonomy_Software.git
 ```
-2. Install Python 3.7 or higer, and then install pipenv using pip
+2. Install Python 3.8 or higher, and then install pipenv using pip
 ```
 pip install pipenv
 ```

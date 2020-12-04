@@ -1,6 +1,7 @@
 import algorithms
 import core
 import logging
+import interfaces
 
 
 def main() -> None:
@@ -18,6 +19,8 @@ def main() -> None:
 
     logger.info(f"Calculated bearing: {bearing}")
     logger.info(f"Calculate distance: {distance}")
+
+    logger.info(f"Measured heading: {interfaces.nav_board.heading()}")
 
 
 if __name__ == "__main__":
