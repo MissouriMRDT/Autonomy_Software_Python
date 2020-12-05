@@ -2,10 +2,12 @@ import argparse
 import logging
 import logging.config
 import yaml
-from yaml import CLoader
 import core
+import vision
 import importlib
 import os
+import sys
+import time 
 
 
 def setup_logger(level) -> logging.Logger:
@@ -20,14 +22,12 @@ def setup_logger(level) -> logging.Logger:
     '''
 
     # logging file
-    yaml_conf = yaml.load(open('core/logging.yaml', 'r').read(), Loader=CLoader)
-
-    # Set log level of console logger to command line argument
-    yaml_conf['handlers']['console']['level'] = level
-
+    yaml_conf = yaml.safe_load(open('core/logging.yaml', 'r').read())
     logging.config.dictConfig(yaml_conf)
 
-    return logging.getLogger(__name__)
+    for handler in logging.getLogger().handlers:
+        if isinstance(handler, type(logging.StreamHandler())):
+            handler.setLevel(level)
 
 
 def main() -> None:
@@ -44,10 +44,21 @@ def main() -> None:
         parser.print_help()
         exit(1)
 
+    # Add the examples folder to our path so we can run example files
+    sys.path.insert(0, 'example/')
+
+    # Setup the logger, also pass-in optional logging level for console output
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
     core.rovecomm = core.RoveComm(11000, ('127.0.0.1', 11111))
+
+    # Initialize the ZED handler
+    vision.camera_handler = vision.ZedHandler()
+    vision.camera_handler.start()
+
+    # Sleep so everything can be set up
+    time.sleep(1)
 
     try:
         # Remove .py and directly import module
@@ -59,17 +70,19 @@ def main() -> None:
         logger.error(f"Failed to import module '{args.file}'")
         logger.error(error)
         core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(1)
     except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         logger.error(error)
         core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(1)
     else:
         core.rovecomm.close_thread()
+        vision.camera_handler.close()
         exit(0)
-
 
 if __name__ == "__main__":
     # Run main()

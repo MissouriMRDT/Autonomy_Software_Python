@@ -17,5 +17,20 @@
     {
         "data_id": 4243, 
         "data_type": "h"
+    }, 
+    "DRIVING": 
+    {
+        "data_id": 4244, 
+        "data_type": "h"
+    },  
+    "GPS_COORDINATES": 
+    {
+        "data_id": 4245, 
+        "data_type": "d"
+    },
+    "HEADING": 
+    {
+        "data_id": 4246, 
+        "data_type": "d"
     }
 }

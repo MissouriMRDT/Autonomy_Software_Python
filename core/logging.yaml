@@ -5,29 +5,17 @@ formatters:
   csv:
     format: '%(asctime)s.%(msecs)03d,%(module)s,%(funcName)s,%(levelname)s,"%(message)s"'
     datefmt: '%Y-%m-%d %H:%M:%S'
-  debug:
-    format: "%(name)s, %(funcName)s, %(levelname)s, %(module)s, %(message)s %(pathname)s:%(lineno)d"
-filters:
-  debug:
-    (): core.logging_filters.DebugFilter
 handlers:
   console:
     class: logging.StreamHandler
     level: 0
     formatter: simple
     stream: ext://sys.stdout
-  file:
-    class: logging.handlers.WatchedFileHandler
-    level: 0
-    formatter: simple
-    filename: logs/example.log
-    mode: a
-    delay: True
   csv:
     class: core.logging_handlers.CsvHandler
     level: 0
     formatter: csv
-    format_string: TIMESTAMP,MODULE,FUNCTION,LEVEL,MESSAGE
+    header: TIMESTAMP,MODULE,FUNCTION,LEVEL,MESSAGE
     filename: logs/log.csv
     new_file: True
     delay: False
@@ -36,17 +24,14 @@ handlers:
     level: 0
     formatter: simple
     level: INFO
+    data_id: 4241
     reliable: False
-  Debug:
-    class: logging.StreamHandler
-    formatter: debug
-    level: DEBUG
 loggers:
   Logging_Test:
     level: DEBUG
-    handlers: [console, csv, RoveComm, Debug]
+    handlers: [console, csv, RoveComm]
     propagate: False
-  core.basestation_send:
+  core.telemetry_handler:
     level: DEBUG
     handlers: [console, csv]
     propagate: False

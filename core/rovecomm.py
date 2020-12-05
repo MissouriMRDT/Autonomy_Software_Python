@@ -25,7 +25,7 @@ types_int_to_byte = {
     6: 'f',
     7: 'q',  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
     8: 'd',  # double
-    9: 's',
+    9: 'c',
 }
 
 types_byte_to_int = {
@@ -38,7 +38,7 @@ types_byte_to_int = {
     'f': 6,
     'q': 7,  # int64
     'd': 8,  # double
-    's': 9,  # String
+    'c': 9,  # char
 }
 
 types_byte_to_size = {
@@ -51,7 +51,7 @@ types_byte_to_size = {
     'f': 4,
     'q': 8,
     'd': 8,
-    's': 1,
+    'c': 1,
 }
 
 
@@ -346,10 +346,16 @@ class RoveCommEthernetTcp:
     '''
     def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
+        self.incoming_sockets = {}
         # configure a TCP socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Allows the socket address to be reused after being closed
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Fixes an error on linux with opening the socket again too soon
+        try:
+            self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except AttributeError:
+            pass
         # bind the socket to the current machines local network IP by default (can be specified as well)
         self.server.bind((HOST, PORT))
         # accept up to 5 simulataneous connections, before we start discarding them
@@ -389,14 +395,14 @@ class RoveCommEthernetTcp:
             for i in packet.data:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 
-            for address in self.open_sockets:
-                self.open_sockets[address].send(rovecomm_packet)
-
-            # establish a new connection if the destination has not yet been connected to yet
-            if self.connect(packet.ip_address) == 0:
-                return 0
+            for address in self.incoming_sockets:
+                self.incoming_sockets[address].send(rovecomm_packet)
 
             if (packet.ip_address != ('0.0.0.0', 0)):
+                # establish a new connection if the destination has not yet been connected to yet
+                if self.connect(packet.ip_address) == 0:
+                    return 0
+
                 self.open_sockets[packet.ip_address].send(rovecomm_packet)
 
             return 1
@@ -427,6 +433,7 @@ class RoveCommEthernetTcp:
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
             self.open_sockets[addr[0]] = conn
+            self.incoming_sockets[addr[0]] = conn
 
     def read(self):
         '''
