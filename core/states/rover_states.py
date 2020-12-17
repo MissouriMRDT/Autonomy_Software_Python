@@ -1,6 +1,5 @@
 import core
 import logging
-import states
 from enum import Enum
 
 
@@ -10,7 +9,7 @@ class StateMachine(object):
     """
 
     def __init__(self):
-        self.state = states.Idle()
+        self.state = core.states.Idle()
 
         # Set shutdown and start flags
         self.enable_flag = False
@@ -29,13 +28,14 @@ class StateMachine(object):
     async def run(self):
         # Handle transitions into Idle and Navigating states
         if self.enable_flag is True:
-            self.state = Navigating()
+            self.state = core.states.Navigating()
             self.enable_flag = False
 
         elif self.disable_flag is True:
-            self.state = Idle()
+            self.state = core.states.Idle()
             self.disable_flag = False
 
         print(self.state)
+
         # Run the current state
         self.state = await self.state.run()

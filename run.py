@@ -3,7 +3,6 @@ import logging
 import logging.config
 import yaml
 import core
-import states
 import interfaces
 #import vision
 import importlib
@@ -31,6 +30,8 @@ def setup_logger(level) -> logging.Logger:
         if isinstance(handler, type(logging.StreamHandler())):
             handler.setLevel(level)
 
+    return logging.getLogger()
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -52,7 +53,7 @@ def main() -> None:
     core.rovecomm_node = core.RoveComm(11000, ('127.0.0.1', 11111))
 
     # Initialize the state machine
-    states.state_machine = states.StateMachine()
+    core.states.state_machine = core.states.StateMachine()
 
     # Initialize the ZED handler
     # vision.camera_handler = vision.ZedHandler()

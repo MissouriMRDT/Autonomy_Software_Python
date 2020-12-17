@@ -2,8 +2,7 @@ import core
 import algorithms
 import interfaces
 import asyncio
-import states
-from states import RoverState
+from core.states import RoverState
 
 
 class SearchPattern(RoverState):
@@ -31,7 +30,7 @@ class SearchPattern(RoverState):
             await asyncio.sleep(0.1)
 
             self.logger.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-            return states.ApproachingMarker()
+            return core.states.ApproachingMarker()
 
         if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.constants.ApproachState.APPROACHING:
             interfaces.drive_board.send_drive(0, 0)
@@ -50,4 +49,4 @@ class SearchPattern(RoverState):
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
 
-        return states.SearchPattern()
+        return core.states.SearchPattern()

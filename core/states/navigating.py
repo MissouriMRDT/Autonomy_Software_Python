@@ -1,8 +1,7 @@
 import core
 import interfaces
 import algorithms
-import states
-from states import RoverState
+from core.states import RoverState
 
 
 class Navigating(RoverState):
@@ -18,7 +17,7 @@ class Navigating(RoverState):
         # so log that and return
         if gps_data is None:
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
-            return states.Idle()
+            return core.states.Idle()
 
         goal, start = gps_data
         current = interfaces.nav_board.location()
@@ -41,9 +40,9 @@ class Navigating(RoverState):
                 # Stop all movement
                 interfaces.drive_board.send_drive(0, 0)
 
-                return states.SearchPattern()
+                return core.states.SearchPattern()
 
         left, right = algorithms.gps_navigate.calculate_move(goal, interfaces.nav_board.location(), start, core.constants.DRIVE_POWER)
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
-        return states.Navigating()
+        return core.states.Navigating()

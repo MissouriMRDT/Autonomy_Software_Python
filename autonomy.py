@@ -3,7 +3,6 @@ import core
 import logging
 import interfaces
 import asyncio
-import states
 import cv2
 from cv2 import aruco
 import numpy as np
@@ -36,9 +35,9 @@ def main() -> None:
 async def autonomy_state_loop():
     while True:
         # Run the current state in the state machine (and handle enable/disable)
-        await states.state_machine.run()
+        await core.states.state_machine.run()
 
-        logger.debug(f"Current State: {states.state_machine.state}")
+        logger.debug(f"Current State: {core.states.state_machine.state}")
 
         # Core state machine runs every X ms, to prevent unecessarily fast computation
         # sensor data is processed seperately, as that is the bulk of processing time
