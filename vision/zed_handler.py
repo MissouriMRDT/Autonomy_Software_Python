@@ -38,6 +38,8 @@ class ZedHandler:
         self.depth_img = None
 
         # Create thread to constantly grab frames, and pass them to other processes to stream/save
+        self._stop = threading.Event()
+
         self.thread = threading.Thread(target=self.frame_grabber, args=())
 
     # Should this be a generator or a thread? Generator might help cuz I could schedule this in the ASYNC calls
@@ -60,7 +62,7 @@ class ZedHandler:
         runtime = sl.RuntimeParameters()
         runtime.sensing_mode = sl.SENSING_MODE.STANDARD
 
-        while True:
+        while not self._stop.is_set():
             err = self.zed.grab(runtime)
             if err == sl.ERROR_CODE.SUCCESS:
                 # Grab images, and grab the data as opencv/numpy matrix
@@ -96,7 +98,15 @@ class ZedHandler:
         '''
         Closes the zed camera as well as feed handler
         '''
+        # Set the threading event so we kill the thread
+        self._stop.set()
+        # Wait for the thread to join
+        self.thread.join()
+
+        # Now close the ZED camera
         self.zed.close()
+
+        # Close the feed handler as well
         self.feed_handler.close()
 
     def grab_point_cloud(self):

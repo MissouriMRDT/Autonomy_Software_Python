@@ -47,6 +47,10 @@ def main() -> None:
         parser.print_help()
         exit(1)
 
+    # Add the examples folder to our path so we can run example files
+    sys.path.insert(0, 'example/')
+
+    # Setup the logger, also pass-in optional logging level for console output
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
