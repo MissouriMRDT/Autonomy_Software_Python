@@ -5,8 +5,9 @@ import logging
 
 class NavBoard:
     """
-    Interface for the navboard, a seperate compute unit that provides GPS and IMU (Pitch/Yaw/Roll) data to the Autonomy system.
-    This interface collects and stores the data received from the navboard so it can be used elsewhere.
+    Interface for the navboard, a seperate compute unit that provides GPS and IMU
+    (Pitch/Yaw/Roll) data to the Autonomy system. This interface collects and stores the
+    data received from the navboard so it can be used elsewhere.
     """
 
     def __init__(self):
@@ -42,7 +43,10 @@ class NavBoard:
         self._location = core.constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarQuality = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        (
+            self._distToGround,
+            self._lidarQuality,
+        ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch
@@ -68,6 +72,6 @@ def main() -> None:
         time.sleep(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run main
     main()

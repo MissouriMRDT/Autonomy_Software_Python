@@ -24,14 +24,14 @@ class DriveBoard:
         self.disable()
 
     def calculate_move(self, speed, angle):
-        """ Speed: -1000 to 1000
-        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right """
+        """Speed: -1000 to 1000
+        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right"""
 
         speed_left = speed_right = speed
 
-        if(angle > 0):
+        if angle > 0:
             speed_right = speed_right * (1 - (angle / 180.0))
-        elif(angle < 0):
+        elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
         self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
@@ -44,7 +44,10 @@ class DriveBoard:
 
     def send_drive(self, target_left, target_right):
         # Write a drive packet (UDP)
-        core.rovecomm_node.write(core.RoveCommPacket(core.DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP), False)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP),
+            False,
+        )
 
     def disable(self):
         self.enabled = False
@@ -62,6 +65,6 @@ def main() -> None:
         print(left, right)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run main
     main()

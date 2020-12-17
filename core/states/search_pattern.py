@@ -17,7 +17,9 @@ class SearchPattern(RoverState):
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
 
-        self.logger.debug(f"Searching: Location ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]}) to Goal ({goal[0]}, {goal[1]})")
+        self.logger.debug(
+            f"Searching: Location ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]}) to Goal ({goal[0]}, {goal[1]})"
+        )
 
         # Call Track AR Tag code here
         found_tag = False
@@ -32,7 +34,10 @@ class SearchPattern(RoverState):
             self.logger.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
             # return core.states.ApproachingMarker()
 
-        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.constants.ApproachState.APPROACHING:
+        if (
+            algorithms.gps_navigate.get_approach_status(goal, current, start)
+            != core.constants.ApproachState.APPROACHING
+        ):
             interfaces.drive_board.send_drive(0, 0)
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up

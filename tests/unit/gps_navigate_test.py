@@ -4,15 +4,16 @@ from interfaces import drive_board, nav_board
 import algorithms.gps_navigate as gps_nav
 from unittest.mock import MagicMock
 
-'''
+"""
 UNIT TEST
 FILE: gps_navigate.py
 
 This file provides unit tests for both the get_approach_status and calculate_move()
-'''
+"""
 
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
+
 
 def setup_module(module):
     # Set up the test module by mocking the nav_board heading to be always 0
