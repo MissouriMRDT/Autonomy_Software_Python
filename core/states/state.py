@@ -7,8 +7,7 @@ class RoverState:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Starting state: {str(self)}")
+        pass
 
     async def run(self):
         pass

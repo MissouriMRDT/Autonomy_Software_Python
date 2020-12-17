@@ -14,6 +14,7 @@ class StateMachine(object):
         # Set shutdown and start flags
         self.enable_flag = False
         self.disable_flag = False
+        self.logger = logging.getLogger(__name__)
 
         # Add callbacks for autonomy controls
         core.rovecomm_node.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
@@ -35,7 +36,7 @@ class StateMachine(object):
             self.state = core.states.Idle()
             self.disable_flag = False
 
-        print(self.state)
+        self.logger.info(self.state)
 
         # Run the current state
         self.state = await self.state.run()
