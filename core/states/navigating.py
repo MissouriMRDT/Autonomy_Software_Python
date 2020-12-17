@@ -19,7 +19,7 @@ class Navigating(RoverState):
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
             return core.states.Idle()
 
-        goal, start = gps_data
+        goal, start = gps_data.data()
         current = interfaces.nav_board.location()
 
         self.logger.debug(f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}")
@@ -30,8 +30,7 @@ class Navigating(RoverState):
 
             # If there are more points, set the new one and start from top
             if core.waypoints.waypoints:
-                core.waypoints.set_gps_waypoint()
-                gps_data = core.waypoints.get_waypoint()
+                gps_data = core.waypoints.set_gps_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return core.states.Navigating()
 

@@ -1,11 +1,12 @@
 from core.rovecomm import RoveCommPacket
 import core
 import logging
+from logging.handlers import WatchedFileHandler
 from datetime import datetime
 import os
 
 
-class CsvHandler(logging.handlers.WatchedFileHandler):
+class CsvHandler(WatchedFileHandler):
 
     def __init__(self, filename, header, encoding=None, delay=False, new_file=False):
         """
@@ -23,7 +24,7 @@ class CsvHandler(logging.handlers.WatchedFileHandler):
             f = open(f'{filename[:-4]}-{timestamp}{filename[-4:]}', 'w')
             f.write(header + '\n')
             f.close()
-            logging.handlers.WatchedFileHandler.__init__(
+            WatchedFileHandler.__init__(
                 self,
                 f'{filename[:-4]}-{timestamp}{filename[-4:]}',
                 'a',
@@ -37,7 +38,7 @@ class CsvHandler(logging.handlers.WatchedFileHandler):
                 f = open(filename, 'w')
                 f.write(header + '\n')
                 f.close()
-            logging.handlers.WatchedFileHandler.__init__(self, filename, 'a', encoding, delay)
+            WatchedFileHandler.__init__(self, filename, 'a', encoding, delay)
 
 
 class RoveCommHandler(logging.Handler):

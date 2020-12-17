@@ -5,7 +5,7 @@ from interfaces import nav_board
 from algorithms.gps_navigate import GPSData
 
 # Module level variables
-waypoints = deque()
+waypoints: deque = deque()
 logger = logging.getLogger(__name__)
 gps_data = None
 
@@ -25,7 +25,7 @@ def clear_waypoints(packet_contents):
 def get_waypoint() -> GPSData:
     # Pop off a waypoint from the queue if there is currently none
     if gps_data is None:
-        set_gps_waypoint()
+        return set_gps_waypoint()
 
     return gps_data
 
@@ -46,3 +46,4 @@ def set_gps_waypoint():
     gps_data.goal = current_goal
 
     logger.info(f"Set Waypoint Target: lat ({current_goal[0]}), lon({current_goal[1]})")
+    return gps_data
