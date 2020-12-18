@@ -13,20 +13,31 @@ class Navigating(RoverState):
     on RED’s map.
     """
 
+    def on_event(self, event) -> RoverState:
+        """
+        Defines all transitions between states based on events
+        """
+        if event == core.NO_WAYPOINT:
+            return core.states.Idle()
+        elif event == core.REACHED_GPS_COORDINATE:
+            return core.states.SearchPattern()
+        elif event == core.NEW_WAYPOINT:
+            return core.states.Navigating()
+        else:
+            return core.states.Idle()
+
     async def run(self) -> RoverState:
+        """
+        Defines regular rover operation when under this state
+        """
+
         gps_data = core.waypoints.get_waypoint()
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
-            # Grab a new point
-            gps_data = core.waypoints.set_gps_waypoint()
-
-            # If the gps_data is still none, there were no waypoints to be grabbed,
-            # so log that and return
-            if gps_data is None:
-                self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
-                return core.states.Idle()
+            self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
+            return self.on_event(core.NO_WAYPOINT)
 
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
@@ -48,18 +59,17 @@ class Navigating(RoverState):
             if core.waypoints.waypoints:
                 gps_data = core.waypoints.set_gps_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
-                return core.states.Navigating()
-
+                return self.on_event(core.NEW_WAYPOINT)
             # Otherwise Trigger Search Pattern
             else:
                 # Stop all movement
-                interfaces.drive_board.send_drive(0, 0)
-
-                return core.states.SearchPattern()
+                interfaces.drive_board.stop()
+                return self.on_event(core.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(
             goal, interfaces.nav_board.location(), start, core.constants.DRIVE_POWER
         )
+
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
-        return core.states.Navigating()
+        return self

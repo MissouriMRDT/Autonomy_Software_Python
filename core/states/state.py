@@ -12,6 +12,9 @@ class RoverState:
     async def run(self):
         pass
 
+    def on_event(self, event):
+        pass
+
     def __str__(self):
         return self.__class__.__name__
 

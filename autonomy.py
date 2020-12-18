@@ -82,7 +82,7 @@ async def do_ar_tag():
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
-        if ret == True:
+        if ret is True:
             # apply some effects to make image easy to process
             # NOTE: good chance Aruco already done this
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

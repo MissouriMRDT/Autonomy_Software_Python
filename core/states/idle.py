@@ -8,6 +8,16 @@ class Idle(RoverState):
     Its singular purpose is to keep the python program running to receive and transmit rovecomm commands
     from base station that configure the next leg’s settings and confirm them.
     """
-    async def run(self):
-        # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
+
+    def on_event(self, event) -> RoverState:
+        """
+        Defines all transitions between states based on events
+        """
         return core.states.Idle()
+
+    async def run(self):
+        """
+        Defines regular rover operation when under this state
+        """
+        # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
+        return self

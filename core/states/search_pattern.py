@@ -11,7 +11,20 @@ class SearchPattern(RoverState):
     Coordinates before the last are simply the operators in base station’s best guess of the best path for the rover due to terrain identified on RED’s map.
     """
 
+    def on_event(self, event) -> RoverState:
+        """
+        Defines all transitions between states based on events
+        """
+        if event == core.MARKER_SIGHTED:
+            # return core.states.ApproachingMarker()
+            pass
+        else:
+            return core.states.Idle()
+
     async def run(self) -> RoverState:
+        """
+        Defines regular rover operation when under this state
+        """
         gps_data = core.waypoints.get_waypoint()
 
         goal, start = gps_data.data()
@@ -26,19 +39,19 @@ class SearchPattern(RoverState):
         center, radius = 0, 0
 
         if found_tag:
-            interfaces.drive_board.send_drive(0, 0)
+            interfaces.drive_board.stop()
 
             # Sleep for a brief second
             await asyncio.sleep(0.1)
 
             self.logger.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-            # return core.states.ApproachingMarker()
+            return self.on_event(core.MARKER_SIGHTED)
 
         if (
             algorithms.gps_navigate.get_approach_status(goal, current, start)
             != core.constants.ApproachState.APPROACHING
         ):
-            interfaces.drive_board.send_drive(0, 0)
+            interfaces.drive_board.stop()
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
             await asyncio.sleep(0.1)
@@ -54,4 +67,4 @@ class SearchPattern(RoverState):
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
 
-        return core.states.SearchPattern()
+        return self
