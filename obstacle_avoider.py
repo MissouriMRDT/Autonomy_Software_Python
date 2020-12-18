@@ -15,9 +15,16 @@ def get_relative_angle_subtract(angle, angle2):
     else: 
         return 360 + diff
 
+def get_relative_angle_add(angle, angle2):
+    diff = angle + angle2
+    if diff <= 360:
+        return diff
+    else:
+        return diff - 360
+
 def plan_avoidance_route(angle, distance):
     # Find point 2m to the right of our current location
-    right_2M_lat, right_2M_lon = coords_obstacle(2, nav_board.location()[0], nav_board.location()[1], get_relative_angle_subtract(angle, 90))
+    right_2M_lat, right_2M_lon = coords_obstacle(2, nav_board.location()[0], nav_board.location()[1], get_relative_angle_add(angle, 90))
 
     # Now find point 4m ahead of last point
     ahead_4X_lat, ahead_4X_lon = coords_obstacle(4*distance, right_2M_lat, right_2M_lon, angle)
