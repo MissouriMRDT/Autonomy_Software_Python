@@ -28,11 +28,11 @@ def get_approach_status(goal, location, start):
 
 def calculate_move(goal, location, start, speed=150):
     (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
-    print(target_distance)
+    #print(target_distance)
     if target_distance < 0.01:
         speed = 100
     goal_heading = target_heading
-    print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
+    #print("Current heading: " + str(nav_board.heading()) + ", Goal:" + str(goal_heading))
     return hh.get_motor_power_from_heading(speed, goal_heading)
 
      

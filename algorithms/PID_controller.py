@@ -48,7 +48,7 @@ class PIDcontroller:
                 error = error - self.wraparound
             elif error < -(self.wraparound / 2.0):
                 error = error + self.wraparound
-        print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
+        #print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
         self.accumulatedError += error * Ts
         self.accumulatedError = clamp(self.accumulatedError, -self.err_clamp, +self.err_clamp)
         if abs(error) < 2:

@@ -6,6 +6,33 @@ from interfaces import drive_board, nav_board
 from geopy import Point 
 from geopy.distance import distance, VincentyDistance
 import algorithms.geomath as geomath
+import matplotlib.pyplot as plt
+
+
+def get_relative_angle_subtract(angle, angle2):
+    diff = angle - angle2
+    if diff > 0:
+        return diff
+    else: 
+        return 360 + diff
+
+
+def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
+    bearing, radius = geomath.haversine(nav_board.location()[0], nav_board.location()[1], obstacle_lat, obstacle_lon)
+    radius *= 1000
+    points = []
+
+    increments = 4
+    angle_increments = 180 / increments
+    point_angle = get_relative_angle_subtract(angle, 180) + angle_increments
+    for i in range(increments):
+        print(i)
+        points.append(coords_obstacle(radius, obstacle_lat, obstacle_lon, point_angle))
+        point_angle += angle_increments
+    print(point_angle)
+
+    # return the GPS coordinates on our route
+    return points
 
 def main() -> None:
     '''
@@ -13,42 +40,48 @@ def main() -> None:
     '''
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
-    bearing, distance = algorithms.geomath.haversine(37.951424, -91.768959, 37.951524, -91.768100)
-
-    # Get gps coords of obstacle
-    obstacle_lat, obstacle_lon = coords_obstacle(distance, 37.5677, -91.7643, angle)
-
-
-def semicircle_point(distance, origin_lat, origin_lon, bearing):
-    radius = geomath.haversine(nav_board.location()[0], nav_board.location()[1], obstacle_lat, obstacle_lon)
     
-    increments = 8
+    points = []
 
-    for i in range(7):
-        new_lat, new_lon = new_coords(radius, nav_board.location()[0], nav_board.location()[1], 180 / increments)
+    # Finding the obstacle
+    angle, distance = obstacle_detection()
 
-    while (algorithms.gps_navigate.get_approach_status((new_lat, new_lon), nav_board.location(), one_meter_from_obstacle) == constants.ApproachState.APPROACHING)
+    # Saving our starting location
+    one_meter_from_obstacle = nav_board.location()
 
-            left, right = algorithms.gps_navigate.calculate_move((new_lat, new_lon), nav_board.location(), one_meter_from_obstacle, 250)
-            logger.debug(f"Navigating: Driving at ({left}, {right})")
-            core.rovecomm.write(drive_board.send_drive(left, right))
+    # find the gps coordinate of the obstacle
+    obstacle_lat, obstacle_lon = coords_obstacle(distance, nav_board.location()[0], nav_board.location()[1], angle)
+
+    points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
+    #points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
+    
+    
+    #plt.plot(*zip(*points))
+    #plt.show()
+
+    previous_loc = one_meter_from_obstacle
+
+    for point in points:
+        new_lat, new_lon = point
+        while (algorithms.gps_navigate.get_approach_status(core.constants.Coordinate(new_lat, new_lon), nav_board.location(), previous_loc) == core.constants.ApproachState.APPROACHING):
+                logger.info(f"Target coordinates: Lat: {new_lat}, Lon: {new_lon}")
+                left, right = algorithms.gps_navigate.calculate_move(core.constants.Coordinate(new_lat, new_lon), nav_board.location(), previous_loc, 250)
+                logger.debug(f"Navigating: Driving at ({left}, {right})")
+                core.rovecomm.write(drive_board.send_drive(left, right))
+
+        core.rovecomm.write(drive_board.send_drive(0, 0))
+        previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
 
-    # Test sending RoveComm packets
-    packet = core.RoveCommPacket(200, 'b', (1, 2), '')
-    packet.SetIp('127.0.0.1')
-    core.rovecomm.write(packet)
-
-    logger.info(f"Calculated bearing: {bearing}")
-    logger.info(f"Calculate distance: {distance}")
-
-    logger.info(f"Measured heading: {interfaces.nav_board.heading()}")
-
-def new_coords(distMeters, lat1, lon1, bearing):
+def coords_obstacle(distMeters, lat1, lon1, bearing):
     # given: lat1, lon1, bearing, distMiles
-    lat2, lon2 = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
-
+    destination = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
+    lat2, lon2 = destination.latitude, destination.longitude
     return (lat2, lon2)
+
+def obstacle_detection():
+    #returns angle, distance
+    return(nav_board.heading(), 1)
 
 if __name__ == "__main__":
     # Run main()
