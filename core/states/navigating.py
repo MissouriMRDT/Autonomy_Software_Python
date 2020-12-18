@@ -19,10 +19,19 @@ class Navigating(RoverState):
         """
         if event == core.NO_WAYPOINT:
             return core.states.Idle()
+
         elif event == core.REACHED_GPS_COORDINATE:
             return core.states.SearchPattern()
+
         elif event == core.NEW_WAYPOINT:
             return core.states.Navigating()
+
+        elif event == core.START:
+            return core.states.Navigating()
+
+        elif event == core.ABORT:
+            return core.states.Idle()
+
         else:
             return core.states.Idle()
 

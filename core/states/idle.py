@@ -13,7 +13,14 @@ class Idle(RoverState):
         """
         Defines all transitions between states based on events
         """
-        return core.states.Idle()
+        if event == core.START:
+            return core.states.Navigating()
+
+        elif event == core.ABORT:
+            return core.states.Idle()
+
+        else:
+            return core.states.Idle()
 
     async def run(self):
         """

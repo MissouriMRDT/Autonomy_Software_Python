@@ -27,13 +27,13 @@ class StateMachine(object):
         self.disable_flag = True
 
     async def run(self):
-        # Handle transitions into Idle and Navigating states
+        # Handle transitions for enabling/disabling
         if self.enable_flag is True:
-            self.state = core.states.Navigating()
+            self.state = self.state.on_event(core.START)
             self.enable_flag = False
 
         elif self.disable_flag is True:
-            self.state = core.states.Idle()
+            self.state = self.state.on_event(core.ABORT)
             self.disable_flag = False
 
         self.logger.info(self.state)

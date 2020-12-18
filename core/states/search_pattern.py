@@ -18,6 +18,13 @@ class SearchPattern(RoverState):
         if event == core.MARKER_SIGHTED:
             # return core.states.ApproachingMarker()
             pass
+
+        elif event == core.START:
+            return core.states.SearchPattern()
+
+        elif event == core.ABORT:
+            return core.states.Idle()
+
         else:
             return core.states.Idle()
 
