@@ -22,7 +22,7 @@ def main() -> None:
     # find the gps coordinate 2m to the right of our initial location
     new_lat, new_lon = coords_obstacle(2, nav_board.location()[0], nav_board.location()[1], 90)
 
-    while (algorithms.gps_navigate.get_approach_status((new_lat, new_lon), nav_board.location(), one_meter_from_obstacle) == constants.ApproachState.APPROACHING)
+    while (algorithms.gps_navigate.get_approach_status((new_lat, new_lon), nav_board.location(), one_meter_from_obstacle) == constants.ApproachState.APPROACHING):
 
             left, right = algorithms.gps_navigate.calculate_move((new_lat, new_lon), nav_board.location(), one_meter_from_obstacle, 250)
             logger.debug(f"Navigating: Driving at ({left}, {right})")
@@ -33,7 +33,7 @@ def main() -> None:
     # Drive past the obstacle
     new_lat2, new_lon2 = coords_obstacle(4*distance, nav_board.location()[0], nav_board.location()[1], 0)
 
-    while (algorithms.gps_navigate.get_approach_status((new_lat2, new_lon2), nav_board.location(), (new_lat, new_lon) == constants.ApproachState.APPROACHING))
+    while (algorithms.gps_navigate.get_approach_status((new_lat2, new_lon2), nav_board.location(), (new_lat, new_lon) == constants.ApproachState.APPROACHING)):
 
         left, right = algorithms.gps_navigate.calculate_move((new_lat2, new_lon2), nav_board.location(), (new_lat, new_lon), 250)
         logger.debug(f"Navigating: Driving at ({left}, {right})") 
@@ -44,7 +44,7 @@ def main() -> None:
     # Go back to path
     new_lat3, new_lon3 = coords_obstacle(2, nav_board.location()[0], nav_board.location()[1], 270)
 
-    while (algorithms.gps_navigate.get_approach_status((new_lat3, new_lon3), nav_board.location(), (new_lat2, new_lon3) == constants.ApproachState.APPROACHING))
+    while (algorithms.gps_navigate.get_approach_status((new_lat3, new_lon3), nav_board.location(), (new_lat2, new_lon3) == constants.ApproachState.APPROACHING)):
         left, right = algorithms.gps_navigate.calculate_move((new_lat3, new_lon3), nav_board.location(), (new_lat2, new_lon2), 250)
         logger.debug(f"Navigating: Driving at ({left}, {right})") 
         core.rovecomm.write(drive_board.send_drive(left, right))
