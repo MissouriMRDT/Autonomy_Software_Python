@@ -49,6 +49,13 @@ class DriveBoard:
             False,
         )
 
+    def stop(self):
+        # Write a drive packet of 0s (to stop)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP),
+            False,
+        )
+
     def disable(self):
         self.enabled = False
 
