@@ -51,6 +51,9 @@ def main() -> None:
     # Add the examples folder to our path so we can run example files
     sys.path.insert(0, "example/")
 
+    # Add the unit test folder to our path so we can run tests
+    sys.path.insert(0, "tests/unit/")
+
     # Setup the logger, also pass-in optional logging level for console output
     logger = setup_logger(level)
 
