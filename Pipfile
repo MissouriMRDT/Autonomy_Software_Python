@@ -15,6 +15,9 @@ pytest-cov = "*"
 matplotlib = "*"
 pyyaml = "*"
 pyfakewebcam = "*"
+gmplot = "*"
+osmviz = "*"
+pygame = "*"
 
 [packages]
 numpy = "*"
