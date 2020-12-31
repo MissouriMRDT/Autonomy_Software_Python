@@ -1,5 +1,5 @@
 from core.states.state import RoverState
-from core.states.rover_states import StateMachine
+from core.states.state_machine import StateMachine
 from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating

@@ -1,3 +1,4 @@
+import asyncio
 import core
 import interfaces
 import algorithms
@@ -13,22 +14,44 @@ class ApproachingMarker(RoverState):
     on RED’s map.
     """
 
+    def start(self):
+        loop = asyncio.get_event_loop()
+
+        # Schedule AR Tag detection
+        self.ar_tag_task = loop.create_task()
+
+    def exit(self):
+        # Cancel all state specific tasks
+        self.ar_tag_task.cancel()
+
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
         """
+        state: RoverState = None
+
         if event == core.AutonomyEvents.REACHED_MARKER:
-            return core.states.Idle()
+            state = core.states.Idle()
 
         elif event == core.AutonomyEvents.START:
-            return core.states.ApproachingMarker()
+            state = self
+
+        elif event == core.AutonomyEvents.MARKER_UNSEEN:
+            state = core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.ABORT:
-            return core.states.Idle()
+            state = core.states.Idle()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
-            return core.states.Idle()
+            state = core.states.Idle()
+
+        # Call exit() if we are not staying the same state
+        if state != self:
+            self.exit()
+
+        # Return the state appropriate for the event
+        return state
 
     async def run(self) -> RoverState:
         # Call AR Tag tracking code to find position and size of AR Tag
@@ -40,8 +63,9 @@ class ApproachingMarker(RoverState):
         if ball_in_frame:
             (left, right), distance = algorithms.follow_marker.drive_to_marker(75, center, radius)
             self.logger.info("Marker in frame")
+
             if distance < 0.5:
-                interfaces.drive_board.send_drive(0, 0)
+                interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
 

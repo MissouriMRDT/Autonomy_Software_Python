@@ -1,6 +1,5 @@
 import core
 import logging
-from enum import Enum
 
 
 class StateMachine(object):

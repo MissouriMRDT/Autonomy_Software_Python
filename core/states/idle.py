@@ -9,23 +9,38 @@ class Idle(RoverState):
     from base station that configure the next leg’s settings and confirm them.
     """
 
+    def start(self):
+        self.logger.info("Starting")
+
+    def exit(self):
+        self.logger.info("Exiting")
+
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
         """
+        state: RoverState = None
+
         if event == core.AutonomyEvents.START:
-            return core.states.Navigating()
+            state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
-            return core.states.Idle()
+            state = self
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
-            return core.states.Idle()
+            state = self
+
+        # Call exit() if we are not staying the same state
+        if state != self:
+            self.exit()
+
+        # Return the state appropriate for the event
+        return state
 
     async def run(self):
         """
         Defines regular rover operation when under this state
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
-        return self
+        return self.on_event(core.AutonomyEvents.ALL_MARKERS_REACHED)

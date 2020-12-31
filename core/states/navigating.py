@@ -17,24 +17,33 @@ class Navigating(RoverState):
         """
         Defines all transitions between states based on events
         """
+        state: RoverState = None
+
         if event == core.AutonomyEvents.NO_WAYPOINT:
-            return core.states.Idle()
+            state = core.states.Idle()
 
         elif event == core.AutonomyEvents.REACHED_GPS_COORDINATE:
-            return core.states.SearchPattern()
+            state = core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.NEW_WAYPOINT:
-            return core.states.Navigating()
+            state = self
 
         elif event == core.AutonomyEvents.START:
-            return core.states.Navigating()
+            state = self
 
         elif event == core.AutonomyEvents.ABORT:
-            return core.states.Idle()
+            state = core.states.Idle()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
-            return core.states.Idle()
+            state = core.states.Idle()
+
+        # Call exit() if we are not staying the same state
+        if state != self:
+            self.exit()
+
+        # Return the state appropriate for the event
+        return state
 
     async def run(self) -> RoverState:
         """
@@ -70,6 +79,7 @@ class Navigating(RoverState):
                 gps_data = core.waypoint_handler.set_gps_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
+
             # Otherwise Trigger Search Pattern
             else:
                 # Stop all movement

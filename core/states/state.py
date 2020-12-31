@@ -9,10 +9,19 @@ class RoverState:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
+        # Call start(), use to schedule tasks
+        self.start()
+
     async def run(self):
         pass
 
     def on_event(self, event):
+        pass
+
+    def start(self):
+        pass
+
+    def exit(self):
         pass
 
     def __str__(self):
