@@ -26,13 +26,14 @@ class SearchPattern(RoverState):
             return core.states.Idle()
 
         else:
+            self.logger.error(f"Unexpected event {event} for state {self}")
             return core.states.Idle()
 
     async def run(self) -> RoverState:
         """
         Defines regular rover operation when under this state
         """
-        gps_data = core.waypoints.get_waypoint()
+        gps_data = core.waypoint_handler.get_waypoint()
 
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
@@ -41,7 +42,7 @@ class SearchPattern(RoverState):
             f"Searching: Location ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]}) to Goal ({goal[0]}, {goal[1]})"
         )
 
-        # Call Track AR Tag code here
+        # Check to see if AR Tag was detected
         found_tag = False
         center, radius = 0, 0
 
@@ -65,7 +66,7 @@ class SearchPattern(RoverState):
 
             # Find and set the next goal in the search pattern
             goal = algorithms.marker_search.calculate_next_coordinate(start, goal)
-            core.waypoints.set_goal(goal)
+            core.waypoint_handler.set_goal(goal)
 
             self.logger.info(f"Searching: Adding New Waypoint ({goal[0]}, {goal[1]}")
 

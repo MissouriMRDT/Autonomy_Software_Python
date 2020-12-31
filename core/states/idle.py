@@ -20,6 +20,7 @@ class Idle(RoverState):
             return core.states.Idle()
 
         else:
+            self.logger.error(f"Unexpected event {event} for state {self}")
             return core.states.Idle()
 
     async def run(self):

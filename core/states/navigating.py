@@ -33,6 +33,7 @@ class Navigating(RoverState):
             return core.states.Idle()
 
         else:
+            self.logger.error(f"Unexpected event {event} for state {self}")
             return core.states.Idle()
 
     async def run(self) -> RoverState:
@@ -40,7 +41,7 @@ class Navigating(RoverState):
         Defines regular rover operation when under this state
         """
 
-        gps_data = core.waypoints.get_waypoint()
+        gps_data = core.waypoint_handler.get_waypoint()
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
@@ -65,8 +66,8 @@ class Navigating(RoverState):
             )
 
             # If there are more points, set the new one and start from top
-            if core.waypoints.waypoints:
-                gps_data = core.waypoints.set_gps_waypoint()
+            if not core.waypoint_handler.is_empty:
+                gps_data = core.waypoint_handler.set_gps_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return self.on_event(core.NEW_WAYPOINT)
             # Otherwise Trigger Search Pattern
