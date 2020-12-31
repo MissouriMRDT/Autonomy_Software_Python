@@ -10,4 +10,4 @@ from core.states import AutonomyEvents
 rovecomm_node: RoveComm
 
 # Waypoint handler
-waypoint_handler: WaypointHandler = WaypointHandler()
+waypoint_handler: WaypointHandler

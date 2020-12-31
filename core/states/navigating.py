@@ -17,19 +17,19 @@ class Navigating(RoverState):
         """
         Defines all transitions between states based on events
         """
-        if event == core.NO_WAYPOINT:
+        if event == core.AutonomyEvents.NO_WAYPOINT:
             return core.states.Idle()
 
-        elif event == core.REACHED_GPS_COORDINATE:
+        elif event == core.AutonomyEvents.REACHED_GPS_COORDINATE:
             return core.states.SearchPattern()
 
-        elif event == core.NEW_WAYPOINT:
+        elif event == core.AutonomyEvents.NEW_WAYPOINT:
             return core.states.Navigating()
 
-        elif event == core.START:
-            return core.states.Navigating()
+        elif event == core.AutonomyEvents.START:
+            return self
 
-        elif event == core.ABORT:
+        elif event == core.AutonomyEvents.ABORT:
             return core.states.Idle()
 
         else:
@@ -47,7 +47,7 @@ class Navigating(RoverState):
         # so log that and return
         if gps_data is None:
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
-            return self.on_event(core.NO_WAYPOINT)
+            return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
 
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
@@ -69,12 +69,12 @@ class Navigating(RoverState):
             if not core.waypoint_handler.is_empty:
                 gps_data = core.waypoint_handler.set_gps_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
-                return self.on_event(core.NEW_WAYPOINT)
+                return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
             # Otherwise Trigger Search Pattern
             else:
                 # Stop all movement
                 interfaces.drive_board.stop()
-                return self.on_event(core.REACHED_GPS_COORDINATE)
+                return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(
             goal, interfaces.nav_board.location(), start, core.constants.DRIVE_POWER

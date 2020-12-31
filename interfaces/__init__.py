@@ -5,3 +5,11 @@ from interfaces.nav_board import NavBoard
 drive_board: DriveBoard
 nav_board: NavBoard
 
+
+def setup():
+    """
+    Sets up all of the interfaces
+    """
+    global drive_board, nav_board
+    drive_board = DriveBoard()
+    nav_board = NavBoard()

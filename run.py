@@ -63,16 +63,18 @@ def main() -> None:
     # Initialize the state machine
     core.states.state_machine = core.states.StateMachine()
 
+    # Initialize the waypoint handler
+    core.waypoint_handler = core.WaypointHandler()
+
     # Initialize the ZED handler
     # vision.camera_handler = vision.ZedHandler()
     # vision.camera_handler.start()
 
     # Initialize the Interfaces
-    interfaces.drive_board = interfaces.DriveBoard()
-    interfaces.nav_board = interfaces.NavBoard()
+    interfaces.setup()
 
     # Sleep so everything can be set up
-    time.sleep(1)
+    time.sleep(0.1)
 
     try:
         # Remove .py and directly import module

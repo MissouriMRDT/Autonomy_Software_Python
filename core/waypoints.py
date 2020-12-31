@@ -1,17 +1,17 @@
 import logging
 import core
 from collections import deque
-from interfaces import nav_board
+import interfaces
 
 
 class WaypointHandler:
     def __init__(self):
         # Class variables
         self.waypoints: deque = deque()
-        self.gps_data: constants.GPSData = None
+        self.gps_data: core.constants.GPSData = None
 
-        core.rovecomm_node.set_callback(core.ADD_WAYPOINT, self.add_waypoint)
-        core.rovecomm_node.set_callback(core.CLEAR_WAYPOINTS, self.clear_waypoints)
+        core.rovecomm_node.set_callback(core.ADD_WAYPOINT_ID, self.add_waypoint)
+        core.rovecomm_node.set_callback(core.CLEAR_WAYPOINTS_ID, self.clear_waypoints)
 
         self.logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class WaypointHandler:
         Adds the data from the packet (expects lon, lat) to the waypoints deque
         """
         longitude, latitude = packet.data
-        waypoint = constants.Coordinate(latitude, longitude)
+        waypoint = core.constants.Coordinate(latitude, longitude)
         self.waypoints.append(waypoint)
         self.logger.info(f"Added Waypoint: lat ({latitude}), lon({longitude})")
 
@@ -56,23 +56,28 @@ class WaypointHandler:
         self.gps_data.start = start
 
     def is_empty(self) -> bool:
-        """"
+        """
         Returns true if there are more waypoints in the deque
-        """"
+        """
         if self.waypoints:
             return True
         else:
             return False
 
     def get_new_waypoint(self) -> core.constants.GPSData:
-        """"
+        """
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
-        """"
+        """
         gps_data = core.constants.GPSData()
-        gps_data.start = nav_board.location()
+        gps_data.start = interfaces.nav_board.location()
 
-        current_goal = self.waypoints.popleft()
+        try:
+            current_goal = self.waypoints.popleft()
+        except IndexError:
+            self.logger.error("Tried popping waypoint from empty deque")
+            return None
+
         gps_data.goal = current_goal
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal[0]}), lon({current_goal[1]})")

@@ -15,14 +15,14 @@ class SearchPattern(RoverState):
         """
         Defines all transitions between states based on events
         """
-        if event == core.MARKER_SIGHTED:
+        if event == core.AutonomyEvents.MARKER_SIGHTED:
             # return core.states.ApproachingMarker()
             pass
 
-        elif event == core.START:
-            return core.states.SearchPattern()
+        elif event == core.AutonomyEvents.START:
+            return self
 
-        elif event == core.ABORT:
+        elif event == core.AutonomyEvents.ABORT:
             return core.states.Idle()
 
         else:
@@ -43,6 +43,7 @@ class SearchPattern(RoverState):
         )
 
         # Check to see if AR Tag was detected
+        # TODO: hook this up to actual tracking code
         found_tag = False
         center, radius = 0, 0
 
@@ -53,7 +54,7 @@ class SearchPattern(RoverState):
             await asyncio.sleep(0.1)
 
             self.logger.info("Marker seen at %s with r=%i, locking on..." % (center, radius))
-            return self.on_event(core.MARKER_SIGHTED)
+            return self.on_event(core.AutonomyEvents.MARKER_SIGHTED)
 
         if (
             algorithms.gps_navigate.get_approach_status(goal, current, start)

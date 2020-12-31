@@ -20,10 +20,10 @@ class StateMachine(object):
         core.rovecomm_node.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
         core.rovecomm_node.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
 
-    def enable(self):
+    def enable(self, packet):
         self.enable_flag = True
 
-    def disable(self):
+    def disable(self, packet):
         self.disable_flag = True
 
     async def run(self):
