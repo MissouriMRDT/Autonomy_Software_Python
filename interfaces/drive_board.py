@@ -30,17 +30,16 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(
-            clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER)
-        )
-        self._targetSpdRight = int(
-            clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER)
-        )
+        self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
         return 0, 0
 
     def send_drive(self, target_left, target_right):
+        """
+        Sends a rovecomm packet with the specified drive speed
+        """
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
@@ -53,24 +52,11 @@ class DriveBoard:
         )
 
     def stop(self):
+        """
+        Sends a rovecomm packet with a 0, 0 to indicate full stop
+        """
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
-            core.RoveCommPacket(
-                core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP
-            ),
+            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP),
             False,
         )
-
-
-def main() -> None:
-    motors = DriveBoard()
-    motors.enable()
-    for i in range(-180, 181):
-        left, right = motors.calculate_move(100, i)
-        motors.send_drive(left, right)
-        print(left, right)
-
-
-if __name__ == "__main__":
-    # Run main
-    main()
