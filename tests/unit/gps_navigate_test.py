@@ -66,7 +66,6 @@ def test_calculate_move_right():
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.0025)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the right
@@ -80,7 +79,6 @@ def test_calculate_move_left():
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.0025)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the left
@@ -94,7 +92,6 @@ def test_calculate_move_straight():
     goal_coord = constants.Coordinate(rolla_coord.lat + 0.0004, rolla_coord.lon)
     current_coord = constants.Coordinate(rolla_coord.lat + 0.0002, rolla_coord.lon)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should not have to turn
