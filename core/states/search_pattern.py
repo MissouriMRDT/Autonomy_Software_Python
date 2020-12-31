@@ -16,11 +16,10 @@ class SearchPattern(RoverState):
         Defines all transitions between states based on events
         """
         if event == core.AutonomyEvents.MARKER_SIGHTED:
-            # return core.states.ApproachingMarker()
-            pass
+            return core.states.ApproachingMarker()
 
         elif event == core.AutonomyEvents.START:
-            return self
+            return core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.ABORT:
             return core.states.Idle()

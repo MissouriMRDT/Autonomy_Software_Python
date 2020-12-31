@@ -3,6 +3,7 @@ from core.states.rover_states import StateMachine
 from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
+from core.states.approaching_marker import ApproachingMarker
 from enum import Enum
 
 # State Machine handler, takes care of running states and enabling/disabling autonomy

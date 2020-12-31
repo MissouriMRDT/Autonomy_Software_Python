@@ -27,7 +27,7 @@ class Navigating(RoverState):
             return core.states.Navigating()
 
         elif event == core.AutonomyEvents.START:
-            return self
+            return core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
             return core.states.Idle()

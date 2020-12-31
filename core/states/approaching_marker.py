@@ -21,7 +21,7 @@ class ApproachingMarker(RoverState):
             return core.states.Idle()
 
         elif event == core.AutonomyEvents.START:
-            return self
+            return core.states.ApproachingMarker()
 
         elif event == core.AutonomyEvents.ABORT:
             return core.states.Idle()
