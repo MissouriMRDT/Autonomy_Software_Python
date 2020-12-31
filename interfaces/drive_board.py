@@ -1,3 +1,4 @@
+from typing import Tuple
 import core
 import logging
 import core.constants as constants
@@ -14,16 +15,11 @@ class DriveBoard:
     """
 
     def __init__(self):
-
         self._targetSpdLeft = 0
         self._targetSpdRight = 0
-        self.enabled = False
         self.logger = logging.getLogger(__name__)
 
-    def __del__(self):
-        self.disable()
-
-    def calculate_move(self, speed, angle):
+    def calculate_move(self, speed, angle) -> Tuple[int, int]:
         """Speed: -1000 to 1000
         Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right"""
 
@@ -34,33 +30,36 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self._targetSpdLeft = int(
+            clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER)
+        )
+        self._targetSpdRight = int(
+            clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER)
+        )
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
-        if self.enabled:
-            return self._targetSpdLeft, self._targetSpdRight
         return 0, 0
 
     def send_drive(self, target_left, target_right):
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
-            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (target_left, target_right), ip_octet_4=core.DRIVE_BOARD_IP),
+            core.RoveCommPacket(
+                core.DRIVE_DATA_ID,
+                "h",
+                (target_left, target_right),
+                ip_octet_4=core.DRIVE_BOARD_IP,
+            ),
             False,
         )
 
     def stop(self):
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
-            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP),
+            core.RoveCommPacket(
+                core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP
+            ),
             False,
         )
-
-    def disable(self):
-        self.enabled = False
-
-    def enable(self):
-        self.enabled = True
 
 
 def main() -> None:
