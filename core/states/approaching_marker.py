@@ -39,31 +39,21 @@ class ApproachingMarker(RoverState):
 
         if ball_in_frame:
             (left, right), distance = algorithms.follow_marker.drive_to_marker(75, center, radius)
-            self.logger.debug("Ball in frame")
+            self.logger.info("Marker in frame")
             if distance < 0.5:
                 interfaces.drive_board.send_drive(0, 0)
 
                 self.logger.info("Reached Marker")
 
-                # TODO: Add support for
-
+                # TODO: Add support for notifying (with LEDs) that we have reached marker
                 # core.notify.notify_finish()
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
-                print("Driving To: " + str(left) + ", " + str(right))
-                Logger.write_line(
-                    time.strftime("%H%M%S")
-                    + " ApproachingMarker: Not reached marker, driving to "
-                    + str(left)
-                    + ","
-                    + str(right)
-                )
-                rovecomm_node.write(drive.send_drive(left, right))
+                self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
+                interfaces.drive_board.send_drive(left, right)
 
-        else:  # commented for testing, remove the commenting for running.
-            state_switcher.handle_event(rs.AutonomyEvents.MARKER_UNSEEN, rs.ApproachingMarker())
-            Logger.write_line(
-                time.strftime("%H%M%S") + " ApproachingMarker: lost sight of marker, returning to Searching()"
-            )
-            print("Throwing MARKER_UNSEEN")
+        else:
+            self.logger.info("Lost sign of marker, returning to Search Pattern")
+            return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
+
         return self
