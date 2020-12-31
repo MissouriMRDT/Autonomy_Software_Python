@@ -17,7 +17,7 @@ class ApproachingMarker(RoverState):
     def start(self):
         loop = asyncio.get_event_loop()
 
-        # Schedule AR Tag detection
+        # TODO: Schedule AR Tag detection
         self.ar_tag_task = loop.create_task()
 
     def exit(self):

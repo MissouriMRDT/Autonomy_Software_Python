@@ -9,12 +9,6 @@ class Idle(RoverState):
     from base station that configure the next leg’s settings and confirm them.
     """
 
-    def start(self):
-        self.logger.info("Starting")
-
-    def exit(self):
-        self.logger.info("Exiting")
-
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
