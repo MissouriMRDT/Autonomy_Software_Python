@@ -34,7 +34,7 @@ class DriveBoard:
         self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
-        return 0, 0
+        return self._targetSpdLeft, self._targetSpdRight
 
     def send_drive(self, target_left, target_right):
         """
