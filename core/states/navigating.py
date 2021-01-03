@@ -1,3 +1,4 @@
+from core.waypoints import WaypointHandler
 import core
 import interfaces
 import algorithms
@@ -75,8 +76,8 @@ class Navigating(RoverState):
             )
 
             # If there are more points, set the new one and start from top
-            if not core.waypoint_handler.is_empty:
-                gps_data = core.waypoint_handler.set_gps_waypoint()
+            if not core.waypoint_handler.is_empty():
+                gps_data = core.waypoint_handler.get_new_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
@@ -84,6 +85,11 @@ class Navigating(RoverState):
             else:
                 # Stop all movement
                 interfaces.drive_board.stop()
+
+                # Set goal and start to current location
+                core.waypoint_handler.set_goal(interfaces.nav_board.location())
+                core.waypoint_handler.set_start(interfaces.nav_board.location())
+
                 return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(

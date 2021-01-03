@@ -37,4 +37,4 @@ class Idle(RoverState):
         Defines regular rover operation when under this state
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
-        return self.on_event(core.AutonomyEvents.ALL_MARKERS_REACHED)
+        return self

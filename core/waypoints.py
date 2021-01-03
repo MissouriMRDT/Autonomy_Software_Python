@@ -19,7 +19,7 @@ class WaypointHandler:
         """
         Adds the data from the packet (expects lon, lat) to the waypoints deque
         """
-        longitude, latitude = packet.data
+        latitude, longitude = packet.data
         waypoint = core.constants.Coordinate(latitude, longitude)
         self.waypoints.append(waypoint)
         self.logger.info(f"Added Waypoint: lat ({latitude}), lon({longitude})")
@@ -60,17 +60,17 @@ class WaypointHandler:
         Returns true if there are more waypoints in the deque
         """
         if self.waypoints:
-            return True
-        else:
             return False
+        else:
+            return True
 
     def get_new_waypoint(self) -> core.constants.GPSData:
         """
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
         """
-        gps_data = core.constants.GPSData()
-        gps_data.start = interfaces.nav_board.location()
+        self.gps_data = core.constants.GPSData()
+        self.gps_data.start = interfaces.nav_board.location()
 
         try:
             current_goal = self.waypoints.popleft()
@@ -78,7 +78,7 @@ class WaypointHandler:
             self.logger.error("Tried popping waypoint from empty deque")
             return None
 
-        gps_data.goal = current_goal
+        self.gps_data.goal = current_goal
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal[0]}), lon({current_goal[1]})")
-        return gps_data
+        return self.gps_data

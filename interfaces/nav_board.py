@@ -22,7 +22,6 @@ class NavBoard:
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
 
-        self.logger = logging.getLogger(__name__)
         core.rovecomm_node.udp_node.subscribe(core.NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
@@ -32,6 +31,7 @@ class NavBoard:
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
+        self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's

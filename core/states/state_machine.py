@@ -28,14 +28,12 @@ class StateMachine(object):
     async def run(self):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:
-            self.state = self.state.on_event(core.START)
+            self.state = self.state.on_event(core.AutonomyEvents.START)
             self.enable_flag = False
 
         elif self.disable_flag is True:
-            self.state = self.state.on_event(core.ABORT)
+            self.state = self.state.on_event(core.AutonomyEvents.ABORT)
             self.disable_flag = False
-
-        self.logger.info(self.state)
 
         # Run the current state
         self.state = await self.state.run()
