@@ -4,8 +4,7 @@ import logging.config
 import yaml
 import core
 import interfaces
-
-# import vision
+import vision
 import importlib
 import os
 import sys
@@ -43,6 +42,9 @@ def main() -> None:
     # Optional parameter to set logging level
     parser.add_argument("--level", choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
 
+    # Optional parameter to set the vision system to use
+    parser.add_argument("--vision", choices=["ZED", "SIM", "WEBCAM"], default="ZED")
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -66,9 +68,8 @@ def main() -> None:
     # Initialize the waypoint handler
     core.waypoint_handler = core.WaypointHandler()
 
-    # Initialize the ZED handler
-    # vision.camera_handler = vision.ZedHandler()
-    # vision.camera_handler.start()
+    # Initialize the vision components
+    vision.setup(args.vision)
 
     # Initialize the Interfaces
     interfaces.setup()

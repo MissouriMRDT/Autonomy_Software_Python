@@ -1,4 +1,5 @@
 import pyzed.sl as sl
+import logging
 from vision.feed_handler import FeedHandler
 import threading
 
@@ -12,6 +13,7 @@ class ZedHandler:
         # Create a ZED camera object
         self.zed = sl.Camera()
         self.feed_handler = FeedHandler()
+        self.logger = logging.getLogger(__name__)
 
         # Set configuration parameters
         self.input_type = sl.InputType()
@@ -92,6 +94,7 @@ class ZedHandler:
         for new frames
         """
         self.thread.start()
+        self.logger.info("Starting ZED capture")
 
     def close(self):
         """
@@ -107,6 +110,8 @@ class ZedHandler:
 
         # Close the feed handler as well
         self.feed_handler.close()
+
+        self.logger.info("Closing ZED capture")
 
     def grab_point_cloud(self):
         """
