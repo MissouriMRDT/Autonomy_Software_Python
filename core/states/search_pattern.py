@@ -23,6 +23,9 @@ class SearchPattern(RoverState):
         elif event == core.AutonomyEvents.START:
             state = self
 
+        elif event == core.AutonomyEvents.SEARCH_FAILED:
+            state = core.states.Idle()
+
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
 

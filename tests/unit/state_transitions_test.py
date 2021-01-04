@@ -1,0 +1,100 @@
+import pandas as pd
+import core.states
+
+
+"""
+UNIT TEST
+FILES: core/states/
+
+This file provides unit tests for state transitions for all states in core/states/
+
+If issues are encountered:
+Double check to make sure docs/state_machine_matrix.csv is up-to-date.
+
+Added a new state? Make sure to define the string mapping in state_string_to_class()
+
+Added a new event? Make sure to update the state machine matrix csv. If the number of
+events is not correct, it will cause issues.
+"""
+
+df = None
+autonomy_events = None
+path_to_csv = "docs/state_machine_matrix.csv"
+
+
+def state_string_to_class(state_str: str) -> core.states.RoverState:
+    """
+    Utility function to return a RoverState based on string in csv matrix
+    Parameters:
+        state_str (string)
+
+    Returns:
+        state (RoverState)
+    """
+    if state_str == "Idle":
+        return core.states.Idle()
+    elif state_str == "Navigating":
+        return core.states.Navigating()
+    elif state_str == "SearchPattern":
+        return core.states.SearchPattern()
+    elif state_str == "ApproachingMarker":
+        return core.states.ApproachingMarker()
+    else:
+        # Blank transitions are unexpected, and therefore cause the transition back to
+        # Idle
+        return core.states.Idle()
+
+
+def setup_module(module):
+    global df, autonomy_events
+
+    df = pd.read_csv("docs/state_machine_matrix.csv")
+    autonomy_events = df["Events"].unique()
+
+
+def test_idle_transitions():
+    # All the transitions for Idle()
+    idle_transitions = df["Idle"]
+
+    # Test each of the possible transitions for the IDle state individually
+    for i in range(len(idle_transitions)):
+        # Default state to Idle
+        state = core.states.Idle()
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(idle_transitions[i])
+
+
+def test_navigating_transitions():
+    # All the transitions for Navigating()
+    navigating_transitions = df["Navigating"]
+
+    # Test each of the possible transitions for the Navigating state individually
+    for i in range(len(navigating_transitions)):
+        # Default state to Navigating
+        state = core.states.Navigating()
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(navigating_transitions[i])
+
+
+def test_search_pattern_transitions():
+    # All the transitions for SearchPattern()
+    search_pattern_transitions = df["SearchPattern"]
+
+    # Test each of the possible transitions for the Navigating state individually
+    for i in range(len(search_pattern_transitions)):
+        # Default state to Search Pattern
+        state = core.states.SearchPattern()
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
+            search_pattern_transitions[i]
+        )
+
+
+def test_approaching_marker_transitions():
+    # All the transitions for ApproachingMarker()
+    approaching_marker_transitions = df["ApproachingMarker"]
+
+    # Test each of the possible transitions for the Navigating state individually
+    for i in range(len(approaching_marker_transitions)):
+        # Default state to ApproachingMarker
+        state = core.states.ApproachingMarker()
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
+            approaching_marker_transitions[i]
+        )
