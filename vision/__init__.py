@@ -19,3 +19,13 @@ def setup(type="ZED"):
     else:
         # TODO: Initialize a regular webcam here
         pass
+
+
+def close(type="ZED"):
+    """
+    Closes any handlers initialized in the vision subsystem
+    """
+    if type == "ZED":
+        vision.camera_handler.close()
+    else:
+        pass

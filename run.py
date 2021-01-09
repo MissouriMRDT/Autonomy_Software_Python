@@ -43,7 +43,11 @@ def main() -> None:
     parser.add_argument("--level", choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
 
     # Optional parameter to set the vision system to use
-    parser.add_argument("--vision", choices=["ZED", "SIM", "WEBCAM"], default="ZED")
+    parser.add_argument("--vision", choices=["ZED", "NONE", "WEBCAM"], default="ZED")
+
+    # Optional parameter to set the mode of operation:
+    # Regular (on rover) or Sim (using the autonomy simulator)
+    parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
 
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
@@ -62,11 +66,8 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
-    # Initialize the state machine
-    core.states.state_machine = core.states.StateMachine()
-
-    # Initialize the waypoint handler
-    core.waypoint_handler = core.WaypointHandler()
+    # Initialize the core handlers (excluding RoveComm)
+    core.setup()
 
     # Initialize the vision components
     vision.setup(args.vision)
@@ -87,18 +88,18 @@ def main() -> None:
         logger.error(f"Failed to import module '{args.file}'")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        # vision.camera_handler.close()
+        vision.close(args.vision)
         exit(1)
     except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        # vision.camera_handler.close()
+        vision.close(args.vision)
         exit(1)
     else:
         core.rovecomm_node.close_thread()
-        # vision.camera_handler.close()
+        vision.close(args.vision)
         exit(0)
 
 

@@ -16,6 +16,7 @@ pyfakewebcam = "*"
 mypy = "*"
 pandas = "*"
 numpy = "==1.19.3"
+pyyaml = "*"
 
 [packages]
 simplejson = "*"
