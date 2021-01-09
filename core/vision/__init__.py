@@ -1,4 +1,4 @@
-import vision.feed_handler
+import core.vision.feed_handler
 
 # Camera Handler, used to setup camera and grab frames/point cloud data
 camera_handler: None
@@ -12,10 +12,10 @@ def setup(type="ZED"):
         type (str) - Currently only supports "ZED", specifies the type of camera to init
     """
     if type == "ZED":
-        import vision.zed_handler
+        import core.vision.zed_handler
 
-        vision.camera_handler = vision.ZedHandler()
-        vision.camera_handler.start()
+        core.vision.camera_handler = core.vision.ZedHandler()
+        core.vision.camera_handler.start()
     else:
         # TODO: Initialize a regular webcam here
         pass
@@ -26,6 +26,6 @@ def close(type="ZED"):
     Closes any handlers initialized in the vision subsystem
     """
     if type == "ZED":
-        vision.camera_handler.close()
+        core.vision.camera_handler.close()
     else:
         pass

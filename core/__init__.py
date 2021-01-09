@@ -6,6 +6,7 @@ from core.waypoints import WaypointHandler
 from core.manifest import *
 import core.states
 from core.states import AutonomyEvents
+import core.vision
 
 # RoveComm node, must be declared before it can be used.
 rovecomm_node: RoveComm

@@ -4,7 +4,6 @@ import logging.config
 import yaml
 import core
 import interfaces
-import vision
 import importlib
 import os
 import sys
@@ -70,7 +69,7 @@ def main() -> None:
     core.setup()
 
     # Initialize the vision components
-    vision.setup(args.vision)
+    core.vision.setup(args.vision)
 
     # Initialize the Interfaces
     interfaces.setup()
@@ -88,18 +87,18 @@ def main() -> None:
         logger.error(f"Failed to import module '{args.file}'")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        vision.close(args.vision)
+        core.vision.close(args.vision)
         exit(1)
     except NameError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
         logger.error(error)
         core.rovecomm_node.close_thread()
-        vision.close(args.vision)
+        core.vision.close(args.vision)
         exit(1)
     else:
         core.rovecomm_node.close_thread()
-        vision.close(args.vision)
+        core.vision.close(args.vision)
         exit(0)
 
 

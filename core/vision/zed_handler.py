@@ -1,6 +1,6 @@
 import pyzed.sl as sl
 import logging
-from vision.feed_handler import FeedHandler
+from core.vision.feed_handler import FeedHandler
 import threading
 
 
