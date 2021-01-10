@@ -53,48 +53,52 @@ def setup_module(module):
 
 
 def test_idle_transitions():
-    # All the transitions for Idle()
+    # All the transitions for Idle() defined in csv
     idle_transitions = df["Idle"]
 
     # Test each of the possible transitions for the IDle state individually
     for i in range(len(idle_transitions)):
         # Default state to Idle
         state = core.states.Idle()
+        # Assert that the transition that occurs is the same as specified in the csv
         assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(idle_transitions[i])
 
 
 def test_navigating_transitions():
-    # All the transitions for Navigating()
+    # All the transitions for Navigating() defined in csv
     navigating_transitions = df["Navigating"]
 
     # Test each of the possible transitions for the Navigating state individually
     for i in range(len(navigating_transitions)):
         # Default state to Navigating
         state = core.states.Navigating()
+        # Assert that the transition that occurs is the same as specified in the csv
         assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(navigating_transitions[i])
 
 
 def test_search_pattern_transitions():
-    # All the transitions for SearchPattern()
+    # All the transitions for SearchPattern() defined in csv
     search_pattern_transitions = df["SearchPattern"]
 
     # Test each of the possible transitions for the Navigating state individually
     for i in range(len(search_pattern_transitions)):
         # Default state to Search Pattern
         state = core.states.SearchPattern()
+        # Assert that the transition that occurs is the same as specified in the csv
         assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
             search_pattern_transitions[i]
         )
 
 
 def test_approaching_marker_transitions():
-    # All the transitions for ApproachingMarker()
+    # All the transitions for ApproachingMarker() defined in csv
     approaching_marker_transitions = df["ApproachingMarker"]
 
     # Test each of the possible transitions for the Navigating state individually
     for i in range(len(approaching_marker_transitions)):
         # Default state to ApproachingMarker
         state = core.states.ApproachingMarker()
+        # Assert that the transition that occurs is the same as specified in the csv
         assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
             approaching_marker_transitions[i]
         )
