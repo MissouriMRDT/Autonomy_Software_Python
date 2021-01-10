@@ -17,7 +17,7 @@ class SearchPattern(RoverState):
         """
         state: RoverState = None
 
-        if event == core.AutonomyEvents.MARKER_SIGHTED:
+        if event == core.AutonomyEvents.MARKER_SEEN:
             state = core.states.ApproachingMarker()
 
         elif event == core.AutonomyEvents.START:
@@ -65,7 +65,7 @@ class SearchPattern(RoverState):
             await asyncio.sleep(0.1)
 
             self.logger.info("Search Pattern: Marker seen at %s with r=%i, locking on..." % (center, radius))
-            return self.on_event(core.AutonomyEvents.MARKER_SIGHTED)
+            return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
         if (
             algorithms.gps_navigate.get_approach_status(goal, current, start)

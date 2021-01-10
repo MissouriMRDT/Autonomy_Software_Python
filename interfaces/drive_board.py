@@ -46,7 +46,7 @@ class DriveBoard:
                 core.DRIVE_DATA_ID,
                 "h",
                 (target_left, target_right),
-                ip_octet_4=core.DRIVE_BOARD_IP,
+                core.DRIVE_BOARD_IP,
             ),
             False,
         )
@@ -57,6 +57,6 @@ class DriveBoard:
         """
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
-            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), ip_octet_4=core.DRIVE_BOARD_IP),
+            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), core.DRIVE_BOARD_IP),
             False,
         )

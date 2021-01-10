@@ -1,9 +1,9 @@
 ﻿Events,Idle,Navigating,SearchPattern,ApproachingMarker
 START,Navigating,Navigating,SearchPattern,ApproachingMarker
 REACHED_GPS_COORDINATE,,SearchPattern,,
-MARKER_SIGHTED,,,ApproachingMarker,
-SEARCH_FAILED,,,Idle,
+MARKER_SEEN,,,ApproachingMarker,
 MARKER_UNSEEN,,,,SearchPattern
+SEARCH_FAILED,,,Idle,
 REACHED_MARKER,,,,Idle
 ALL_MARKERS_REACHED,,,,
 ABORT,Idle,Idle,Idle,Idle

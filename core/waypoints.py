@@ -17,7 +17,7 @@ class WaypointHandler:
 
     def add_waypoint(self, packet) -> None:
         """
-        Adds the data from the packet (expects lon, lat) to the waypoints deque
+        Adds the data from the packet (expects lat, lon) to the waypoints deque
         """
         latitude, longitude = packet.data
         waypoint = core.constants.Coordinate(latitude, longitude)
@@ -80,5 +80,5 @@ class WaypointHandler:
 
         self.gps_data.goal = current_goal
 
-        self.logger.info(f"Set Waypoint Target: lat ({current_goal[0]}), lon({current_goal[1]})")
+        self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data

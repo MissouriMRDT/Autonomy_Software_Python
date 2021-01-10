@@ -17,4 +17,4 @@ The current state is continously run and updated by the state machine. The state
 
 ## Vision
 
-The vision sub-package covers all vision components (but not algorithms!) used in the Autonomy stack. This includes the handlers for various supported cameras: ZED and Webcam (for non-obstacle avoidance). It also implements a feed handler which is responsible for spinning up seperate proccesses to stream/save video streams generated from the camera system. Videos are streamed across the network pack to Base Station, as well as saved as individual video files.
+The vision sub-package covers all vision components (but not algorithms!) used in the Autonomy stack. This includes the handlers for various supported cameras: ZED and Webcam (for non-obstacle avoidance). It also implements a feed handler which is responsible for spinning up seperate proccesses to stream/save video streams generated from the camera system. Videos are streamed across the network back to Base Station, as well as saved as individual video files.

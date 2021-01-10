@@ -13,9 +13,9 @@ state_machine: StateMachine
 class AutonomyEvents(Enum):
     START = 1
     REACHED_GPS_COORDINATE = 2
-    MARKER_SIGHTED = 3
-    SEARCH_FAILED = 4
-    MARKER_UNSEEN = 5
+    MARKER_SEEN = 3
+    MARKER_UNSEEN = 4
+    SEARCH_FAILED = 5
     REACHED_MARKER = 6
     ALL_MARKERS_REACHED = 7
     ABORT = 8

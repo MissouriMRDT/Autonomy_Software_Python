@@ -4,7 +4,7 @@ import math
 import json
 
 # Autonomy General Configuration
-EVENT_LOOP_DELAY = 0.1
+EVENT_LOOP_DELAY = 0.1  # seconds
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -12,12 +12,8 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = (
-    250  # -1000 to 1000, normally 200 dropped lower for early testing to be safe
-)
-WAYPOINT_DISTANCE_THRESHOLD = (
-    1.5  # maximum threshold in meters between rover and waypoint
-)
+DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 
 SEARCH_DISTANCE = 0.008
