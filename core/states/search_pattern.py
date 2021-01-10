@@ -7,9 +7,20 @@ from core.states import RoverState
 
 class SearchPattern(RoverState):
     """
-    The goal of this state is to navigate to the GPS coordinates provided by base station in succession, the last of which is the coordinate provided by the judges for that leg of the task.
-    Coordinates before the last are simply the operators in base station’s best guess of the best path for the rover due to terrain identified on RED’s map.
+    The searching state’s goal is to drive the rover in an ever expanding Archimedean spiral, searching for the AR Tag.
+    The spiral type was chosen because of it’s fixed distance between each rotation’s path.
     """
+
+    def start(self):
+        loop = asyncio.get_event_loop()
+
+        # TODO: Schedule AR Tag detection
+        # self.ar_tag_task = loop.create_task()
+
+    def exit(self):
+        # Cancel all state specific tasks
+        # self.ar_tag_task.cancel()
+        pass
 
     def on_event(self, event) -> RoverState:
         """

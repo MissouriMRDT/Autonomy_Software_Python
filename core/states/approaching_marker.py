@@ -7,11 +7,7 @@ from core.states import RoverState
 
 class ApproachingMarker(RoverState):
     """
-    The goal of this state is to navigate to the GPS coordinates provided by base
-    station in succession, the last of which is the coordinate provided by the judges
-    for that leg of the task. Coordinates before the last are simply the operators in
-    base station’s best guess of the best path for the rover due to terrain identified
-    on RED’s map.
+    Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
     """
 
     def start(self):
