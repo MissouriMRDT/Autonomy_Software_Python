@@ -65,11 +65,11 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
-    # Initialize the core handlers (excluding RoveComm)
-    core.setup()
-
-    # Initialize the vision components
+    # Initialize the core vision components
     core.vision.setup(args.vision)
+
+    # Initialize the core handlers (excluding RoveComm and vision)
+    core.setup()
 
     # Initialize the Interfaces
     interfaces.setup()
