@@ -12,9 +12,9 @@ def setup(type="ZED"):
         type (str) - Currently only supports "ZED", specifies the type of camera to init
     """
     if type == "ZED":
-        import core.vision.zed_handler
+        from core.vision.zed_handler import ZedHandler
 
-        core.vision.camera_handler = core.vision.ZedHandler()
+        core.vision.camera_handler = ZedHandler()
         core.vision.camera_handler.start()
     else:
         # TODO: Initialize a regular webcam here
