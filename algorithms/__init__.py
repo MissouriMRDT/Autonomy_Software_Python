@@ -1,5 +1,4 @@
 import algorithms.geomath
-import algorithms.color_based_tracking
 import algorithms.follow_marker
 import algorithms.gps_navigate
 import algorithms.heading_hold

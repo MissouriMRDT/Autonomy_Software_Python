@@ -3,7 +3,7 @@ from core.constants import Coordinate
 import algorithms.geomath as geomath
 
 
-'''
+"""
 UNIT TEST
 FILE: geomath.py
 
@@ -11,7 +11,7 @@ This file provides a unit test for the haversine() distance calculation function
 to precomputed distances.
 
 Adapted from original test written by: Owen Chiaventone, Edward Koharik
-'''
+"""
 
 
 def crosstrack_error_vector(source, destination, location):
@@ -50,8 +50,7 @@ def crosstrack_error_vector(source, destination, location):
     closest_point_vector = vector_project(loc_vector, dest_vector)
 
     # Transform back to a coordinate system relative to the earth
-    closest_point = Coordinate(closest_point_vector[0] + source.lat, 
-                               closest_point_vector[1] + source.lon)
+    closest_point = Coordinate(closest_point_vector[0] + source.lat, closest_point_vector[1] + source.lon)
 
     return geomath.haversine(location.lat, location.lon, closest_point.lat, closest_point.lon)
 
@@ -59,6 +58,7 @@ def crosstrack_error_vector(source, destination, location):
 #####################################
 # Linear Algebra helpers
 #####################################
+
 
 class Vector:
     def __init__(self, values):
@@ -125,6 +125,6 @@ def test_haversine_comparison():
     print("XTE Dist           : ", xte_dist)
     print("xte_bearing        : ", xte_bearing)
 
-    assert (almost_equal(cd_distance, precalculated_crosstrack_error, tolerance=0.2))
-    assert (almost_equal(xte_dist, precalculated_crosstrack_error, tolerance=0.2))
-    assert (almost_equal(xte_bearing, cd_bearing, tolerance=20))
+    assert almost_equal(cd_distance, precalculated_crosstrack_error, tolerance=0.2)
+    assert almost_equal(xte_dist, precalculated_crosstrack_error, tolerance=0.2)
+    assert almost_equal(xte_bearing, cd_bearing, tolerance=20)

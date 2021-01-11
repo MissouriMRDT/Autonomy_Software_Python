@@ -1,18 +1,19 @@
 import pyzed.sl as sl
-from vision.feed_handler import FeedHandler
+import logging
+from core.vision.feed_handler import FeedHandler
 import threading
 
 
 class ZedHandler:
-
     def __init__(self):
-        '''
+        """
         Sets up the ZED camera with the specified parameters
-        '''
+        """
 
         # Create a ZED camera object
         self.zed = sl.Camera()
         self.feed_handler = FeedHandler()
+        self.logger = logging.getLogger(__name__)
 
         # Set configuration parameters
         self.input_type = sl.InputType()
@@ -42,11 +43,12 @@ class ZedHandler:
 
         self.thread = threading.Thread(target=self.frame_grabber, args=())
 
+    # Should this be a generator or a thread? Generator might help cuz I could schedule this in the ASYNC calls
     def frame_grabber(self):
-        '''
+        """
         Function to be executed as a thread, grabs latest depth/regular images
         from ZED and then passes them to the respective feed handlers
-        '''
+        """
 
         # Prepare new image size to retrieve half-resolution images
         image_size = self.zed.get_camera_information().camera_resolution
@@ -75,28 +77,29 @@ class ZedHandler:
                 self.feed_handler.handle_frame("depth", self.depth_img)
 
     def grab_regular(self):
-        '''
+        """
         Returns the latest regular frame captured from the ZED
-        '''
+        """
         return self.reg_img
 
     def grab_depth(self):
-        '''
+        """
         Returns the latest depth frame captured from the ZED
-        '''
+        """
         return self.depth_img
 
     def start(self):
-        '''
+        """
         Starts up the frame grabber thread, which constantly polls the ZED camera
         for new frames
-        '''
+        """
         self.thread.start()
+        self.logger.info("Starting ZED capture")
 
     def close(self):
-        '''
+        """
         Closes the zed camera as well as feed handler
-        '''
+        """
         # Set the threading event so we kill the thread
         self._stop.set()
         # Wait for the thread to join
@@ -108,8 +111,10 @@ class ZedHandler:
         # Close the feed handler as well
         self.feed_handler.close()
 
+        self.logger.info("Closing ZED capture")
+
     def grab_point_cloud(self):
-        '''
+        """
         Returns 3D point cloud data captured with ZED
-        '''
+        """
         pass
