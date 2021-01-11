@@ -35,10 +35,10 @@ def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
     point_angle = get_relative_angle_subtract(angle, 180) + angle_increments
 
     for i in range(increments):
-        print(i)
+        print(point_angle)
         points.append(coords_obstacle(radius, obstacle_lat, obstacle_lon, point_angle))
         point_angle += angle_increments
-    print(point_angle)
+        
 
     # return the GPS coordinates on our route
     return points
@@ -55,7 +55,7 @@ def main() -> None:
 
     # Finding the obstacle
     angle, distance = obstacle_detection()
-
+    print(angle)
     # Saving our starting location
     one_meter_from_obstacle = nav_board.location()
 
@@ -63,7 +63,7 @@ def main() -> None:
     obstacle_lat, obstacle_lon = coords_obstacle(distance, nav_board.location()[0], nav_board.location()[1], angle)
 
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
-    # points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
+    points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
   
     # Outline the Golden Gate Park:
@@ -72,7 +72,7 @@ def main() -> None:
     )
     gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
     gmap.draw("map.html")
-    
+    """
 
     previous_loc = one_meter_from_obstacle
 
@@ -93,7 +93,7 @@ def main() -> None:
             time.sleep(.1)
         drive_board.send_drive(0, 0)
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
-
+    """
 
 def coords_obstacle(distMeters, lat1, lon1, bearing):
     # given: lat1, lon1, bearing, distMiles
