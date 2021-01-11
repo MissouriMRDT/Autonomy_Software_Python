@@ -38,7 +38,6 @@ def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
         print(point_angle)
         points.append(coords_obstacle(radius, obstacle_lat, obstacle_lon, point_angle))
         point_angle += angle_increments
-        
 
     # return the GPS coordinates on our route
     return points
@@ -55,7 +54,7 @@ def main() -> None:
 
     # Finding the obstacle
     angle, distance = obstacle_detection()
-    print(angle)
+
     # Saving our starting location
     one_meter_from_obstacle = nav_board.location()
 
@@ -63,13 +62,11 @@ def main() -> None:
     obstacle_lat, obstacle_lon = coords_obstacle(distance, nav_board.location()[0], nav_board.location()[1], angle)
 
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
-    points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
+    # points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
-  
+    """
     # Outline the Golden Gate Park:
-    golden_gate_park = zip(
-        *points    
-    )
+    golden_gate_park = zip(*points)
     gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
     gmap.draw("map.html")
     """
@@ -78,22 +75,24 @@ def main() -> None:
 
     for point in points:
         new_lat, new_lon = point
+        logger.info(f"Driving towards : Lat: {new_lat}, Lon: {new_lon} now")
         while (
             algorithms.gps_navigate.get_approach_status(
-                core.constants.Coordinate(new_lat, new_lon), nav_board.location(), previous_loc
+                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc
             )
             == core.constants.ApproachState.APPROACHING
         ):
-            logger.info(f"Target coordinates: Lat: {new_lat}, Lon: {new_lon}")
+            # logger.info(f"Target coordinates: Lat: {new_lat}, Lon: {new_lon}")
             left, right = algorithms.gps_navigate.calculate_move(
-                core.constants.Coordinate(new_lat, new_lon), nav_board.location(), previous_loc, 250
+                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
             )
             logger.debug(f"Navigating: Driving at ({left}, {right})")
-            drive_board.send_drive(left, right)
-            time.sleep(.1)
-        drive_board.send_drive(0, 0)
+            interfaces.drive_board.send_drive(left, right)
+            time.sleep(0.1)
+
+        interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
-    """
+
 
 def coords_obstacle(distMeters, lat1, lon1, bearing):
     # given: lat1, lon1, bearing, distMiles
