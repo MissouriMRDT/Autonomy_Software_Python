@@ -9,6 +9,7 @@ import algorithms.geomath as geomath
 import matplotlib.pyplot as plt
 import gmplot
 import algorithms.heading_hold
+import time
 
 # Create the map plotter:
 apikey = ""  # (your API key here)
@@ -26,6 +27,7 @@ def get_relative_angle_subtract(angle, angle2):
 def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
     bearing, radius = geomath.haversine(nav_board.location()[0], nav_board.location()[1], obstacle_lat, obstacle_lon)
     radius *= 1000
+    radius += 1.5
     points = []
 
     increments = 4
@@ -63,19 +65,14 @@ def main() -> None:
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
     # points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
-    """
+  
     # Outline the Golden Gate Park:
     golden_gate_park = zip(
-        *[
-            (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1]),
-            (right_2M_lat, right_2M_lon),
-            (ahead_4X_lat, ahead_4X_lon),
-            (left_2M_lat, left_2M_lon),
-        ]
+        *points    
     )
     gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
     gmap.draw("map.html")
-    """
+    
 
     previous_loc = one_meter_from_obstacle
 
@@ -92,9 +89,9 @@ def main() -> None:
                 core.constants.Coordinate(new_lat, new_lon), nav_board.location(), previous_loc, 250
             )
             logger.debug(f"Navigating: Driving at ({left}, {right})")
-            core.rovecomm.write(drive_board.send_drive(left, right))
-
-        core.rovecomm.write(drive_board.send_drive(0, 0))
+            drive_board.send_drive(left, right)
+            time.sleep(.1)
+        drive_board.send_drive(0, 0)
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
 
