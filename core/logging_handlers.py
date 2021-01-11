@@ -1,43 +1,45 @@
 from core.rovecomm import RoveCommPacket
 import core
 import logging
+from logging.handlers import WatchedFileHandler
 from datetime import datetime
 import os
 
 
-class CsvHandler(logging.handlers.WatchedFileHandler):
-
+class CsvHandler(WatchedFileHandler):
     def __init__(self, filename, header, encoding=None, delay=False, new_file=False):
         """
         Initializes the handler
         """
 
-        if (new_file):
+        if new_file:
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             if not os.path.exists(
-                "/".join(
-                    f'{filename[:-4]}-{timestamp}{filename[-4:]}'.split("/")[:-1]
-                )
+                "/".join(f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1])
             ):
-                os.makedirs("/".join(f'{filename[:-4]}-{timestamp}{filename[-4:]}'.split("/")[:-1]))
-            f = open(f'{filename[:-4]}-{timestamp}{filename[-4:]}', 'w')
-            f.write(header + '\n')
+                os.makedirs(
+                    "/".join(
+                        f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1]
+                    )
+                )
+            f = open(f"{filename[:-4]}-{timestamp}{filename[-4:]}", "w")
+            f.write(header + "\n")
             f.close()
-            logging.handlers.WatchedFileHandler.__init__(
+            WatchedFileHandler.__init__(
                 self,
-                f'{filename[:-4]}-{timestamp}{filename[-4:]}',
-                'a',
+                f"{filename[:-4]}-{timestamp}{filename[-4:]}",
+                "a",
                 encoding,
-                delay
+                delay,
             )
         else:
-            if (not os.path.exists(filename)):
+            if not os.path.exists(filename):
                 if not os.path.exists("/".join(filename.split("/")[:-1])):
                     os.makedirs("/".join(filename.split("/")[:-1]))
-                f = open(filename, 'w')
-                f.write(header + '\n')
+                f = open(filename, "w")
+                f.write(header + "\n")
                 f.close()
-            logging.handlers.WatchedFileHandler.__init__(self, filename, 'a', encoding, delay)
+            WatchedFileHandler.__init__(self, filename, "a", encoding, delay)
 
 
 class RoveCommHandler(logging.Handler):
@@ -61,10 +63,6 @@ class RoveCommHandler(logging.Handler):
             msg = msg[:252] + "..."
 
         packet = RoveCommPacket(
-            self.data_id,
-            'c',
-            tuple([char.encode('utf-8') for char in msg]),
-            "",
-            0
+            self.data_id, "c", tuple([char.encode("utf-8") for char in msg]), "", 0
         )
-        core.rovecomm.write(packet, self.reliable)
+        core.rovecomm_node.write(packet, self.reliable)
