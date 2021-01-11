@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-numpy = "*"
 opencv-contrib-python = "*"
 simplejson = "*"
 pynmea2 = "*"
@@ -18,9 +17,12 @@ pyfakewebcam = "*"
 gmplot = "*"
 osmviz = "*"
 pygame = "*"
+pyfakewebcam = "*"
+mypy = "*"
+pandas = "*"
+numpy = "==1.19.3"
 
 [packages]
-numpy = "*"
 simplejson = "*"
 pynmea2 = "*"
 serial = "*"
@@ -31,3 +33,4 @@ matplotlib = "*"
 geopy = "*"
 pyfakewebcam = "*"
 pyyaml = "*"
+numpy = "==1.19.3"

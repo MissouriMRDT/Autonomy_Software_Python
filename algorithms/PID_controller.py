@@ -1,4 +1,5 @@
 import time
+import logging
 
 
 def clamp(n, min_n, max_n):
@@ -6,25 +7,26 @@ def clamp(n, min_n, max_n):
 
 
 class PIDcontroller:
-    """ Simple PID controller.
-        Does not need to be run at a fixed frequency; can adjust itself using system clock.
+    """Simple PID controller.
+    Does not need to be run at a fixed frequency; can adjust itself using system clock.
 
-        Parameters
-        ----------
-            Kp : Real Number
-                Proportional Gain.
-            Ki : Real Number
-                Integral Gain.
-            Kd : Real number
-                Derivative Gain
-            accumulated_error_clamp : Positive number
-                Maximum allowed accumulated error for integral term
-            wraparound : None or tuple
-                None in most situations. Maximum possible value when values wrap around after a certain point
-                Example: When working with degrees, set wraparound to 360
-                         Situation: Position = 350, setpoint = 10
-                         wraparound=None: go counterclockwise 340 degrees
-                         wraparound=360: go clockwise 20 degrees"""
+    Parameters
+    ----------
+        Kp : Real Number
+            Proportional Gain.
+        Ki : Real Number
+            Integral Gain.
+        Kd : Real number
+            Derivative Gain
+        accumulated_error_clamp : Positive number
+            Maximum allowed accumulated error for integral term
+        wraparound : None or tuple
+            None in most situations. Maximum possible value when values wrap around after a certain point
+            Example: When working with degrees, set wraparound to 360
+                     Situation: Position = 350, setpoint = 10
+                     wraparound=None: go counterclockwise 340 degrees
+                     wraparound=360: go clockwise 20 degrees"""
+
     def __init__(self, Kp=1, Ki=0, Kd=0, accumulated_error_clamp=100, wraparound=None):
         self.Kp = Kp
         self.Ki = Ki
@@ -34,6 +36,7 @@ class PIDcontroller:
         self.prevError = 0
         self.accumulatedError = 0
         self.prevTime = time.time()
+        self.logger = logging.getLogger(__name__)
 
     def update(self, setpoint, real_position):
         """
@@ -48,7 +51,7 @@ class PIDcontroller:
                 error = error - self.wraparound
             elif error < -(self.wraparound / 2.0):
                 error = error + self.wraparound
-        #print("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
+        self.logger.debug("PID error: ", error, "\tAccumulated Error: ", self.accumulatedError)
         self.accumulatedError += error * Ts
         self.accumulatedError = clamp(self.accumulatedError, -self.err_clamp, +self.err_clamp)
         if abs(error) < 2:

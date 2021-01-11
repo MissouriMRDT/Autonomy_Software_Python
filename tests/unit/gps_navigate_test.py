@@ -4,15 +4,16 @@ from interfaces import drive_board, nav_board
 import algorithms.gps_navigate as gps_nav
 from unittest.mock import MagicMock
 
-'''
+"""
 UNIT TEST
 FILE: gps_navigate.py
 
 This file provides unit tests for both the get_approach_status and calculate_move()
-'''
+"""
 
 # Rolla GPS coordinates
 rolla_coord = constants.Coordinate(37.951424, -91.768959)
+
 
 def setup_module(module):
     # Set up the test module by mocking the nav_board heading to be always 0
@@ -65,11 +66,10 @@ def test_calculate_move_right():
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon + 0.0025)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the right
-    assert right < 0
+    assert right <= 0
     assert left > 0
 
 
@@ -79,12 +79,11 @@ def test_calculate_move_left():
     goal_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.005)
     current_coord = constants.Coordinate(rolla_coord.lat, rolla_coord.lon - 0.0025)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the left
     assert right > 0
-    assert left < 0
+    assert left <= 0
 
 
 def test_calculate_move_straight():
@@ -93,7 +92,6 @@ def test_calculate_move_straight():
     goal_coord = constants.Coordinate(rolla_coord.lat + 0.0004, rolla_coord.lon)
     current_coord = constants.Coordinate(rolla_coord.lat + 0.0002, rolla_coord.lon)
 
-    drive_board.enable()
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should not have to turn

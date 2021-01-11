@@ -2,17 +2,12 @@ import core
 import time
 import logging
 
-NAV_IP_ADDRESS = "136"
-GPS_DATA_ID = 5100
-IMU_DATA_ID = 5101
-LIDAR_DATA_ID = 5102
-GPSADD_DATA_ID = 5103
-
 
 class NavBoard:
     """
-    Interface for the navboard, a seperate compute unit that provides GPS and IMU (Pitch/Yaw/Roll) data to the Autonomy system.
-    This interface collects and stores the data received from the navboard so it can be used elsewhere.
+    Interface for the navboard, a seperate compute unit that provides GPS and IMU
+    (Pitch/Yaw/Roll) data to the Autonomy system. This interface collects and stores the
+    data received from the navboard so it can be used elsewhere.
     """
 
     def __init__(self):
@@ -25,19 +20,18 @@ class NavBoard:
         self._lastTime = time.time()
 
         # Set up RoveComm and Logger
-        self.rove_comm_node = core.rovecomm.udp_node
         self.logger = logging.getLogger(__name__)
 
-        self.logger = logging.getLogger(__name__)
-        self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
+        core.rovecomm_node.udp_node.subscribe(core.NAV_IP_ADDRESS)
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        core.rovecomm.set_callback(IMU_DATA_ID, self.process_imu_data)
-        core.rovecomm.set_callback(GPS_DATA_ID, self.process_gps_data)
-        core.rovecomm.set_callback(LIDAR_DATA_ID, self.process_lidar_data)
+        core.rovecomm_node.set_callback(core.IMU_DATA_ID, self.process_imu_data)
+        core.rovecomm_node.set_callback(core.GPS_DATA_ID, self.process_gps_data)
+        core.rovecomm_node.set_callback(core.LIDAR_DATA_ID, self.process_lidar_data)
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
+        self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
@@ -49,7 +43,10 @@ class NavBoard:
         self._location = core.constants.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarQuality = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        (
+            self._distToGround,
+            self._lidarQuality,
+        ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch
@@ -75,6 +72,6 @@ def main() -> None:
         time.sleep(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run main
     main()
