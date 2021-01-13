@@ -12,7 +12,7 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     # Give the system a second to set everything up, start reading in frames
-    time.sleep(5)
+    time.sleep(1)
 
     while True:
         # Test grabbing the latest camera frames
