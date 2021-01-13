@@ -15,6 +15,7 @@ class SimCamHandler:
         self.host_ip = "127.0.0.1"
         self.port = 9999
         self.client_socket.connect((self.host_ip, self.port))
+        self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
         self.feed_handler = FeedHandler()
         self.logger = logging.getLogger(__name__)
@@ -61,7 +62,8 @@ class SimCamHandler:
                     data += self.client_socket.recv(4 * 1024)
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
-                self.reg_img = pickle.loads(frame_data)
+                self.encoded_img = pickle.loads(frame_data)
+                self.reg_img = cv2.imdecode(self.encoded_img, 1)
 
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
