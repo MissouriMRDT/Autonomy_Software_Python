@@ -14,7 +14,7 @@ class NavBoard:
         self._pitch = 0
         self._roll = 0
         self._heading = 0
-        self._location = core.constants.Coordinate(0, 0)
+        self._location = core.Coordinate(0, 0)
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
@@ -22,12 +22,18 @@ class NavBoard:
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
 
-        core.rovecomm_node.udp_node.subscribe(core.NAV_IP_ADDRESS)
+        core.rovecomm_node.udp_node.subscribe(core.manifest["Nav"]["Ip"])
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        core.rovecomm_node.set_callback(core.IMU_DATA_ID, self.process_imu_data)
-        core.rovecomm_node.set_callback(core.GPS_DATA_ID, self.process_gps_data)
-        core.rovecomm_node.set_callback(core.LIDAR_DATA_ID, self.process_lidar_data)
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["PitchHeadingRoll"]["dataId"], self.process_imu_data
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["GPSPosition"]["dataId"], self.process_gps_data
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["LidarData"]["dataId"], self.process_lidar_data
+        )
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
@@ -40,7 +46,7 @@ class NavBoard:
         lon = lon * 1e-7
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
-        self._location = core.constants.Coordinate(lat, lon)
+        self._location = core.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
         (
