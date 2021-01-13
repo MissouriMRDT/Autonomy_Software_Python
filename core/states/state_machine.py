@@ -16,8 +16,10 @@ class StateMachine(object):
         self.logger = logging.getLogger(__name__)
 
         # Add callbacks for autonomy controls
-        core.rovecomm_node.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
-        core.rovecomm_node.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
+        core.rovecomm_node.set_callback(core.manifest["Autonomy"]["Commands"]["EnableAutonomy"]["dataId"], self.enable)
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["DisableAutonomy"]["dataId"], self.disable
+        )
 
     def enable(self, packet):
         self.enable_flag = True

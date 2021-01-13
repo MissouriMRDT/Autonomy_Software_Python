@@ -14,8 +14,8 @@ def telemetry_handler(event, value, log_msg):
     logger = logging.getLogger(__name__)
 
     # Matches log 'event' to event from predefined dict
-    if event in core.constants.rovecomm_event_list:
-        event_data = core.constants.rovecomm_event_list[event]
+    if event in core.rovecomm_event_list:
+        event_data = core.rovecomm_event_list[event]
         data_id = event_data["data_id"]
         data_type = event_data["data_type"]
         # If the event uses preset values, match the correct one
