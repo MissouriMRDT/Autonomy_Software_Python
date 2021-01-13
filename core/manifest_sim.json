@@ -239,7 +239,7 @@
         "Port": 11015,
         "Commands": {
         "EnableAutonomy": {
-            "dataId": 11000,
+            "dataId": 11100,
             "dataType": "DataTypes.UINT8_T",
             "dataCount": 1,
             "comments": "Starts Autonomy navigation"
@@ -251,7 +251,7 @@
             "comments": "Stops Autonomy navigation"
         },
         "AddWaypoint": {
-            "dataId": 111012,
+            "dataId": 11102,
             "dataType": "DataTypes.DOUBLE",
             "dataCount": 2,
             "comments": "Adds a new waypoint to Autonomy"
