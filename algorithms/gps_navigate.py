@@ -3,8 +3,7 @@ import math
 import interfaces
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
-import core.constants as constants
-from core.constants import ApproachState
+import core
 
 
 def get_approach_status(goal, location, start):
@@ -22,20 +21,20 @@ def get_approach_status(goal, location, start):
     (c_bearing, c_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
     distanceMeters = c_distance * 1000.0
-    close_enough = distanceMeters < constants.WAYPOINT_DISTANCE_THRESHOLD
+    close_enough = distanceMeters < core.WAYPOINT_DISTANCE_THRESHOLD
 
     bearing_diff = (s_bearing - c_bearing) % 360.0
-    past_goal = 180 - constants.BEARING_FLIP_THRESHOLD <= bearing_diff <= 180 + constants.BEARING_FLIP_THRESHOLD
+    past_goal = 180 - core.BEARING_FLIP_THRESHOLD <= bearing_diff <= 180 + core.BEARING_FLIP_THRESHOLD
 
     if past_goal:
         logger.info("PAST GOAL")
-        return ApproachState.PAST_GOAL
+        return core.ApproachState.PAST_GOAL
 
     if close_enough:
         logger.info("CLOSE ENOUGH")
-        return ApproachState.CLOSE_ENOUGH
+        return core.ApproachState.CLOSE_ENOUGH
 
-    return ApproachState.APPROACHING
+    return core.ApproachState.APPROACHING
 
 
 def calculate_move(goal, location, start, speed=150):

@@ -1,7 +1,6 @@
 from typing import Tuple
 import core
 import logging
-import core.constants as constants
 
 
 def clamp(n, min_n, max_n):
@@ -30,8 +29,8 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self._targetSpdLeft = int(clamp(speed_left, -core.DRIVE_POWER, core.DRIVE_POWER))
+        self._targetSpdRight = int(clamp(speed_right, -core.DRIVE_POWER, core.DRIVE_POWER))
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
         return self._targetSpdLeft, self._targetSpdRight
@@ -39,14 +38,19 @@ class DriveBoard:
     def send_drive(self, target_left, target_right):
         """
         Sends a rovecomm packet with the specified drive speed
+
+        Parameters:
+            target_left (int16) - the speed to drive left motors
+            target_right (int16) - the speed to drive right motors
         """
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.DRIVE_DATA_ID,
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
                 "h",
                 (target_left, target_right),
-                core.DRIVE_BOARD_IP,
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
             ),
             False,
         )
@@ -57,6 +61,12 @@ class DriveBoard:
         """
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
-            core.RoveCommPacket(core.DRIVE_DATA_ID, "h", (0, 0), core.DRIVE_BOARD_IP),
+            core.RoveCommPacket(
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
+                "h",
+                (0, 0),
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
+            ),
             False,
         )

@@ -29,7 +29,7 @@ async def autonomy_state_loop():
 
         # Core state machine runs every X ms, to prevent unecessarily fast computation.
         # Sensor data is processed seperately, as that is the bulk of processing time
-        await asyncio.sleep(core.constants.EVENT_LOOP_DELAY)
+        await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
 
 if __name__ == "__main__":
