@@ -38,35 +38,33 @@ class SimCamHandler:
         Function to be executed as a thread, grabs latest depth/regular images
         from network and then passes them to the respective feed handlers
         """
-
+        data = b""
+        payload_size = struct.calcsize("Q")
         while not self._stop.is_set():
-            data = b""
-            payload_size = struct.calcsize("Q")
-            while True:
-                # First read the message size, we know it's a 8 byte number
-                while len(data) < payload_size:
-                    packet = self.client_socket.recv(4 * 1024)
-                    if not packet:
-                        break
-                    data += packet
+            # First read the message size, we know it's a 8 byte number
+            while len(data) < payload_size:
+                packet = self.client_socket.recv(4 * 1024)
+                if not packet:
+                    break
+                data += packet
 
-                # Grab only the payload size
-                packed_msg_size = data[:payload_size]
-                # Store rest of data
-                data = data[payload_size:]
-                # Calculate the message size
-                msg_size = struct.unpack("Q", packed_msg_size)[0]
+            # Grab only the payload size
+            packed_msg_size = data[:payload_size]
+            # Store rest of data
+            data = data[payload_size:]
+            # Calculate the message size
+            msg_size = struct.unpack("Q", packed_msg_size)[0]
 
-                # Now keep reading the payload until we have read in all expected data
-                while len(data) < msg_size:
-                    data += self.client_socket.recv(4 * 1024)
-                frame_data = data[:msg_size]
-                data = data[msg_size:]
-                self.encoded_img = pickle.loads(frame_data)
-                self.reg_img = cv2.imdecode(self.encoded_img, 1)
+            # Now keep reading the payload until we have read in all expected data
+            while len(data) < msg_size:
+                data += self.client_socket.recv(4 * 1024)
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
+            self.encoded_img = pickle.loads(frame_data)
+            self.reg_img = cv2.imdecode(self.encoded_img, 1)
 
-                # Now let the feed_handler stream/save the frames
-                self.feed_handler.handle_frame("regular", self.reg_img)
+            # Now let the feed_handler stream/save the frames
+            self.feed_handler.handle_frame("regular", self.reg_img)
 
     def grab_regular(self):
         """
