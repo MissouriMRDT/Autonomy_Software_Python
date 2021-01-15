@@ -65,13 +65,11 @@ def main() -> None:
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
     points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
-    
     # Outline the Golden Gate Park:
-    golden_gate_park = zip(*points)
-    gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
-    gmap.draw("map.html")
-    
-    """
+    # golden_gate_park = zip(*points)
+    # gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
+    # gmap.draw("map.html")
+
     previous_loc = one_meter_from_obstacle
 
     for point in points:
@@ -94,7 +92,7 @@ def main() -> None:
         interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
-    """
+
 def coords_obstacle(distMeters, lat1, lon1, bearing):
     # given: lat1, lon1, bearing, distMiles
     destination = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
