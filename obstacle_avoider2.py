@@ -28,12 +28,12 @@ def get_relative_angle_subtract(angle, angle2):
 def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
     bearing, radius = geomath.haversine(nav_board.location()[0], nav_board.location()[1], obstacle_lat, obstacle_lon)
     radius *= 1000
-    radius += 1.5
+    radius += 2.0
     points = []
 
     increments = 4
-    angle_increments = 155 / increments
-    point_angle = get_relative_angle_subtract(angle, 155) + angle_increments
+    angle_increments = 90 / (increments - 1)
+    point_angle = get_relative_angle_subtract(angle, 90)
 
     for i in range(increments):
         print(point_angle)
@@ -63,7 +63,7 @@ def main() -> None:
     obstacle_lat, obstacle_lon = coords_obstacle(distance, nav_board.location()[0], nav_board.location()[1], angle)
 
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
-    points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
+    # points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
     # Outline the Golden Gate Park:
     # golden_gate_park = zip(*points)
@@ -71,13 +71,14 @@ def main() -> None:
     # gmap.draw("map.html")
 
     previous_loc = one_meter_from_obstacle
-
+    FOUND_OBSTACLE = False
+    
     for point in points:
         new_lat, new_lon = point
         logger.info(f"Driving towards : Lat: {new_lat}, Lon: {new_lon} now")
         while (
             algorithms.gps_navigate.get_approach_status(
-                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc
+                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 0.5
             )
             == core.constants.ApproachState.APPROACHING
         ):
@@ -85,10 +86,16 @@ def main() -> None:
             left, right = algorithms.gps_navigate.calculate_move(
                 core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
             )
+            if FOUND_OBSTACLE = False and gps == OBSTACLE_GPS:
+                FOUND_OBSTACLE = True
+
+            if FOUND_OBSTACLE:
+                break
             logger.debug(f"Navigating: Driving at ({left}, {right})")
             interfaces.drive_board.send_drive(left, right)
             time.sleep(0.1)
-
+        if FOUND_OBSTACLE:
+            break
         interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
