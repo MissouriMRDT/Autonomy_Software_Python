@@ -11,6 +11,7 @@ import gmplot
 import algorithms.heading_hold
 import time
 
+
 # Create the map plotter:
 apikey = ""  # (your API key here)
 gmap = gmplot.GoogleMapPlotter(37.95139193343744, -91.76901326338806, 14, apikey=apikey)
@@ -31,8 +32,8 @@ def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
     points = []
 
     increments = 4
-    angle_increments = 180 / increments
-    point_angle = get_relative_angle_subtract(angle, 180) + angle_increments
+    angle_increments = 155 / increments
+    point_angle = get_relative_angle_subtract(angle, 155) + angle_increments
 
     for i in range(increments):
         print(point_angle)
@@ -62,15 +63,15 @@ def main() -> None:
     obstacle_lat, obstacle_lon = coords_obstacle(distance, nav_board.location()[0], nav_board.location()[1], angle)
 
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
-    # points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
+    points.insert(0, (nav_board.location()[0], nav_board.location()[1]))
 
-    """
+    
     # Outline the Golden Gate Park:
     golden_gate_park = zip(*points)
     gmap.polygon(*golden_gate_park, color="cornflowerblue", edge_width=10)
     gmap.draw("map.html")
+    
     """
-
     previous_loc = one_meter_from_obstacle
 
     for point in points:
@@ -93,7 +94,7 @@ def main() -> None:
         interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
-
+    """
 def coords_obstacle(distMeters, lat1, lon1, bearing):
     # given: lat1, lon1, bearing, distMiles
     destination = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
