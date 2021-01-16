@@ -3,9 +3,9 @@ from core.states.state_machine import StateMachine
 from core.rovecomm import RoveComm, RoveCommPacket
 import core.notify
 from core.waypoints import WaypointHandler
-import core.states
+import core.states as states
 from core.states import AutonomyEvents
-import core.vision
+import core.vision as vision
 import json
 
 # RoveComm node, must be declared before it can be used.
