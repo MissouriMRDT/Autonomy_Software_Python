@@ -107,3 +107,10 @@ pip install --global-option='--with-libyaml' pyyaml
 sudo apt-get install python-dev   # for python2.x installs
 sudo apt-get install python3.8-dev  # for python3.8 installs
 ```
+
+To properly install python-pcl:
+1. sudo apt install python3-pcl
+
+2. copy over pcl/and egg files from usr/lib/python3/dist-packages to .local/share/virtualenvs/Autonomy_Software/lib/python3.8/site-packages/
+
+3. ln -s _pcl.cpython-36m-x86_64-linux-gnu.so _pcl.so in the site-packages
