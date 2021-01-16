@@ -19,8 +19,8 @@ class ZedHandler:
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
-        self.init.coordinate_units = sl.UNIT.MILLIMETER
+        self.init.depth_mode = sl.DEPTH_MODE.QUALITY
+        self.init.coordinate_units = sl.UNIT.METER
         self.init.camera_fps = 30
 
         # Open the camera
@@ -87,6 +87,11 @@ class ZedHandler:
         Returns the latest depth frame captured from the ZED
         """
         return self.depth_img
+
+    def grab_depth_data(self):
+        depth_map = sl.Mat()
+        self.zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)  # Retrieve depth
+        return depth_map
 
     def start(self):
         """
