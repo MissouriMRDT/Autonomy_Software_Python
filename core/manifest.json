@@ -238,31 +238,44 @@
         "Ip": "192.168.1.139",
         "Port": 11015,
         "Commands": {
-            "EnableAutonomy": {
-                "dataId": 11100,
-                "dataType": "DataTypes.UINT8_T",
-                "dataCount": 1,
-                "comments": "Starts Autonomy navigation"
-            },
-            "DisableAutonomy": {
-                "dataId": 11101,
-                "dataType": "DataTypes.UINT8_T",
-                "dataCount": 1,
-                "comments": "Stops Autonomy navigation"
-            },
-            "AddWaypoint": {
-                "dataId": 11102,
-                "dataType": "DataTypes.DOUBLE",
-                "dataCount": 2,
-                "comments": "Adds a new waypoint to Autonomy"
-            },
-            "ClearWaypoints": {
-                "dataId": 11103,
-                "dataType": "DataTypes.UINT8_T",
-                "dataCount": 2,
-                "comments": "Clears all the waypoints loaded in autonomy"
-            }
+        "EnableAutonomy": {
+            "dataId": 11000,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Starts Autonomy navigation"
         },
-        "Telemetry": {}
+        "DisableAutonomy": {
+            "dataId": 11001,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Stops Autonomy navigation"
+        },
+        "AddWaypoint": {
+            "dataId": 11002,
+            "dataType": "DataTypes.DOUBLE",
+            "dataCount": 2,
+            "comments": "Adds a new waypoint to Autonomy"
+        },
+        "ClearWaypoints": {
+            "dataId": 11003,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Clears all the waypoints loaded in autonomy"
+        }
+        },
+        "Telemetry": {
+        "CurrentState": {
+            "dataId": 11100,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "The current state of the state machine"
+        },
+        "ReachedMarker": {
+            "dataId": 11101,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Indicates that we have reached the marker"
+        }
+        }
     }
 }

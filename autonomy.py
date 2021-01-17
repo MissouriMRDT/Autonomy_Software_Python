@@ -27,6 +27,17 @@ async def autonomy_state_loop():
 
         logger.debug(f"Current State: {core.states.state_machine.state}")
 
+        # Transmit the current state to Base Station
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],
+                "B",
+                (core.states.StateMapping[core.states.state_machine.state],),
+                port=core.UDP_OUTGOING_PORT,
+            ),
+            False,
+        )
+
         # Core state machine runs every X ms, to prevent unecessarily fast computation.
         # Sensor data is processed seperately, as that is the bulk of processing time
         await asyncio.sleep(core.EVENT_LOOP_DELAY)

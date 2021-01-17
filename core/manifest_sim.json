@@ -263,6 +263,19 @@
             "comments": "Clears all the waypoints loaded in autonomy"
         }
         },
-        "Telemetry": {}
+        "Telemetry": {
+        "CurrentState": {
+            "dataId": 11100,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "The current state of the state machine"
+        },
+        "ReachedMarker": {
+            "dataId": 11101,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Indicates that we have reached the marker"
+        }
+        }
     }
 }
