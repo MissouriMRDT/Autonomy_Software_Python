@@ -203,7 +203,7 @@ def test_udp_unsubscribe():
 
     # Main target should be invalid
     core.rovecomm_node.set_callback(4233, handle_packet)
-    packet2 = RoveCommPacket(4233, "b", (), "127.0.0.1", 0)
+    packet2 = RoveCommPacket(4233, "b", (), "", 0)
     assert core.rovecomm_node.write(packet2, False) == 1
 
     # Packet should not still be recieved because we unsubscribed

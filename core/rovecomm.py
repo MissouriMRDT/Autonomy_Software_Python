@@ -277,7 +277,8 @@ class RoveCommEthernetUdp:
             if packet.ip_address != ("0.0.0.0", 0):
                 self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
             return 1
-        except Exception:
+        except Exception as e:
+            print(e)
             return 0
 
     def read(self):
