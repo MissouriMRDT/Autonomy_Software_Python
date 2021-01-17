@@ -25,8 +25,7 @@ this string should go over it"""
     core.rovecomm_node.set_callback(4243, handle_packet)
 
     # Subscribe to our own packets
-    packet = RoveCommPacket(ROVECOMM_SUBSCRIBE_REQUEST, "b", (), "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(ROVECOMM_SUBSCRIBE_REQUEST, "b", (), "127.0.0.1", 11000)
     core.rovecomm_node.write(packet, False)
 
     core.rovecomm_node.tcp_node.connect(("127.0.0.1", 11111))

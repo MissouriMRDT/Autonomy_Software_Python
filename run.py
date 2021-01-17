@@ -67,7 +67,7 @@ def main() -> None:
     logger = setup_logger(level)
 
     # Initialize the rovecomm node
-    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11117))
+    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Initialize the core handlers (excluding vision)
     core.setup(args.mode)
