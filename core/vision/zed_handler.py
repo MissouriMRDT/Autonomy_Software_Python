@@ -19,9 +19,10 @@ class ZedHandler:
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.QUALITY
+        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         self.init.coordinate_units = sl.UNIT.METER
         self.init.camera_fps = 30
+        self.init.depth_minimum_distance = 0.5
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -62,6 +63,7 @@ class ZedHandler:
         # Set runtime parameters after opening the camera
         runtime = sl.RuntimeParameters()
         runtime.sensing_mode = sl.SENSING_MODE.STANDARD
+        runtime.confidence_threshold = 50
 
         while not self._stop.is_set():
             err = self.zed.grab(runtime)
@@ -69,9 +71,14 @@ class ZedHandler:
                 # Grab images, and grab the data as opencv/numpy matrix
                 self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
                 self.reg_img = image_zed.get_data()
-                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
+                self.zed.retrieve_image(
+                    depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size
+                )
                 self.depth_img = depth_image_zed.get_data()
-
+                self.depth_map = sl.Mat()
+                self.zed.retrieve_measure(
+                    self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, image_size
+                )  # Retrieve depth
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
@@ -89,9 +96,7 @@ class ZedHandler:
         return self.depth_img
 
     def grab_depth_data(self):
-        depth_map = sl.Mat()
-        self.zed.retrieve_measure(depth_map, sl.MEASURE.DEPTH)  # Retrieve depth
-        return depth_map
+        return self.depth_map
 
     def start(self):
         """
