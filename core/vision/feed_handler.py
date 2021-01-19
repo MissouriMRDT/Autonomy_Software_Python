@@ -46,6 +46,7 @@ def feed_process(
 
     while True:
         data = p_output.recv()
+        data = cv2.imdecode(data, 1)
         # OpenCV video writer expects BGR color channels
         save_img = cv2.cvtColor(data, cv2.COLOR_BGRA2BGR)
         # Motion expects RGB color channels
@@ -114,5 +115,9 @@ class FeedHandler:
         """
         # Frames is a dictionary of (process, pipe_in)
         process, pipe_in = self.feeds[feed_id]
+        # Resize the image
         img = cv2.resize(img, (self.resolution_x, self.resolution_y))
-        pipe_in.send(img)
+        # Encode the image before pickling to speed up
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+        result, encimg = cv2.imencode(".jpg", img, encode_param)
+        pipe_in.send(encimg)
