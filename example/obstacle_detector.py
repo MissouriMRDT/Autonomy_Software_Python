@@ -1,7 +1,7 @@
 import cv2
 import core
 import numpy as np
-import core
+import math
 
 depth = None
 depth_data = None
@@ -9,9 +9,9 @@ depth_data = None
 
 def detect_obstacle(depth_data):
     depth_matrix = depth_data.get_data()
-    width = 1280
-    height = 720
-
+    width = int(1280 / 2)
+    height = int(720 / 2)
+    # print(depth_matrix.shape)
     maskDepth = np.zeros([height, width], np.uint8)
     maskDepth = np.where((depth_matrix < 1.5) & (depth_matrix >= 0), 1, 0).astype(
         np.uint8
@@ -41,10 +41,10 @@ def click_print_depth(event, x, y, flags, param):
 
 def main():
     global depth, depth_data
-    cv2.namedWindow("depth")
-    cv2.setMouseCallback("depth", click_print_depth)
+    # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
+    # cv2.namedWindow("depth")
+    # cv2.setMouseCallback("depth", click_print_depth)
     cnt = []
-    width, height = 1280, 720
     while True:
         depth = core.vision.camera_handler.grab_depth()
         reg = core.vision.camera_handler.grab_regular()
@@ -53,15 +53,18 @@ def main():
         cnt = detect_obstacle(depth_data)
 
         if cnt != []:
-            depth = cv2.drawContours(depth, [cnt], 0, (0, 255, 0), 3)
+            # depth = cv2.drawContours(depth, [cnt], 0, (0, 255, 0), 3)
             # Find center of contour and mark it on image
             M = cv2.moments(cnt)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             reg = cv2.drawContours(reg, [cnt], 0, (0, 255, 0), 3)
+            pc = core.vision.camera_handler.grab_point_cloud()
+            point = pc.get_value(cX, cY)[1]
+            angle = math.degrees(math.atan2(point[0], point[2]))
             cv2.putText(
                 reg,
-                "Obstacle Detected",
+                f"Obstacle Detected at {round(angle,2), round(depth_data.get_value(cY ,cX)[1], 2)}",
                 (cX - 20, cY - 20),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
@@ -71,11 +74,11 @@ def main():
             cv2.circle(reg, (cX, cY), 7, (255, 255, 255), -1)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        cv2.imshow("depth", depth)
+        # cv2.imshow("depth", depth)
         cv2.imshow("reg", reg)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
-            breakx
+            break
 
 
 if __name__ == "__main__":
