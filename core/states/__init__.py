@@ -24,3 +24,11 @@ class AutonomyEvents(Enum):
     END_OBSTACLE_AVOIDANCE = 11
     NO_WAYPOINT = 12
     NEW_WAYPOINT = 13
+
+
+StateMapping = {
+    Idle(): 0,
+    Navigating(): 1,
+    SearchPattern(): 2,
+    ApproachingMarker(): 3,
+}

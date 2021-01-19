@@ -87,7 +87,7 @@ class RoveCommPacket:
         elif ip_octet_4 != "" and len(ip_octet_4) >= 4:
             self.ip_address = (ip_octet_4, port)
         else:
-            self.ip_address = ("0.0.0.0", port)
+            self.ip_address = ("0.0.0.0", 0)
         return
 
     def SetIp(self, ip, port=None):
@@ -439,6 +439,7 @@ class RoveCommEthernetTcp:
         # from blocking the thread while waiting for a request
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
+            print(conn)
             self.open_sockets[addr[0]] = conn
             self.incoming_sockets[addr[0]] = conn
 
