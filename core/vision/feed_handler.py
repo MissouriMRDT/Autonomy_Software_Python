@@ -9,7 +9,15 @@ if sys.platform == "linux":
 
 
 def feed_process(
-    pipe, num, feed_id, fourcc, frame_rate, resolution_x, resolution_y, save_video=True, stream_video=True
+    pipe,
+    num,
+    feed_id,
+    fourcc,
+    frame_rate,
+    resolution_x,
+    resolution_y,
+    save_video=True,
+    stream_video=True,
 ):
     """
     Function to be run as a process, configures streaming and recording of frames.
@@ -23,9 +31,14 @@ def feed_process(
         )  # append v4l output to list of cameras
 
     if save_video:
-        video_filename = f"logs/stream_{feed_id}_" + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
+        video_filename = f"logs/stream_{feed_id}_" + time.strftime(
+            "%Y%m%d-%H%M%S"
+        )  # save videos to unique files
         video_writer = cv2.VideoWriter(
-            video_filename + "_left.avi", fourcc, frame_rate, (resolution_x, resolution_y)
+            video_filename + "_left.avi",
+            fourcc,
+            frame_rate,
+            (resolution_x, resolution_y),
         )  # append video writer to list of video writers
 
     p_output, p_input = pipe
@@ -33,12 +46,10 @@ def feed_process(
 
     while True:
         data = p_output.recv()
-        # Resize image to reduce bandwidth/size
-        image = cv2.resize(data, (resolution_x, resolution_y))
         # OpenCV video writer expects BGR color channels
-        save_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+        save_img = cv2.cvtColor(data, cv2.COLOR_BGRA2BGR)
         # Motion expects RGB color channels
-        stream_img = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+        stream_img = cv2.cvtColor(data, cv2.COLOR_BGRA2RGB)
 
         # Stream and record video if applicable
         if stream_video and sys.platform == "linux":
@@ -103,4 +114,5 @@ class FeedHandler:
         """
         # Frames is a dictionary of (process, pipe_in)
         process, pipe_in = self.feeds[feed_id]
+        img = cv2.resize(img, (self.resolution_x, self.resolution_y))
         pipe_in.send(img)

@@ -53,8 +53,6 @@ class ZedHandler:
 
         # Prepare new image size to retrieve half-resolution images
         image_size = self.zed.get_camera_information().camera_resolution
-        image_size.width = image_size.width / 2
-        image_size.height = image_size.height / 2
 
         # Declare your sl.Mat matrices
         image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
@@ -127,4 +125,6 @@ class ZedHandler:
         """
         Returns 3D point cloud data captured with ZED
         """
-        pass
+        point_cloud = sl.Mat()
+        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZ)
+        return point_cloud
