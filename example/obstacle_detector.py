@@ -13,9 +13,19 @@ def detect_obstacle(depth_data):
     height = int(720 / 2)
     # print(depth_matrix.shape)
     maskDepth = np.zeros([height, width], np.uint8)
-    maskDepth = np.where((depth_matrix < 1.5) & (depth_matrix >= 0), 1, 0).astype(
-        np.uint8
-    )
+
+    # Filter z-depth in chunks, this will make it easier to find approximate blobs
+    # We map slices to a value, making finding contours a little easier (contours require)
+    conditions = [
+        (depth_matrix < 1.5) & (depth_matrix >= 1),
+        (depth_matrix < 1) & (depth_matrix >= 0.5),
+        (depth_matrix < 0.5) & (depth_matrix > 0),
+        (depth_matrix >= 1.5) | (depth_matrix <= 0),
+    ]
+
+    # Map our varying conditions to numbers in matrix, contours of like values will be easier to find now
+    mapped_values = [3, 2, 1, 0]
+    maskDepth = np.select(conditions, mapped_values).astype(np.uint8)
 
     contours, hierarchy = cv2.findContours(maskDepth, 2, 1)
 
@@ -42,8 +52,8 @@ def click_print_depth(event, x, y, flags, param):
 def main():
     global depth, depth_data
     # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
-    # cv2.namedWindow("depth")
-    # cv2.setMouseCallback("depth", click_print_depth)
+    cv2.namedWindow("depth")
+    cv2.setMouseCallback("depth", click_print_depth)
     cnt = []
     while True:
         depth = core.vision.camera_handler.grab_depth()
@@ -74,7 +84,7 @@ def main():
             cv2.circle(reg, (cX, cY), 7, (255, 255, 255), -1)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        # cv2.imshow("depth", depth)
+        cv2.imshow("depth", depth)
         cv2.imshow("reg", reg)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
