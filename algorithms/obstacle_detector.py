@@ -2,9 +2,12 @@ import numpy as np
 import cv2
 import core
 import math
+import heapq
+
+STEP_SIZE = 0.35
 
 
-def detect_obstacle(depth_data):
+def detect_obstacle(depth_data, min_depth, max_depth):
     """
     Detects an obstacle in the corresponding depth map. This works by filtering the depth map
     into distinct segments of depth and then finding contours in that data. The contour with
@@ -22,24 +25,31 @@ def detect_obstacle(depth_data):
     height = int(720 / 2)
     maskDepth = np.zeros([height, width], np.uint8)
 
-    # Filter z-depth in chunks, this will make it easier to find approximate blobs
-    # We map slices to a value, making finding contours a little easier (contours require)
-    conditions = [
-        (depth_matrix < 1.5) & (depth_matrix >= 1),
-        (depth_matrix < 1) & (depth_matrix >= 0.5),
-        (depth_matrix < 0.5) & (depth_matrix > 0),
-        (depth_matrix >= 1.5) | (depth_matrix <= 0),
-    ]
+    contours = []
 
-    # Map our varying conditions to numbers in matrix, contours of like values will be easier to find now
-    mapped_values = [3, 2, 1, 0]
-    maskDepth = np.select(conditions, mapped_values).astype(np.uint8)
+    # Depth segments between min and max with step
+    li = np.arange(min_depth, max_depth, core.DEPTH_STEP_SIZE)
+    max_li = []
 
-    # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
-    for i in range(1, int(height / 3)):
-        maskDepth[height - i] = [0] * width
+    # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
+    for elem in li:
+        max_li.append(len(depth_matrix[(depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem)]))
 
-    contours, hierarchy = cv2.findContours(maskDepth, 2, 1)
+    max_li = heapq.nlargest(core.NUM_DEPTH_SEGMENTS, zip(max_li, li))
+
+    # For each step selected, run contour detection looking for blobs at that depth
+    for (score, elem) in max_li:
+        maskDepth = np.where((depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem), 1, 0)
+
+        # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
+        for i in range(1, int(height / 3)):
+            maskDepth[height - i] = [0] * width
+
+        # Find any contours
+        contours1, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
+
+        # Add to our ongoing list
+        contours.extend(contours1)
 
     # Only proceed if at least one blob is found.
     if not contours:
@@ -82,7 +92,8 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     point = pc.get_value(cX, cY)[1]
 
     # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
-    # This will give us the angle between the left lens of the ZED and the obstacle
+    # This will give us the angle between the left lens of the ZED and the obstacle on the
+    # x plane
     angle = round(math.degrees(math.atan2(point[0], point[2])), 2)
 
     # Distance is the corresponding value in the depth map of the center of the obstacle
@@ -93,7 +104,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
         cv2.putText(
             reg_img,
             f"Obstacle Detected at {angle, round(depth_data.get_value(cY ,cX)[1], 2)}",
-            (cX - 20, cY - 20),
+            (cX - 100, cY - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (255, 255, 255),
