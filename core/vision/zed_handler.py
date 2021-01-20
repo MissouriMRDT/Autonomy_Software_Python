@@ -22,7 +22,7 @@ class ZedHandler:
         self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         self.init.coordinate_units = sl.UNIT.METER
         self.init.camera_fps = 30
-        self.init.depth_minimum_distance = 0.5
+        self.init.depth_minimum_distance = 1
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -59,12 +59,8 @@ class ZedHandler:
         self.depth_size.height = self.depth_size.height / 2
 
         # Declare your sl.Mat matrices
-        image_zed = sl.Mat(
-            self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4
-        )
-        depth_image_zed = sl.Mat(
-            self.depth_size.width, self.depth_size.height, sl.MAT_TYPE.U8_C4
-        )
+        image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
+        depth_image_zed = sl.Mat(self.depth_size.width, self.depth_size.height, sl.MAT_TYPE.U8_C4)
 
         # Set runtime parameters after opening the camera
         runtime = sl.RuntimeParameters()
@@ -75,17 +71,13 @@ class ZedHandler:
             err = self.zed.grab(runtime)
             if err == sl.ERROR_CODE.SUCCESS:
                 # Grab images, and grab the data as opencv/numpy matrix
-                self.zed.retrieve_image(
-                    image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size
-                )
+                self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size)
                 self.reg_img = image_zed.get_data()
-                self.zed.retrieve_image(
-                    depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, self.depth_size
-                )
+                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, self.depth_size)
                 self.depth_img = depth_image_zed.get_data()
 
                 # Now let the feed_handler stream/save the frames
-                #self.feed_handler.handle_frame("regular", self.reg_img)
+                # self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
 
     def grab_regular(self):
@@ -102,9 +94,7 @@ class ZedHandler:
 
     def grab_depth_data(self):
         self.depth_map = sl.Mat()
-        self.zed.retrieve_measure(
-            self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size
-        )  # Retrieve depth
+        self.zed.retrieve_measure(self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size)  # Retrieve depth
         return self.depth_map
 
     def start(self):
