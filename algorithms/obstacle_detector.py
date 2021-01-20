@@ -35,6 +35,10 @@ def detect_obstacle(depth_data):
     mapped_values = [3, 2, 1, 0]
     maskDepth = np.select(conditions, mapped_values).astype(np.uint8)
 
+    # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
+    for i in range(1, 99):
+        maskDepth[height - i] = [0] * width
+
     contours, hierarchy = cv2.findContours(maskDepth, 2, 1)
 
     # Only proceed if at least one blob is found.
