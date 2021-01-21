@@ -30,12 +30,14 @@ def main():
 
         depth_data = core.vision.camera_handler.grab_depth_data()
 
-        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1.5, 4)
+        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1, 3)
 
         reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
 
         if obstacle != []:
-            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_data, obstacle, True, reg_img)
+            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
+                depth_data, obstacle, True, reg_img
+            )
 
         # core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
         # time.sleep(1 / 30)

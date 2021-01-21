@@ -31,33 +31,46 @@ def detect_obstacle(depth_data, min_depth, max_depth):
     li = np.arange(min_depth, max_depth, core.DEPTH_STEP_SIZE)
     max_li = []
 
+    # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
+    for i in range(1, int(height / 3)):
+        depth_matrix[height - i] = [0] * width
+
     # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
     for elem in li:
-        max_li.append(len(depth_matrix[(depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem)]))
+        max_li.append(
+            len(
+                depth_matrix[
+                    (depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem)
+                ]
+                * (1 / (min_depth - elem))
+            )
+        )
 
-    max_li = heapq.nlargest(core.NUM_DEPTH_SEGMENTS, zip(max_li, li))
+    max_li = heapq.nlargest(3, zip(max_li, li))
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, elem) in max_li:
-        maskDepth = np.where((depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem), 1, 0)
-
-        # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
-        for i in range(1, int(height / 3)):
-            maskDepth[height - i] = [0] * width
+        maskDepth = np.where(
+            (depth_matrix < elem + core.DEPTH_STEP_SIZE) & (depth_matrix > elem), 1, 0
+        )
 
         # Find any contours
         contours1, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
 
-        # Add to our ongoing list
-        contours.extend(contours1)
+        # choose the largest blob at this depth
+        blob = max(contours1, key=cv2.contourArea)
+        contours.append((blob, elem))
 
     # Only proceed if at least one blob is found.
     if not contours:
         return []
 
     # Choose the largest blob
-    blob = max(contours, key=cv2.contourArea)
+    blob = max(
+        contours, key=lambda x: cv2.contourArea(x[0]) * (1 / (min_depth - x[1]))
+    )[0]
 
+    # contours = np.where(cv2.contourArea(contours) > core.MIN_OBSTACLE_PIXEL_AREA)
     if cv2.contourArea(blob) < core.MIN_OBSTACLE_PIXEL_AREA:
         return []
 
@@ -81,7 +94,6 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
         center (x, y) - the coordinates (pixels) of the center of the obstacle
 
     """
-
     # Find center of contour and mark it on image
     M = cv2.moments(obstacle)
     cX = int(M["m10"] / M["m00"])
@@ -111,6 +123,6 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
             2,
         )
         cv2.circle(reg_img, (cX, cY), 7, (255, 255, 255), -1)
-        cv2.drawContours(reg_img, [obstacle], -1, (0, 255, 0), 3)
+        cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
 
     return angle, distance, (cX, cY)
