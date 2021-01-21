@@ -127,5 +127,5 @@ class ZedHandler:
         Returns 3D point cloud data captured with ZED
         """
         point_cloud = sl.Mat()
-        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZ)
+        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size)
         return point_cloud

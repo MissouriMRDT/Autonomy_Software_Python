@@ -47,9 +47,8 @@ def detect_obstacle(depth_data, min_depth, max_depth):
 
     max_li = heapq.nlargest(3, zip(max_li, li))
 
-    # Sort starting closest first
+    # Sort starting closest (distance wise) first
     max_li.sort(reverse=False, key=lambda x: x[1])
-    print(max_li)
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
@@ -58,14 +57,16 @@ def detect_obstacle(depth_data, min_depth, max_depth):
         )
 
         # Find any contours
-        contours1, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
 
-        # choose the largest blob at this depth
-        blob = max(contours1, key=cv2.contourArea)
+        # Check if there are contours to be detected at this depth
+        if contours != []:
+            # choose the largest blob at this depth
+            blob = max(contours, key=cv2.contourArea)
 
-        # return the blob if it meets the size requiremetns
-        if cv2.contourArea(blob) >= core.MIN_OBSTACLE_PIXEL_AREA:
-            return blob
+            # return the blob if it meets the size requiremetns
+            if cv2.contourArea(blob) >= core.MIN_OBSTACLE_PIXEL_AREA:
+                return blob
 
     return []
 
