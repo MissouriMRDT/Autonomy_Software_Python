@@ -1,5 +1,5 @@
 import numpy as np
-from core.constants import Coordinate
+from core import Coordinate
 import algorithms.geomath as geomath
 
 

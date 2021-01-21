@@ -31,6 +31,13 @@ Coordinate = collections.namedtuple("Coordinate", ["lat", "lon"])
 rovecomm_event_list = open("core/rovecomm_values.json", "r").read()
 rovecomm_event_list = json.loads(rovecomm_event_list)
 
+# RoveComm manifest
+manifest = {}
+
+# Outgoing communication ports
+UDP_OUTGOING_PORT = None
+TCP_OUTGOING_PORT = 11111
+
 
 # RoveComm Autonomy Control DataIDs
 class DataID(IntEnum):

@@ -1,7 +1,7 @@
 import matplotlib.testing.compare as plt_tst
 import matplotlib.pyplot as plt
 import algorithms.marker_search as marker_search
-import core.constants as constants
+import core
 
 """
 UNIT TEST
@@ -23,8 +23,8 @@ def drawLogarithmicSpiral(r=50, fileName="resources/tests/output/output_search_p
     y = 0
 
     # pick the same GPS coord for starting and curren pos
-    start_coord = constants.Coordinate(37.951424, -91.768959)
-    end_coord = constants.Coordinate(37.951424, -91.768959)
+    start_coord = core.Coordinate(37.951424, -91.768959)
+    end_coord = core.Coordinate(37.951424, -91.768959)
 
     li = []
 
@@ -40,7 +40,7 @@ def drawLogarithmicSpiral(r=50, fileName="resources/tests/output/output_search_p
         x += dx
         y += dy
 
-        end_coord = constants.Coordinate(new_coord.lat, new_coord.lon)
+        end_coord = core.Coordinate(new_coord.lat, new_coord.lon)
         li.append((x, y))
 
     plt.plot(*zip(*li))

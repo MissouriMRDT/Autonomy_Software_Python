@@ -42,7 +42,7 @@ def main() -> None:
     parser.add_argument("--level", choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
 
     # Optional parameter to set the vision system to use
-    parser.add_argument("--vision", choices=["ZED", "NONE", "WEBCAM"], default="ZED")
+    parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
 
     # Optional parameter to set the mode of operation:
     # Regular (on rover) or Sim (using the autonomy simulator)
@@ -52,6 +52,10 @@ def main() -> None:
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
         exit(1)
+
+    # Sim mode defaults vision subsystem to also originate from simulator
+    if args.mode == "SIM":
+        args.vision = "SIM"
 
     # Add the examples folder to our path so we can run example files
     sys.path.insert(0, "example/")
@@ -65,11 +69,11 @@ def main() -> None:
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
+    # Initialize the core handlers (excluding vision)
+    core.setup(args.mode)
+
     # Initialize the core vision components
     core.vision.setup(args.vision)
-
-    # Initialize the core handlers (excluding RoveComm and vision)
-    core.setup()
 
     # Initialize the Interfaces
     interfaces.setup()

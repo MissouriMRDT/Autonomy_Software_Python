@@ -1,7 +1,7 @@
 # Find more info on archimedean spirals here https://www.britannica.com/science/spiral-mathematics
 
 import math
-import core.constants as constants
+import core
 
 
 def calculate_next_coordinate(start, former_goal):
@@ -29,17 +29,17 @@ def calculate_next_coordinate(start, former_goal):
 
     # Formula for archimedes spiral is r = aθ, calculate current theta using a known a
     # (search distance) and a known r (distance to center, or starting point)
-    theta = r / constants.SEARCH_DISTANCE
+    theta = r / core.SEARCH_DISTANCE
 
     # Add delta theta to theta
-    theta += constants.DELTA_THETA
+    theta += core.DELTA_THETA
 
     # Now that we have a new θ, calculate the new radius given a and θ
-    r = constants.SEARCH_DISTANCE * theta
+    r = core.SEARCH_DISTANCE * theta
 
     # convert back to cartesian coordiantes
     diff_lat = r * math.sin(theta)
     diff_lon = r * math.cos(theta)
 
     # Add the offsets to the starting position to calculate next point in spiral
-    return constants.Coordinate(start.lat + diff_lat / 1000, start.lon + diff_lon / 1000)
+    return core.Coordinate(start.lat + diff_lat / 1000, start.lon + diff_lon / 1000)

@@ -8,10 +8,14 @@ class WaypointHandler:
     def __init__(self):
         # Class variables
         self.waypoints: deque = deque()
-        self.gps_data: core.constants.GPSData = None
+        self.gps_data: core.GPSData = None
 
-        core.rovecomm_node.set_callback(core.ADD_WAYPOINT_ID, self.add_waypoint)
-        core.rovecomm_node.set_callback(core.CLEAR_WAYPOINTS_ID, self.clear_waypoints)
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["AddWaypoint"]["dataId"], self.add_waypoint
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
+        )
 
         self.logger = logging.getLogger(__name__)
 
@@ -20,7 +24,7 @@ class WaypointHandler:
         Adds the data from the packet (expects lat, lon) to the waypoints deque
         """
         latitude, longitude = packet.data
-        waypoint = core.constants.Coordinate(latitude, longitude)
+        waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(waypoint)
         self.logger.info(f"Added Waypoint: lat ({latitude}), lon({longitude})")
 
@@ -31,7 +35,7 @@ class WaypointHandler:
         self.waypoints.clear()
         self.logger.info("Cleared all waypoints")
 
-    def get_waypoint(self) -> core.constants.GPSData:
+    def get_waypoint(self) -> core.GPSData:
         """
         Gets the current waypoint, pops a new from the deque if we haven't grabbed a
         waypoint from the deque yet
@@ -64,12 +68,12 @@ class WaypointHandler:
         else:
             return True
 
-    def get_new_waypoint(self) -> core.constants.GPSData:
+    def get_new_waypoint(self) -> core.GPSData:
         """
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
         """
-        self.gps_data = core.constants.GPSData()
+        self.gps_data = core.GPSData()
         self.gps_data.start = interfaces.nav_board.location()
 
         try:

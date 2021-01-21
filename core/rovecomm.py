@@ -75,17 +75,19 @@ class RoveCommPacket:
             Prints the packet'c contents
     """
 
-    def __init__(
-        self, data_id=0, data_type="b", data=(), ip_octet_4="", port=ROVECOMM_UDP_PORT
-    ):
+    def __init__(self, data_id=0, data_type="b", data=(), ip_octet_4="", port=ROVECOMM_UDP_PORT):
         self.data_id = data_id
         self.data_type = data_type
         self.data_count = len(data)
         self.data = data
-        if ip_octet_4 != "":
+        # If the ip is less than 4 chars we know it's the 4th octet, otherwise it's the full IP
+        # in case of empty IP default to unknow IP
+        if ip_octet_4 != "" and len(ip_octet_4) < 4:
             self.ip_address = ("192.168.1." + ip_octet_4, port)
+        elif ip_octet_4 != "" and len(ip_octet_4) >= 4:
+            self.ip_address = (ip_octet_4, port)
         else:
-            self.ip_address = ("0.0.0.0", port)
+            self.ip_address = ("0.0.0.0", 0)
         return
 
     def SetIp(self, ip, port=None):
@@ -267,9 +269,7 @@ class RoveCommEthernetUdp:
                 types_byte_to_int[packet.data_type],
             )
             for i in packet.data:
-                rovecomm_packet = rovecomm_packet + struct.pack(
-                    ">" + packet.data_type, i
-                )
+                rovecomm_packet = rovecomm_packet + struct.pack(">" + packet.data_type, i)
 
             for subscriber in self.subscribers:
                 self.RoveCommSocket.sendto(rovecomm_packet, subscriber)
@@ -304,9 +304,7 @@ class RoveCommEthernetUdp:
                 data = packet[header_size:]
 
                 if rovecomm_version != 2:
-                    return_packet = RoveCommPacket(
-                        ROVECOMM_INCOMPATIBLE_VERSION, "b", (1,), ""
-                    )
+                    return_packet = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, "b", (1,), "")
                     return_packet.ip_address = remote_ip
                     return return_packet
 
@@ -352,9 +350,7 @@ class RoveCommEthernetTcp:
             Accepts socket connection requests
     """
 
-    def __init__(
-        self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT
-    ):
+    def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=ROVECOMM_TCP_PORT):
         self.open_sockets = {}
         self.incoming_sockets = {}
         # configure a TCP socket
@@ -404,9 +400,7 @@ class RoveCommEthernetTcp:
                 types_byte_to_int[packet.data_type],
             )
             for i in packet.data:
-                rovecomm_packet = rovecomm_packet + struct.pack(
-                    ">" + packet.data_type, i
-                )
+                rovecomm_packet = rovecomm_packet + struct.pack(">" + packet.data_type, i)
 
             for address in self.incoming_sockets:
                 self.incoming_sockets[address].send(rovecomm_packet)
@@ -431,9 +425,7 @@ class RoveCommEthernetTcp:
             try:
                 TCPSocket.connect(address)
             except Exception as e:
-                logging.getLogger(__name__).error(
-                    "Something's wrong. Exception is %s" % (e)
-                )
+                logging.getLogger(__name__).error("Something's wrong. Exception is %s" % (e))
                 return 0
             self.open_sockets[address] = TCPSocket
         return 1
@@ -447,6 +439,7 @@ class RoveCommEthernetTcp:
         # from blocking the thread while waiting for a request
         if len(select.select([self.server], [], [], 0)[0]) > 0:
             conn, addr = self.server.accept()
+            print(conn)
             self.open_sockets[addr[0]] = conn
             self.incoming_sockets[addr[0]] = conn
 
@@ -475,16 +468,12 @@ class RoveCommEthernetTcp:
         for open_socket in available_sockets:
             try:
                 header = open_socket.recv(5)
-                rovecomm_version, data_id, data_count, data_type = struct.unpack(
-                    ROVECOMM_HEADER_FORMAT, header
-                )
+                rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
                 data_type_byte = types_int_to_byte[data_type]
                 data = open_socket.recv(data_count * types_byte_to_size[data_type_byte])
 
                 if rovecomm_version != 2:
-                    returnPacket = RoveCommPacket(
-                        ROVECOMM_INCOMPATIBLE_VERSION, "b", (1,), ""
-                    )
+                    returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, "b", (1,), "")
                     returnPacket.SetIp(*open_socket.getpeername())
                     packets.append(returnPacket)
 
