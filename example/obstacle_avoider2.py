@@ -8,14 +8,14 @@ from geopy import Point
 from geopy.distance import distance, VincentyDistance
 import algorithms.geomath as geomath
 import matplotlib.pyplot as plt
-import gmplot
+#import gmplot
 import algorithms.heading_hold
 import time, cv2
 
 
 # Create the map plotter:
-apikey = ""  # (your API key here)
-gmap = gmplot.GoogleMapPlotter(37.95139193343744, -91.76901326338806, 14, apikey=apikey)
+#apikey = ""  # (your API key here)
+#gmap = gmplot.GoogleMapPlotter(37.95139193343744, -91.76901326338806, 14, apikey=apikey)
 logger = logging.getLogger(__name__)
 logger.info("Executing function: main()")
 
@@ -31,7 +31,7 @@ def get_relative_angle_subtract(angle, angle2):
 def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
     bearing, radius = geomath.haversine(nav_board.location()[0], nav_board.location()[1], obstacle_lat, obstacle_lon)
     radius *= 1000
-    radius += 2.0
+    #radius += 2.0
     points = []
 
     increments = 4
@@ -49,8 +49,24 @@ def plan_avoidance_route(angle, obstacle_lat, obstacle_lon):
 
 def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
     points = []
-
+    obstacle = []
+    print(nav_board.heading())
     # Finding the obstacle
+    while obstacle == []:
+        depth_data = core.vision.camera_handler.grab_depth_data()
+        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1, 3)
+        reg_img = core.vision.camera_handler.grab_regular()
+        core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
+
+    reg_img = core.vision.camera_handler.grab_regular()
+    reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
+
+    angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
+            depth_data, obstacle, True, reg_img
+        )
+    angle = (nav_board.heading() + angle) % 360
+    core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
+
     angle, distance = obstacle_detection()
 
     # Saving our starting location
@@ -62,7 +78,6 @@ def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
     points = plan_avoidance_route(angle, obstacle_lat, obstacle_lon)
 
     previous_loc = one_meter_from_obstacle
-    FOUND_OBSTACLE = False
 
     for point in points:
         new_lat, new_lon = point
@@ -78,32 +93,16 @@ def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
             left, right = algorithms.gps_navigate.calculate_move(
                 core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
             )
-            if not FOUND_OBSTACLE and DETECT_OBSTACLE:
-                tag_cascade = cv2.CascadeClassifier("cascade.xml")
-
-                gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
-
-                tags = tag_cascade.detectMultiScale(gray, 1.3, 5)
-
-                if len(tags) > 0:
-                    logger.info("Found an AR Tag!")
-                    FOUND_OBSTACLE = True
-
-                for (x, y, w, h) in tags:
-                    reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-            if FOUND_OBSTACLE:
-                break
-
+        
             logger.debug(f"Navigating: Driving at ({left}, {right})")
             interfaces.drive_board.send_drive(left, right)
-            cv2.imshow("img", reg_img)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            #cv2.imshow("img", reg_img)
+            #if cv2.waitKey(1) & 0xFF == ord("q"):
+            #    break
             time.sleep(0.1)
 
-        if FOUND_OBSTACLE:
-            break
+        #if FOUND_OBSTACLE:
+        #    break
         interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
@@ -114,7 +113,7 @@ def main() -> None:
     """
     simulate_obstacle_avoidance()
     time.sleep(2)
-    simulate_obstacle_avoidance(False)
+    #simulate_obstacle_avoidance(False)
 
 
 def coords_obstacle(distMeters, lat1, lon1, bearing):
