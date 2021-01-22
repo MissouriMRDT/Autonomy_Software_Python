@@ -23,7 +23,7 @@ class ZedHandler:
         self.init.coordinate_units = sl.UNIT.METER
         self.init.camera_fps = 30
         self.init.depth_minimum_distance = 1
-        self.init.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP  # OpenGL coordinate system
+        # self.init.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP  # OpenGL coordinate system
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -68,7 +68,7 @@ class ZedHandler:
         runtime = sl.RuntimeParameters()
         runtime.sensing_mode = sl.SENSING_MODE.STANDARD
         runtime.confidence_threshold = 50
-        runtime.measure3D_reference_frame = sl.REFERENCE_FRAME.WORLD
+        runtime.measure3D_reference_frame = sl.REFERENCE_FRAME.CAMERA
 
         while not self._stop.is_set():
             err = self.zed.grab(runtime)
@@ -138,7 +138,7 @@ class ZedHandler:
         reset_tracking_floor_frame = sl.Transform()
         find_plane_status = self.zed.find_floor_plane(plane, reset_tracking_floor_frame)
         # mesh = plane.extract_mesh()
-        return plane
+        return plane, find_plane_status
 
     def get_info(self):
         info = self.zed.get_camera_information().calibration_parameters
@@ -147,4 +147,4 @@ class ZedHandler:
 
     def get_pose(self, pose):
         tracking_state = self.zed.get_position(pose)
-        return
+        return tracking_state
