@@ -30,7 +30,7 @@ def detect_obstacle(depth_data, min_depth, max_depth):
     max_li = []
 
     # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
-    for i in range(1, int(height / 4)):
+    for i in range(1, int(height / 3)):
         depth_matrix[height - i] = [0] * width
 
     # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
