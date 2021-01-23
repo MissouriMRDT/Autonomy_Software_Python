@@ -29,7 +29,7 @@ def main():
         reg_img = core.vision.camera_handler.grab_regular()
 
         depth_data = core.vision.camera_handler.grab_depth_data()
-
+        depth_data = depth_data.get_data()
         obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1, 3)
         # print(obstacle)
         reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))

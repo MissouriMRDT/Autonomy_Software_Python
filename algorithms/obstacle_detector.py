@@ -7,7 +7,7 @@ import heapq
 STEP_SIZE = 0.35
 
 
-def detect_obstacle(depth_data, min_depth, max_depth):
+def detect_obstacle(depth_matrix, min_depth, max_depth):
     """
     Detects an obstacle in the corresponding depth map. This works by filtering the depth map
     into distinct segments of depth and then finding contours in that data. The contour with
@@ -19,8 +19,6 @@ def detect_obstacle(depth_data, min_depth, max_depth):
     Returns:
         blob - the contour with greatest area, or [] if there were none of sufficent size
     """
-
-    depth_matrix = depth_data.get_data()
     width = int(1280 / 2)
     height = int(720 / 2)
     maskDepth = np.zeros([height, width], np.uint8)
@@ -100,7 +98,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
     # This will give us the angle between the left lens of the ZED and the obstacle on the
     # x plane
-    angle = round(math.degrees(math.atan2(point[0], point[2])), 2)
+    angle = round(math.degrees(math.atan2(point[0]-core.ZED_X_OFFSET, point[2])), 2)
 
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data.get_value(cY, cX)[1], 2)
