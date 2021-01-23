@@ -25,7 +25,7 @@ def main() -> None:
         cv2.imshow("reg", reg_img)
         cv2.imshow("depth", depth_img)
 
-        if cv2.waitKey(500) & 0xFF == ord("q"):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
 
