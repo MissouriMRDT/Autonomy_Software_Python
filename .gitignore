@@ -1,14 +1,12 @@
 # PyCharm files
 .idea/
 
-#VS Code files
-.vscode/
-
 #Pytest files
 .pytest_cache/
 
 #pipenv lock file
 .lock
+Pipfile.lock
 
 # Mac Temp Files
 .DS_Store
