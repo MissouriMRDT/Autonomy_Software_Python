@@ -8,6 +8,7 @@ import importlib
 import os
 import sys
 import time
+import cv2
 
 
 def setup_logger(level) -> logging.Logger:
@@ -103,6 +104,7 @@ def main() -> None:
     else:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
+        cv2.destroyAllWindows()
         exit(0)
 
 

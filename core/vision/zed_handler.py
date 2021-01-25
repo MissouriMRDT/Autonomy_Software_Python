@@ -1,3 +1,4 @@
+import time
 import pyzed.sl as sl
 import logging
 from core.vision.feed_handler import FeedHandler
@@ -33,8 +34,8 @@ class ZedHandler:
             exit(1)
 
         # Add the desired feeds
-        self.feed_handler.add_feed(2, "regular")
-        self.feed_handler.add_feed(3, "depth")
+        # self.feed_handler.add_feed(2, "regular")
+        # self.feed_handler.add_feed(3, "depth")
 
         # Create initial frames
         self.reg_img = None
@@ -81,7 +82,8 @@ class ZedHandler:
 
                 # Now let the feed_handler stream/save the frames
                 # self.feed_handler.handle_frame("regular", self.reg_img)
-                self.feed_handler.handle_frame("depth", self.depth_img)
+                # self.feed_handler.handle_frame("depth", self.depth_img)
+                time.sleep(1 / self.init.camera_fps)
 
     def grab_regular(self):
         """
