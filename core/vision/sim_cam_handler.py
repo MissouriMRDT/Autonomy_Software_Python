@@ -21,6 +21,8 @@ class SimCamHandler:
 
         self.feed_handler = FeedHandler()
         self.logger = logging.getLogger(__name__)
+        self.dimX = 640
+        self.dimY = 360
 
         # Add the desired feeds
         self.feed_handler.add_feed(2, "regular")
@@ -103,8 +105,11 @@ class SimCamHandler:
         return None
 
     def grab_depth_data(self):
+        """
+        Returns the depth matrix (in meters) ahead of the current rover
+        """
         self.depth_data = np.asarray(self.depth_data)
-        self.depth_data = self.depth_data.reshape((360, 640, 1))
+        self.depth_data = self.depth_data.reshape((self.dimY, self.dimX, 1))
         return self.depth_data
 
     def start(self):
