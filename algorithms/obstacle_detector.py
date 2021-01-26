@@ -7,11 +7,49 @@ import heapq
 STEP_SIZE = 0.35
 
 
+def get_floor_mask(reg_img, dimX, dimY):
+    """
+    Returns a cv2 mask that indentifies the floor in the provided reg_img of dimensions dimX, dimY
+
+    This can then be used to remove the floor from a corresponding depth map/color image.
+
+    Parameters:
+        reg_img - the color image where we will perform floor detection
+        dimX - width in pixels of desire mask (size of image to be applied to)
+        dimY - height in pixels of desire mask (size of image to be applied to)
+    Returns:
+        mask - the mask of the floor
+    """
+    # Perform various blur operations on the image to enhance accuracy of color segmentation
+    test_img = cv2.resize(reg_img.copy(), (dimX, dimY))
+    test_img = cv2.blur(test_img, (5, 5))
+    test_img = cv2.medianBlur(test_img, 5)
+    test_img = cv2.GaussianBlur(test_img, (5, 5), 0)
+
+    test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
+
+    #
+    lower_portion = test_img[int((14 / 15) * dimY) :]
+    smallest = lower_portion.min(axis=(0, 1))
+    largest = lower_portion.max(axis=(0, 1))
+
+    # Get a mask of the possible range of colors of the floor
+    mask = cv2.inRange(test_img, smallest, largest)
+    # Invert the mask so we select everything BUT the floor
+    mask = cv2.bitwise_not(mask)
+    # res = cv2.bitwise_and(test_img, test_img, mask=mask)
+
+    return mask, lower_portion
+
+
 def detect_obstacle(depth_matrix, min_depth, max_depth):
     """
     Detects an obstacle in the corresponding depth map. This works by filtering the depth map
     into distinct segments of depth and then finding contours in that data. The contour with
-    the biggest area is then used as the obstacle if it meets a certain size requirement
+    the biggest area is then used as the obstacle if it meets a certain size requirement.
+
+    Currently we look at the NUM_DEPTH_SEGMENTS busiest segments (most points) and check in order
+    of closeness whether or not they have
 
     Parameters:
         depth_data (zed depth map)
@@ -21,6 +59,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     """
     width = int(1280 / 2)
     height = int(720 / 2)
+
     maskDepth = np.zeros([height, width], np.uint8)
 
     # Depth segments between min and max with step
@@ -28,8 +67,8 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     max_li = []
 
     # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
-    for i in range(1, int(height / 3)):
-        depth_matrix[height - i] = [0] * width
+    # for i in range(1, int(height / 3)):
+    #    depth_matrix[height - i] = [0] * width
 
     # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
     for depth in li:
@@ -43,7 +82,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
             )
         )
 
-    max_li = heapq.nlargest(3, zip(max_li, li))
+    max_li = heapq.nlargest(core.NUM_DEPTH_SEGMENTS, zip(max_li, li))
 
     # Sort starting closest (distance wise) first
     max_li.sort(reverse=False, key=lambda x: x[1])
@@ -98,7 +137,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
     # This will give us the angle between the left lens of the ZED and the obstacle on the
     # x plane
-    angle = round(math.degrees(math.atan2(point[0]-core.ZED_X_OFFSET, point[2])), 2)
+    angle = round(math.degrees(math.atan2(point[0] - core.ZED_X_OFFSET, point[2])), 2)
 
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data.get_value(cY, cX)[1], 2)
