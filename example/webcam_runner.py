@@ -2,6 +2,7 @@ import time
 import core.vision
 import logging
 import cv2
+import matplotlib.pyplot as plt
 
 
 def main() -> None:
@@ -17,6 +18,12 @@ def main() -> None:
     while True:
         # Test grabbing the latest camera frames
         reg_img = core.vision.camera_handler.grab_regular()
+        depth_data = core.vision.camera_handler.grab_depth_data()
+
+        # Plot the depth data as a grayscale image
+        plt.imshow(depth_data, cmap="gray", vmin=0, vmax=20)
+        plt.draw()
+        plt.pause(0.01)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         cv2.imshow("reg", reg_img)

@@ -2,6 +2,8 @@ import logging
 from core.vision.feed_handler import FeedHandler
 import threading
 import socket, cv2, pickle, struct
+import gzip
+import numpy as np
 
 
 class SimCamHandler:
@@ -40,6 +42,8 @@ class SimCamHandler:
         """
         data = b""
         payload_size = struct.calcsize("Q")
+        type_size = struct.calcsize("c")
+
         while not self._stop.is_set():
             # First read the message size, we know it's a 8 byte number
             while len(data) < payload_size:
@@ -47,24 +51,36 @@ class SimCamHandler:
                 if not packet:
                     break
                 data += packet
-
             # Grab only the payload size
             packed_msg_size = data[:payload_size]
+
             # Store rest of data
             data = data[payload_size:]
+
             # Calculate the message size
             msg_size = struct.unpack("Q", packed_msg_size)[0]
+
+            while len(data) < type_size:
+                data += self.client_socket.recv(4 * 1024)
+            type = data[:type_size]
+            data = data[type_size:]
+            msg_type = struct.unpack("c", type)[0]
 
             # Now keep reading the payload until we have read in all expected data
             while len(data) < msg_size:
                 data += self.client_socket.recv(4 * 1024)
             frame_data = data[:msg_size]
             data = data[msg_size:]
-            self.encoded_img = pickle.loads(frame_data)
-            self.reg_img = cv2.imdecode(self.encoded_img, 1)
+            if msg_type == b"r":
+                self.encoded_img = pickle.loads(frame_data)
+                self.reg_img = cv2.imdecode(self.encoded_img, 1)
+            elif msg_type == b"d":
+                self.encoded_img = gzip.decompress(frame_data)
+                self.encoded_img = pickle.loads(self.encoded_img)
+                self.depth_data = struct.unpack(str(int(len(self.encoded_img) / 4)) + "f", self.encoded_img)
 
             # Now let the feed_handler stream/save the frames
-            self.feed_handler.handle_frame("regular", self.reg_img)
+            # self.feed_handler.handle_frame("regular", self.reg_img)
 
     def grab_regular(self):
         """
@@ -78,6 +94,11 @@ class SimCamHandler:
         """
         self.logger.error("Tried calling grap_depth() for simulator! Not supported currently")
         return None
+
+    def grab_depth_data(self):
+        self.depth_data = np.asarray(self.depth_data)
+        self.depth_data = self.depth_data.reshape((360, 640, 1))
+        return self.depth_data
 
     def start(self):
         """
