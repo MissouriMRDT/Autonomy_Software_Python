@@ -60,8 +60,12 @@ class SimCamHandler:
             # Calculate the message size
             msg_size = struct.unpack("Q", packed_msg_size)[0]
 
+            # Read in the rest of the data
             while len(data) < type_size:
                 data += self.client_socket.recv(4 * 1024)
+
+            # The first element in data is the type of frame encoded as a single byte
+            # Either "r" or "d" for regular or depth
             type = data[:type_size]
             data = data[type_size:]
             msg_type = struct.unpack("c", type)[0]
@@ -71,6 +75,9 @@ class SimCamHandler:
                 data += self.client_socket.recv(4 * 1024)
             frame_data = data[:msg_size]
             data = data[msg_size:]
+
+            # For regular images or depth data we have different decompression techniques
+            # this is due to the type of data we are sending
             if msg_type == b"r":
                 self.encoded_img = pickle.loads(frame_data)
                 self.reg_img = cv2.imdecode(self.encoded_img, 1)
@@ -80,7 +87,7 @@ class SimCamHandler:
                 self.depth_data = struct.unpack(str(int(len(self.encoded_img) / 4)) + "f", self.encoded_img)
 
             # Now let the feed_handler stream/save the frames
-            # self.feed_handler.handle_frame("regular", self.reg_img)
+            self.feed_handler.handle_frame("regular", self.reg_img)
 
     def grab_regular(self):
         """
