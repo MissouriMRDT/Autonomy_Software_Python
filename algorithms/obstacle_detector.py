@@ -4,8 +4,6 @@ import core
 import math
 import heapq
 
-STEP_SIZE = 0.35
-
 
 def get_floor_mask(reg_img, dimX, dimY):
     """
@@ -28,7 +26,6 @@ def get_floor_mask(reg_img, dimX, dimY):
 
     test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
 
-    #
     lower_portion = test_img[int((14 / 15) * dimY) :]
     smallest = lower_portion.min(axis=(0, 1))
     largest = lower_portion.max(axis=(0, 1))
@@ -37,7 +34,6 @@ def get_floor_mask(reg_img, dimX, dimY):
     mask = cv2.inRange(test_img, smallest, largest)
     # Invert the mask so we select everything BUT the floor
     mask = cv2.bitwise_not(mask)
-    # res = cv2.bitwise_and(test_img, test_img, mask=mask)
 
     return mask, lower_portion
 

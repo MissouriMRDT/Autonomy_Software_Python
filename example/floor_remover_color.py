@@ -17,11 +17,6 @@ def main() -> None:
     # Give the system a second to set everything up, start reading in frames
     time.sleep(1)
 
-    # cap = cv2.VideoCapture("algorithms/obj.avi")
-    # cv2.namedWindow("res")
-    # cv2.namedWindow("third")
-    # cv2.namedWindow("reg")
-
     while True:
         # Test grabbing the latest camera frames
         reg_img = core.vision.camera_handler.grab_regular()
@@ -45,11 +40,7 @@ def main() -> None:
                 depth_data, obstacle, True, reg_img
             )
 
-        # core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
-        # time.sleep(1 / 30)
-
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        # cv2.imshow("depth", depth_img)
         cv2.imshow("reg", reg_img)
         cv2.imshow("test", test_img)
         cv2.imshow("low", lower)
