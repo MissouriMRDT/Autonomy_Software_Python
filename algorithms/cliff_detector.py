@@ -49,16 +49,18 @@ def calculate_dot_product(image_matrix, image_location, con_matrix):
     return np.dot(image_sub_matrix, con_matrix.flatten())
 
 
-def search_for_cliffs(image_matrix, rows=16, cols=16, fire=True, percentile=90) -> np.array:
+def search_for_cliffs(image_matrix, rows=32, cols=32, percentile=-1, depth=1.2) -> np.array:
     """
     Uses an image matrix to look for cliffs, using a convolution of the image.
     Rows and cols refer to the dimensions of the output array.
-    If fire is true, every pixel above the (percentile parameter) percentile will be 1 and all other pixels will be 0
+    If percentile is not the default of -1, every pixel above the (percentile parameter) percentile will be 1
+    and all other pixels will be 0.
+    If percentile is the default of -1, every pixel above the depth parameter is a 1 and all others are 0
     """
 
     # this convolution matrix will have large positive values at the bottom of large horizontal differences and
     # negative values of large magnitude at the top of large horizontal differences
-    h_mat_length = int(len(image_matrix[0]) / cols) * 1
+    h_mat_length = int(len(image_matrix[0]) / cols)
     h_mat = np.array([[1 for i in range(h_mat_length)],
                       [-1 for i in range(h_mat_length)]])
 
@@ -95,13 +97,28 @@ def search_for_cliffs(image_matrix, rows=16, cols=16, fire=True, percentile=90) 
         max_matrix[-1] = np.asarray(max_matrix[-1])
     max_matrix = np.asarray(max_matrix)
 
-    if fire:
+    if percentile != -1:
         fire_value = np.percentile(max_matrix, percentile)
-        for row_num in range(len(max_matrix)):
-            max_matrix[row_num] = [1 if e > fire_value else 0 for e in max_matrix[row_num]]
+    else:
+        fire_value = depth
+
+    for row_num in range(len(max_matrix)):
+        max_matrix[row_num] = [1 if e > fire_value else 0 for e in max_matrix[row_num]]
 
     return max_matrix
 
 
+def main():
+    # for testing, load an image from a picture and show the result
+    '''
+    from PIL import Image
+    import matplotlib.pyplot as plt
+    image_array = np.asarray(Image.open("resources/10_13_0_Depth.png"))
+    result = search_for_cliffs(image_array)
+    plt.imshow(result)
+    '''
+
+
 if __name__ == '__main__':
-    pass
+    main()
+
