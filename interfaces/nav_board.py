@@ -1,59 +1,58 @@
-from core.rovecomm import RoveCommEthernetUdp
-import core.constants as constants
+import core
 import time
-
-NAV_IP_ADDRESS = "136"
-GPS_DATA_ID = 5100
-IMU_DATA_ID = 5101
-LIDAR_DATA_ID = 5102
-GPSADD_DATA_ID = 5103
+import logging
 
 
 class NavBoard:
     """
-    Interface for the navboard, a seperate compute unit that provides GPS and IMU (Pitch/Yaw/Roll) data to the Autonomy system.
-    This interface collects and stores the data received from the navboard so it can be used elsewhere.
+    Interface for the navboard, a seperate compute unit that provides GPS and IMU
+    (Pitch/Yaw/Roll) data to the Autonomy system. This interface collects and stores the
+    data received from the navboard so it can be used elsewhere.
     """
 
-    def __init__(self, rove_comm, logger):
+    def __init__(self):
         self._pitch = 0
         self._roll = 0
         self._heading = 0
-        self._location = constants.Coordinate(0, 0)
+        self._location = core.Coordinate(0, 0)
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
-        self.rove_comm_node = rove_comm
 
-        self.rove_comm_node.subscribe(NAV_IP_ADDRESS)
+        # Set up RoveComm and Logger
+        self.logger = logging.getLogger(__name__)
+
+        core.rovecomm_node.udp_node.subscribe(core.manifest["Nav"]["Ip"])
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
-        self.rove_comm_node.callbacks[IMU_DATA_ID] = self.process_imu_data
-        self.rove_comm_node.callbacks[GPS_DATA_ID] = self.process_gps_data
-        self.rove_comm_node.callbacks[LIDAR_DATA_ID] = self.process_lidar_data
-        self.logger = logger  # see CannyTracking to add logging
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["PitchHeadingRoll"]["dataId"], self.process_imu_data
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["GPSPosition"]["dataId"], self.process_gps_data
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["LidarData"]["dataId"], self.process_lidar_data
+        )
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
-        """
-        self._pitch = packet.data[0] #leave these alone for now, early testing will be hurt by them right now
-        if abs(self._heading - packet.data[1]) < 30: # attempt to filter inappropriate values, experimentally i've never seen the rover turn more than 120 degrees per second.
-            self._heading = packet.data[1]
-        self._roll = packet.data[2] #leave these alone for now, early testing will be hurt by them right now
-        """
+        self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
-        lon, lat = packet.data
+        lat, lon = packet.data
         lat = lat * 1e-7
-        lon = -lon * 1e-7
-        print(str(time.time()))
-        print(self._location)
+        lon = lon * 1e-7
+        self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
-        self._location = constants.Coordinate(lat, lon)
+        self._location = core.Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarQuality = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        (
+            self._distToGround,
+            self._lidarQuality,
+        ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self):
         return self._pitch
@@ -68,9 +67,8 @@ class NavBoard:
         return self._location
 
 
-if __name__ == '__main__':
-    rove_comm_node = RoveCommEthernetUdp()
-    nav = NavBoard(rove_comm_node)
+def main() -> None:
+    nav = NavBoard()
     while True:
         print(nav.location())
         print(nav.heading())
@@ -78,3 +76,8 @@ if __name__ == '__main__':
         print(nav.roll())
         print("...")
         time.sleep(1)
+
+
+if __name__ == "__main__":
+    # Run main
+    main()

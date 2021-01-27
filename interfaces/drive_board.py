@@ -1,9 +1,6 @@
-import core.constants as constants
-from core.rovecomm import RoveCommPacket
-
-DRIVE_BOARD_IP = "134"
-DRIVE_DATA_ID = 1000
-# left/right between -1000,1000
+from typing import Tuple
+import core
+import logging
 
 
 def clamp(n, min_n, max_n):
@@ -17,46 +14,59 @@ class DriveBoard:
     """
 
     def __init__(self):
-
         self._targetSpdLeft = 0
         self._targetSpdRight = 0
-        self.enabled = False
+        self.logger = logging.getLogger(__name__)
 
-    def __del__(self):
-        self.disable()
-
-    def calculate_move(self, speed, angle):
-        """ Speed: -1000 to 1000
-        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right """
+    def calculate_move(self, speed, angle) -> Tuple[int, int]:
+        """Speed: -1000 to 1000
+        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right"""
 
         speed_left = speed_right = speed
 
-        if(angle > 0):
+        if angle > 0:
             speed_right = speed_right * (1 - (angle / 180.0))
-        elif(angle < 0):
+        elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self._targetSpdLeft = int(clamp(speed_left, -core.DRIVE_POWER, core.DRIVE_POWER))
+        self._targetSpdRight = int(clamp(speed_right, -core.DRIVE_POWER, core.DRIVE_POWER))
+        self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
-        if self.enabled:
-            return self._targetSpdLeft, self._targetSpdRight
-        return 0, 0
+        return self._targetSpdLeft, self._targetSpdRight
 
     def send_drive(self, target_left, target_right):
-        return RoveCommPacket(DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=DRIVE_BOARD_IP)
+        """
+        Sends a rovecomm packet with the specified drive speed
 
-    def disable(self):
-        self.enabled = False
+        Parameters:
+            target_left (int16) - the speed to drive left motors
+            target_right (int16) - the speed to drive right motors
+        """
+        # Write a drive packet (UDP)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
+                "h",
+                (target_left, target_right),
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
+            ),
+            False,
+        )
 
-    def enable(self):
-        self.enabled = True
-
-
-if __name__ == '__main__':
-    motors = DriveBoard("testytest.txt")
-    motors.enable()
-    for i in range(-180, 181):
-        left, right = motors.calculate_move(100, i)
-        motors.send_drive(left, right)
-        print(left, right)
+    def stop(self):
+        """
+        Sends a rovecomm packet with a 0, 0 to indicate full stop
+        """
+        # Write a drive packet of 0s (to stop)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
+                "h",
+                (0, 0),
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
+            ),
+            False,
+        )
