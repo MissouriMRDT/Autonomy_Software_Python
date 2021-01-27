@@ -2,12 +2,7 @@ import time
 import core.vision
 import logging
 import cv2
-<<<<<<< HEAD
-import numpy as np
-import pyzed.sl as sl
-=======
 import matplotlib.pyplot as plt
->>>>>>> feature/simulator_depth
 
 
 def main() -> None:
