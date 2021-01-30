@@ -1,7 +1,6 @@
 from core.constants import *
 from core.states.state_machine import StateMachine
 from core.rovecomm import RoveComm, RoveCommPacket
-import core.notify
 from core.waypoints import WaypointHandler
 import core.states as states
 from core.states import AutonomyEvents

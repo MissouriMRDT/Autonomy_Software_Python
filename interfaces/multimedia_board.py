@@ -13,7 +13,7 @@ class MultiMedia:
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
 
-    def set_lighting_state(self, state):
+    def send_lighting_state(self, state):
         """
         Writes a operation state to the lighting board to display on the LED matrix
         """

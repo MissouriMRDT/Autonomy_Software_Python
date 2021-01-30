@@ -76,8 +76,8 @@ class ApproachingMarker(RoverState):
                     True,
                 )
 
-                # TODO: Add support for notifying (with LEDs) that we have reached marker
-                # core.notify.notify_finish()
+                # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
