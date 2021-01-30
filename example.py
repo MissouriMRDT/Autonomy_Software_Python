@@ -17,6 +17,9 @@ def main() -> None:
     packet.SetIp("127.0.0.1")
     core.rovecomm.write(packet)
 
+    # Test setting the lighting panel to indicate Autonomous operation
+    interfaces.multimedia_board.send_lighting_state(core.OperationState.AUTONOMY)
+
     logger.info(f"Calculated bearing: {bearing}")
     logger.info(f"Calculate distance: {distance}")
 

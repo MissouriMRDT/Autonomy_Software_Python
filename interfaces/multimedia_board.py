@@ -27,7 +27,7 @@ class MultiMedia:
                 "B",
                 (state,),
                 core.manifest["Multimedia"]["Ip"],
-                core.UDP_OUTGOING_PORT,
+                core.manifest["Multimedia"]["Port"]
             ),
             True,
         )
