@@ -24,17 +24,17 @@ def setup(type="REGULAR"):
     """
     # load the manifest depending on type
     if type == "REGULAR":
-        core.UDP_OUTGOING_PORT = 11000
-        core.manifest = open("core/manifest.json", "r").read()
-        core.manifest = json.loads(core.manifest)
+        this.UDP_OUTGOING_PORT = 11000
+        this.manifest = open("core/manifest.json", "r").read()
+        this.manifest = json.loads(this.manifest)
     elif type == "SIM":
-        core.UDP_OUTGOING_PORT = 11001
-        core.manifest = open("core/manifest.json", "r").read()
-        core.manifest = json.loads(core.manifest)
+        this.UDP_OUTGOING_PORT = 11001
+        this.manifest = open("core/manifest.json", "r").read()
+        this.manifest = json.loads(this.manifest)
 
         # For simulation, all Ips are localhost
-        for board in core.manifest:
-            core.manifest[board]["Ip"] = "127.0.0.1"
+        for board in this.manifest:
+            this.manifest[board]["Ip"] = "127.0.0.1"
 
     # Initialize basic handlers
     this.waypoint_handler = WaypointHandler()
