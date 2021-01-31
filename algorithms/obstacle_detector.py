@@ -132,7 +132,6 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
 
     # If the center coordinate of the obstacle happens to have no data
     # look at some neighboring points
-    index = 0
     permutations = [
         [cX + 1, cY],
         [cX, cY + 1],
@@ -143,9 +142,12 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     ]
 
     # loop through the permuations and check if those values are NaN
-    while math.isnan(point) and index < len(permutations):
-        point = pc.get_value(permutations[index][0], permutations[index][1])[1]
-        index += 1
+    for index in range(len(permutations)):
+        if not math.isnan(point[0]):
+            point = pc.get_value(permutations[index][0], permutations[index][1])[1]
+            cX = permutations[index][0]
+            cY = permutations[index][1]
+            break
 
     # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
     # This will give us the angle between the left lens of the ZED and the obstacle on the
