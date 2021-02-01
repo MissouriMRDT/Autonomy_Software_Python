@@ -9,6 +9,7 @@ import importlib
 import os
 import sys
 import time
+import asyncio
 
 
 def setup_logger(level) -> logging.Logger:
@@ -104,6 +105,8 @@ def main() -> None:
     else:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
+        loop = asyncio.get_event_loop()
+        loop.close()
         exit(0)
 
 
