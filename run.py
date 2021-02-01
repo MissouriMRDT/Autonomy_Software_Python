@@ -2,6 +2,7 @@ import argparse
 import logging
 import logging.config
 import yaml
+import rich
 import core
 import interfaces
 import importlib
