@@ -90,14 +90,14 @@ def main() -> None:
         # Couldn't find module because file doesn't exist or tried to import
         # from package
         logger.error(f"Failed to import module '{args.file}'")
-        logger.error(error)
+        logger.exception(error)
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
-    except NameError as error:
+    except AttributeError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
-        logger.error(error)
+        logger.exception(error)
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
