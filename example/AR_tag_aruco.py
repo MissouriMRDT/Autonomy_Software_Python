@@ -1,4 +1,3 @@
-import vision
 import logging
 import cv2
 import numpy as np
@@ -55,12 +54,13 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     # Add feed
-    vision.camera_handler.feed_handler.add_feed(2, "ar")
+    # vision.camera_handler.feed_handler.add_feed(2, "ar")
+    cap = cv2.VideoCapture(0)
 
     while True:
         # Test grabbing the latest camera frames
-        img = vision.camera_handler.grab_regular()
-
+        # img = vision.camera_handler.grab_regular()
+        ret, img = cap.read()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # for ALVAR tags the border is actually 2 black bits wide
@@ -82,22 +82,19 @@ def main() -> None:
         # cv2.imshow('frame',img)
 
         # Stream the AR Tag video feed
-        vision.camera_handler.feed_handler.handle_frame("ar", img)
+        # vision.camera_handler.feed_handler.handle_frame("ar", img)
 
         # stackedImages = cv2.resize(stackedImages, (1920, 1080))
         # stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)
 
-        key = cv2.waitKey(10)
-
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        # cv2.imshow('img', img)
-        # cv2.imshow('depth', depth_img)
-
-        for i in range(10000):
-            pass
+        cv2.imshow("img", img)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
