@@ -114,12 +114,14 @@ class ZedHandler:
         """
         Closes the zed camera as well as feed handler
         """
+        self.logger.info("Calling close")
         # Set the threading event so we kill the thread
         self._stop.set()
         # Wait for the thread to join
         self.thread.join()
 
         # Now close the ZED camera
+        self.logger.info("Calling zed close")
         self.zed.close()
 
         # Close the feed handler as well

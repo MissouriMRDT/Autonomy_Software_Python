@@ -101,6 +101,11 @@ def main() -> None:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
+    except KeyboardInterrupt as error:
+        core.rovecomm_node.close_thread()
+        core.vision.close(args.vision)
+        cv2.destroyAllWindows()
+        exit(0)
     else:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
