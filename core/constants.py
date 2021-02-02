@@ -39,19 +39,16 @@ UDP_OUTGOING_PORT = None
 TCP_OUTGOING_PORT = 11111
 
 
-# RoveComm Autonomy Control DataIDs
-class DataID(IntEnum):
-    ENABLE_AUTONOMY = 11100
-    DISABLE_AUTONOMY = 11101
-    ADD_WAYPOINT = 11102
-    CLEAR_WAYPOINTS = 11103
-    WAYPOINT_REACHED = 11104
-
-
 class ApproachState(Enum):
     APPROACHING = 1
     CLOSE_ENOUGH = 2
     PAST_GOAL = 3
+
+
+class OperationState(IntEnum):
+    TELEOP = 0
+    AUTONOMY = 1
+    REACHED_MARKER = 2
 
 
 class GPSData:
