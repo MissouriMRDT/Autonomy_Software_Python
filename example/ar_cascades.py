@@ -56,13 +56,12 @@ def main() -> None:
     # for ALVAR tags the border is actually 2 black bits wide
     parameters = aruco.DetectorParameters_create()
     parameters.markerBorderBits = 2
-    parameters.cornerRefinementMethod = 3
-    parameters.errorCorrectionRate = 0.2
-    cap = cv2.VideoCapture("algorithms/ar3.avi")
+    parameters.polygonalApproxAccuracyRate = 0.08
+    # cap = cv2.VideoCapture("algorithms/ar3.avi")
     while True:
         # Test grabbing the latest camera frames
-        # reg_img = core.vision.camera_handler.grab_regular()
-        ret, reg_img = cap.read()
+        reg_img = core.vision.camera_handler.grab_regular()
+        # ret, reg_img = cap.read()
         # depth_img = vision.camera_handler.grab_depth()
         tag_cascade = cv2.CascadeClassifier("cascade.xml")
         tags_imgs = list()
@@ -73,9 +72,9 @@ def main() -> None:
 
         for (x, y, w, h) in tags:
             tags_imgs.append((reg_img.copy()[y : y + h, x : x + w], w, h))
-            reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            rect_img = cv2.rectangle(reg_img.copy(), (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-        cv2.imshow("img", reg_img)
+        cv2.imshow("img", rect_img)
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         img = aruco.drawDetectedMarkers(gray, corners, ids)
         cv2.imshow("ar", img)
@@ -91,7 +90,7 @@ def main() -> None:
             margin_y = 360
             print(im.size)
             im = cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY)
-            ret, im = cv2.threshold(im, 90, 255, cv2.THRESH_BINARY)
+            # ret, im = cv2.threshold(im, 90, 255, cv2.THRESH_BINARY)
             img_1[margin_y : margin_y + h, margin_x : margin_x + w] = im
             corners, ids, rejectedImgPoints = aruco.detectMarkers(img_1, aruco_dict, parameters=parameters)
             img = aruco.drawDetectedMarkers(img_1, corners, ids)
