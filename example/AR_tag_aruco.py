@@ -60,14 +60,15 @@ def main() -> None:
 
     while True:
         # Test grabbing the latest camera frames
-        img = core.vision.camera_handler.grab_regular()
-        # ret, img = cap.read()
+        # img = core.vision.camera_handler.grab_regular()
+        ret, img = cap.read()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # for ALVAR tags the border is actually 2 black bits wide
         parameters = aruco.DetectorParameters_create()
         parameters.markerBorderBits = 2
-        parameters.polygonalApproxAccuracyRate = 0.08
+        # parameters.polygonalApproxAccuracyRate = 0.08
+        parameters.cornerRefinementMethod = 3
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         print(corners, ids)

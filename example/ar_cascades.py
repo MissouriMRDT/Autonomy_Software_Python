@@ -65,13 +65,13 @@ def main() -> None:
         # depth_img = vision.camera_handler.grab_depth()
         tag_cascade = cv2.CascadeClassifier("cascade.xml")
         tags_imgs = list()
-
+        print(reg_img.shape)
         gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
 
-        tags = tag_cascade.detectMultiScale(gray, 1.3, 5)
+        tags = tag_cascade.detectMultiScale(gray, 1.05, 5, 0, (30, 30))
 
         for (x, y, w, h) in tags:
-            tags_imgs.append((reg_img.copy()[y : y + h, x : x + w], w, h))
+            tags_imgs.append((reg_img.copy()[y : y + h, x : x + w], x, y, w, h))
             rect_img = cv2.rectangle(reg_img.copy(), (x, y), (x + w, y + h), (255, 0, 0), 2)
 
         cv2.imshow("img", rect_img)
@@ -82,19 +82,17 @@ def main() -> None:
         # Go through tags detected and insert them on a white background
         # run ARUCO detection on them to see if accuracy increases
         for i, tag in enumerate(tags_imgs):
-            im, w, h = tag
+            im, x, y, w, h = tag
             print(w, h)
             img_1 = np.zeros((720, 1280), dtype=np.uint8)
             img_1.fill(255)
-            margin_x = 640
-            margin_y = 360
-            print(im.size)
+
             im = cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY)
-            # ret, im = cv2.threshold(im, 90, 255, cv2.THRESH_BINARY)
-            img_1[margin_y : margin_y + h, margin_x : margin_x + w] = im
+            ret, im = cv2.threshold(im, 60, 255, cv2.THRESH_BINARY)
+            img_1[y : y + h, x : x + w] = im
             corners, ids, rejectedImgPoints = aruco.detectMarkers(img_1, aruco_dict, parameters=parameters)
-            img = aruco.drawDetectedMarkers(img_1, corners, ids)
-            cv2.imshow(f"detect{i}", img)
+            img_1 = aruco.drawDetectedMarkers(img_1, corners, ids)
+            cv2.imshow(f"detect{i}", img_1)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
