@@ -4,5 +4,6 @@
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
     "editor.formatOnSave": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "autopep8",
+    "python.pythonPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Python37_64\\python.exe"
 }

@@ -13,9 +13,9 @@ import urllib.request
 
 
 def grab_negative_images():
-    neg_images_link = "http://image-net.org/api/text/imagenet.synset.geturls?wnid=n09270735"
+    neg_images_link = "http://www.image-net.org/api/text/imagenet.synset.geturls?wnid=n09472413"
     neg_image_urls = urllib.request.urlopen(neg_images_link, timeout=5).read().decode()
-    pic_num = 1261
+    pic_num = 1556
 
     if not os.path.exists("neg"):
         os.makedirs("neg")
@@ -48,12 +48,13 @@ def create_pos_n_neg():
 
 
 def grayscale():
-    img = cv2.imread("marker.png", cv2.IMREAD_GRAYSCALE)
-    cv2.imwrite("marker2.png", img)
+    img = cv2.imread("pos/marker2.png", cv2.IMREAD_GRAYSCALE)
+    img = cv2.resize(img, (50, 50))
+    cv2.imwrite("pos/marker2.png", img)
 
 
 def classify():
-    cap = cv2.VideoCapture("ar.avi")
+    cap = cv2.VideoCapture("ARtest2.avi")
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -72,6 +73,16 @@ def classify():
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def rename():
+    for count, filename in enumerate(os.listdir("neg")):
+        dst = str(count + 2620) + ".jpg"
+        src = filename
+
+        # rename() function will
+        # rename all the files
+        os.rename(("neg/" + src), ("neg/" + dst))
 
 
 if __name__ == "__main__":
