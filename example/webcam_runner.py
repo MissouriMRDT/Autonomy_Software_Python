@@ -18,18 +18,19 @@ def main() -> None:
     while True:
         # Test grabbing the latest camera frames
         reg_img = core.vision.camera_handler.grab_regular()
-        depth_data = core.vision.camera_handler.grab_depth_data()
+        #depth_data = core.vision.camera_handler.grab_depth_data()
+        core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
 
         # Plot the depth data as a grayscale image
-        plt.imshow(depth_data, cmap="gray", vmin=0, vmax=20)
-        plt.draw()
-        plt.pause(0.01)
+        #plt.imshow(depth_data, cmap="gray", vmin=0, vmax=20)
+        #plt.draw()
+        #plt.pause(0.01)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
-        cv2.imshow("reg", reg_img)
+        #cv2.imshow("reg", reg_img)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        #if cv2.waitKey(1) & 0xFF == ord("q"):
+        #    break
 
 
 if __name__ == "__main__":
