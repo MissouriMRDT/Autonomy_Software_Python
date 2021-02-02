@@ -17,8 +17,7 @@ def test_udp():
     global responses
     core.rovecomm_node.set_callback(4242, handle_packet)
 
-    packet = RoveCommPacket(4242, "b", (1, 3), "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4242, "b", (1, 3), "127.0.0.1", 11000)
     assert core.rovecomm_node.write(packet, False) == 1
 
     # Give the listener thread a moment to catch the packet
@@ -37,8 +36,7 @@ def test_tcp():
     # a dictionary of connection sockets, allowing it to create
     # a TCP connection between its server and one of the dictionary
     # sockets
-    packet = RoveCommPacket(4241, "b", (1, 4), "", 11111)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4241, "b", (1, 4), "127.0.0.1", 11111)
     assert core.rovecomm_node.write(packet, True) == 1
 
     # Give the listener thread a moment to catch the packet
@@ -57,7 +55,7 @@ def test_tcp_subscribers():
     # a dictionary of connection sockets, allowing it to create
     # a TCP connection between its server and one of the dictionary
     # sockets
-    packet = RoveCommPacket(4243, "b", (1, 4), "", 0)
+    packet = RoveCommPacket(4243, "b", (1, 4), "127.0.0.1", 11111)
 
     core.rovecomm_node.tcp_node.connect(("127.0.0.1", 11111))
 
@@ -77,7 +75,7 @@ def test_udp_external():
 
     # Test socket to try to send to RoveComm over UDP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("", 11001))
+    s.bind(("127.0.0.1", 11001))
 
     rovecomm_packet = struct.pack(">BHBB", 2, 4240, 2, 0)
     data = (1, 6)
@@ -92,6 +90,7 @@ def test_udp_external():
     assert responses[4240].data_type == "b"
     assert responses[4240].data_count == len(data)
     assert responses[4240].data_id == 4240
+    s.close()
 
 
 def test_tcp_external():
@@ -118,8 +117,7 @@ def test_tcp_external():
 
 def test_invalid_target():
     # Sends to a port that won't be available
-    packet = RoveCommPacket(4238, "b", (0,), "", 99999)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4238, "b", (0,), "127.0.0.1", 99999)
     assert core.rovecomm_node.write(packet, True) == 0
     assert core.rovecomm_node.write(packet, False) == 0
 
@@ -128,16 +126,14 @@ def test_callback_exception():
     global response
     core.rovecomm_node.set_callback(4237, handle_packet_exception)
 
-    packet = RoveCommPacket(4237, "b", (1, 3), "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4237, "b", (1, 3), "127.0.0.1", 11000)
     assert core.rovecomm_node.write(packet, False) == 1
 
     # RoveComm passes on callback exception, nothing else to do
 
 
 def test_print_packet():
-    packet = RoveCommPacket(4236, "b", (1, 4), "", 11111)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4236, "b", (1, 4), "127.0.0.1", 11111)
     # Temporarily changes stdout to write into an easily accessible output
     with captured_output() as (out, err):
         packet.print()
@@ -157,15 +153,13 @@ Data:  (1, 4)
 
 def test_invalid_write_udp():
     # Sends non-tuple data
-    packet = RoveCommPacket(4235, "b", "a", "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4235, "b", "a", "127.0.0.1", 11000)
     assert core.rovecomm_node.write(packet, False) == 0
 
 
 def test_invalid_write_tcp():
     # Sends non-tuple data
-    packet = RoveCommPacket(4235, "b", "a", "", 11111)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4235, "b", "a", "127.0.0.1", 11111)
     assert core.rovecomm_node.write(packet, True) == 0
 
 
@@ -176,8 +170,7 @@ def test_udp_subscribe():
     global responses
     core.rovecomm_node.set_callback(3, handle_packet)
 
-    packet = RoveCommPacket(3, "b", (), "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(3, "b", (), "127.0.0.1", 11000)
     assert core.rovecomm_node.write(packet, False) == 1
 
     time.sleep(0.05)
@@ -187,7 +180,6 @@ def test_udp_subscribe():
     # Main target should be invalid
     core.rovecomm_node.set_callback(4234, handle_packet)
     packet2 = RoveCommPacket(4234, "b", (), "", 0)
-    packet2.SetIp("0.0.0.0")
     assert core.rovecomm_node.write(packet2, False) == 1
 
     # Packet should still be recieved because we're subscribed
@@ -202,8 +194,7 @@ def test_udp_unsubscribe():
     global responses
     core.rovecomm_node.set_callback(4, handle_packet)
 
-    packet = RoveCommPacket(4, "b", (), "", 11000)
-    packet.SetIp("127.0.0.1")
+    packet = RoveCommPacket(4, "b", (), "127.0.0.1", 11000)
     assert core.rovecomm_node.write(packet, False) == 1
 
     time.sleep(0.05)
@@ -213,7 +204,6 @@ def test_udp_unsubscribe():
     # Main target should be invalid
     core.rovecomm_node.set_callback(4233, handle_packet)
     packet2 = RoveCommPacket(4233, "b", (), "", 0)
-    packet2.SetIp("0.0.0.0")
     assert core.rovecomm_node.write(packet2, False) == 1
 
     # Packet should not still be recieved because we unsubscribed
@@ -252,7 +242,7 @@ def test_invalid_rovecomm_version_udp():
 
     # Test socket to try to send to RoveComm over UDP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("", 11001))
+    s.bind(("127.0.0.1", 11001))
 
     rovecomm_packet = struct.pack(">BHBB", 1, 4231, 2, 0)
     data = (1, 6)
@@ -267,6 +257,7 @@ def test_invalid_rovecomm_version_udp():
     assert responses[5].data_type == "b"
     assert responses[5].data_count == 1
     assert responses[5].data_id == 5
+    s.close()
 
 
 def test_read_exception_udp():
@@ -283,7 +274,7 @@ def test_read_exception_udp():
 
     # Send a packet so recv can be triggered
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("", 11001))
+    s.bind(("127.0.0.1", 11001))
 
     rovecomm_packet = struct.pack(">BHBB", 1, 4230, 2, 0)
     data = (1, 6)
@@ -302,6 +293,7 @@ def test_read_exception_udp():
 
     # Gives the udp node its socket back
     core.rovecomm_node.udp_node.RoveCommSocket = temp
+    s.close()
 
 
 def test_listener_shutdown():

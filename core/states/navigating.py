@@ -67,10 +67,7 @@ class Navigating(RoverState):
         )
 
         # Check if we are still approaching the goal
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start)
-            != core.constants.ApproachState.APPROACHING
-        ):
+        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )
@@ -93,7 +90,7 @@ class Navigating(RoverState):
                 return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(
-            goal, interfaces.nav_board.location(), start, core.constants.DRIVE_POWER
+            goal, interfaces.nav_board.location(), start, core.DRIVE_POWER
         )
 
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")

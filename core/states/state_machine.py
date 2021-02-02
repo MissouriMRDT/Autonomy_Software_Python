@@ -1,5 +1,6 @@
 import core
 import logging
+import interfaces
 
 
 class StateMachine(object):
@@ -16,8 +17,10 @@ class StateMachine(object):
         self.logger = logging.getLogger(__name__)
 
         # Add callbacks for autonomy controls
-        core.rovecomm_node.set_callback(core.ENABLE_AUTONOMY_ID, self.enable)
-        core.rovecomm_node.set_callback(core.DISABLE_AUTONOMY_ID, self.disable)
+        core.rovecomm_node.set_callback(core.manifest["Autonomy"]["Commands"]["EnableAutonomy"]["dataId"], self.enable)
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["DisableAutonomy"]["dataId"], self.disable
+        )
 
     def enable(self, packet):
         self.enable_flag = True
@@ -29,10 +32,14 @@ class StateMachine(object):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:
             self.state = self.state.on_event(core.AutonomyEvents.START)
+            # Update the state display on lighting to Autonomy
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.AUTONOMY)
             self.enable_flag = False
 
         elif self.disable_flag is True:
             self.state = self.state.on_event(core.AutonomyEvents.ABORT)
+            # Update the state display on lighting to Teleop
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.TELEOP)
             self.disable_flag = False
 
         # Run the current state
