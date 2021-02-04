@@ -24,13 +24,13 @@ def setup(type="ZED", stream="Y"):
     if type == "ZED":
         from core.vision.zed_handler import ZedHandler
 
-        this.vision.camera_handler = ZedHandler()
-        this.vision.camera_handler.start()
+        this.camera_handler = ZedHandler()
+        this.camera_handler.start()
     elif type == "SIM":
         from core.vision.sim_cam_handler import SimCamHandler
 
-        this.vision.camera_handler = SimCamHandler()
-        this.vision.camera_handler.start()
+        this.camera_handler = SimCamHandler()
+        this.camera_handler.start()
     else:
         # TODO: Initialize a regular webcam here
         pass
@@ -47,6 +47,6 @@ def close(type="ZED"):
     Closes any handlers initialized in the vision subsystem
     """
     if type == "ZED" or type == "SIM":
-        this.vision.camera_handler.close()
+        this.camera_handler.close()
     else:
         pass
