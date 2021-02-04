@@ -1,4 +1,5 @@
 import core
+import asyncio
 from core.states import RoverState
 
 
@@ -37,4 +38,5 @@ class Idle(RoverState):
         Defines regular rover operation when under this state
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
+        # The only way to get out of this is through the state machine enable(), triggered by RoveComm
         return self

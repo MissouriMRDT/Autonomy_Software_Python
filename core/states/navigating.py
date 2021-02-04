@@ -52,11 +52,13 @@ class Navigating(RoverState):
         """
 
         gps_data = core.waypoint_handler.get_waypoint()
-
+        print(gps_data)
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
-            self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
+            self.logger.error(
+                "Navigating: No waypoint, please add a waypoint to start navigating"
+            )
             return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
 
         goal, start = gps_data.data()
@@ -67,7 +69,10 @@ class Navigating(RoverState):
         )
 
         # Check if we are still approaching the goal
-        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
+        if (
+            algorithms.gps_navigate.get_approach_status(goal, current, start)
+            != core.ApproachState.APPROACHING
+        ):
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )
@@ -75,7 +80,9 @@ class Navigating(RoverState):
             # If there are more points, set the new one and start from top
             if not core.waypoint_handler.is_empty():
                 gps_data = core.waypoint_handler.get_new_waypoint()
-                self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
+                self.logger.info(
+                    f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})"
+                )
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
             # Otherwise Trigger Search Pattern

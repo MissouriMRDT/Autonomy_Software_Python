@@ -11,10 +11,13 @@ def main() -> None:
     """
     logger.info("Entering main autonomy loop")
 
-    loop = asyncio.get_event_loop()
+    # Setting up the asyncio loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    # Create any additional async tasks
-    # loop.create_task(do_ar_tag())
+    # Setup feeds for AR Tag and obstacle avoidance
+    core.vision.feed_handler.add_feed(2, "AR_Tag")
+    core.vision.feed_handler.add_feed(3, "Obstacle_Avoidance")
 
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())

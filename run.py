@@ -55,6 +55,9 @@ def main() -> None:
         "--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED"
     )
 
+    # Optional parameter specify whether we are streaming or not
+    parser.add_argument("--stream", choices=["Y", "N"], default="Y")
+
     # Optional parameter to set the mode of operation:
     # Regular (on rover) or Sim (using the autonomy simulator)
     parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
@@ -84,7 +87,7 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision)
+    core.vision.setup(args.vision, args.stream)
 
     # Initialize the Interfaces
     interfaces.setup()

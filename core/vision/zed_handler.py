@@ -1,6 +1,6 @@
 import pyzed.sl as sl
 import logging
-from core.vision.feed_handler import FeedHandler
+from core.vision import feed_handler
 import threading
 import time
 
@@ -13,7 +13,7 @@ class ZedHandler:
 
         # Create a ZED camera object
         self.zed = sl.Camera()
-        self.feed_handler = FeedHandler()
+        self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
         # Set configuration parameters
@@ -31,9 +31,9 @@ class ZedHandler:
             self.zed.close()
             exit(1)
 
-        # Add the desired feeds
-        self.feed_handler.add_feed(2, "regular")
-        self.feed_handler.add_feed(3, "depth")
+        # Add the desired feeds to be recorded (not streamed)
+        self.feed_handler.add_feed(10, "regular", save_video=True, stream_video=False)
+        self.feed_handler.add_feed(11, "depth", save_video=True, stream_video=False)
 
         # Create initial frames
         self.reg_img = None
@@ -78,6 +78,8 @@ class ZedHandler:
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
+
+                # Sleep for desired frame rate, reduces usage
                 time.sleep(1 / self.init.camera_fps)
 
     def grab_regular(self):
