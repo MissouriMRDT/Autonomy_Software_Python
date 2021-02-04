@@ -1,8 +1,9 @@
 import time
 import pyzed.sl as sl
 import logging
-from core.vision.feed_handler import FeedHandler
+from core.vision import feed_handler
 import threading
+import time
 
 
 class ZedHandler:
@@ -13,7 +14,7 @@ class ZedHandler:
 
         # Create a ZED camera object
         self.zed = sl.Camera()
-        self.feed_handler = FeedHandler()
+        self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
         # Set configuration parameters
@@ -33,9 +34,9 @@ class ZedHandler:
             self.zed.close()
             exit(1)
 
-        # Add the desired feeds
-        self.feed_handler.add_feed(2, "regular")
-        # self.feed_handler.add_feed(3, "depth")
+        # Add the desired feeds to be recorded (not streamed)
+        self.feed_handler.add_feed(10, "regular", save_video=True, stream_video=False)
+        self.feed_handler.add_feed(11, "depth", save_video=True, stream_video=False)
 
         # Create initial frames
         self.reg_img = None
@@ -61,8 +62,12 @@ class ZedHandler:
         self.depth_size.height = self.depth_size.height / 2
 
         # Declare your sl.Mat matrices
-        image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
-        depth_image_zed = sl.Mat(self.depth_size.width, self.depth_size.height, sl.MAT_TYPE.U8_C4)
+        image_zed = sl.Mat(
+            self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4
+        )
+        depth_image_zed = sl.Mat(
+            self.depth_size.width, self.depth_size.height, sl.MAT_TYPE.U8_C4
+        )
         self.zed.enable_positional_tracking()
 
         # Set runtime parameters after opening the camera
@@ -75,14 +80,21 @@ class ZedHandler:
             err = self.zed.grab(runtime)
             if err == sl.ERROR_CODE.SUCCESS:
                 # Grab images, and grab the data as opencv/numpy matrix
-                self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size)
+                self.zed.retrieve_image(
+                    image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size
+                )
                 self.reg_img = image_zed.get_data()
-                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, self.depth_size)
+                self.zed.retrieve_image(
+                    depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, self.depth_size
+                )
                 self.depth_img = depth_image_zed.get_data()
 
                 # Now let the feed_handler stream/save the frames
                 # self.feed_handler.handle_frame("regular", self.reg_img)
                 # self.feed_handler.handle_frame("depth", self.depth_img)
+                time.sleep(1 / self.init.camera_fps)
+
+                # Sleep for desired frame rate, reduces usage
                 time.sleep(1 / self.init.camera_fps)
 
     def grab_regular(self):
@@ -99,7 +111,9 @@ class ZedHandler:
 
     def grab_depth_data(self):
         self.depth_map = sl.Mat()
-        self.zed.retrieve_measure(self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size)  # Retrieve depth
+        self.zed.retrieve_measure(
+            self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size
+        )  # Retrieve depth
         return self.depth_map
 
     def start(self):
@@ -134,7 +148,9 @@ class ZedHandler:
         Returns 3D point cloud data captured with ZED
         """
         point_cloud = sl.Mat()
-        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size)
+        self.zed.retrieve_measure(
+            point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size
+        )
         return point_cloud
 
     def get_floor(self):

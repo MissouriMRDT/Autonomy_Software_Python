@@ -1,5 +1,6 @@
 import core
 import logging
+import interfaces
 
 
 class StateMachine(object):
@@ -31,10 +32,14 @@ class StateMachine(object):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:
             self.state = self.state.on_event(core.AutonomyEvents.START)
+            # Update the state display on lighting to Autonomy
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.AUTONOMY)
             self.enable_flag = False
 
         elif self.disable_flag is True:
             self.state = self.state.on_event(core.AutonomyEvents.ABORT)
+            # Update the state display on lighting to Teleop
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.TELEOP)
             self.disable_flag = False
 
         # Run the current state

@@ -20,30 +20,6 @@
             "dataType": "DataTypes.UINT8_T",
             "dataCount": 1,
             "comments": ""
-        },
-        "Headlights": {
-            "dataId": 14000,
-            "dataType": "DataTypes.UINT8_T",
-            "dataCount": 1,
-            "comments": "Headlight intensity for the front of rover"
-        },
-        "UnderglowColor": {
-            "dataId": 14001,
-            "dataType": "DataTypes.UINT8_T",
-            "dataCount": 3,
-            "comments": "rgb byte[]"
-        },
-        "CycleLightingMode": {
-            "dataId": 14002,
-            "dataType": "DataTypes.UINT8_T",
-            "dataCount": 1,
-            "comments": ""
-        },
-        "StateDisplay": {
-            "dataId": 14003,
-            "dataType": "DataTypes.UINT8_T",
-            "dataCount": 1,
-            "comments": "enum blue,red,green"
         }
         },
         "Telemetry": {
@@ -215,6 +191,37 @@
             "comments": "distance, quality"
         }
         }
+    },
+    "Multimedia": {
+        "Ip": "192.168.1.140",
+        "Port": 11007,
+        "Commands": {
+        "Headlights": {
+            "dataId": 7001,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "Headlight intensity for the front of rover"
+        },
+        "LEDRGB": {
+            "dataId": 7002,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 3,
+            "comments": "rgb byte[]"
+        },
+        "LEDPattern": {
+            "dataId": 7003,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": ""
+        },
+        "StateDisplay": {
+            "dataId": 7004,
+            "dataType": "DataTypes.UINT8_T",
+            "dataCount": 1,
+            "comments": "enum blue,red,green"
+        }
+        },
+        "Telemetry": {}
     },
     "BSMS": {
         "Ip": "192.168.1.142",
