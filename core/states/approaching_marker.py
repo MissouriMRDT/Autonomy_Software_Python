@@ -66,8 +66,18 @@ class ApproachingMarker(RoverState):
 
                 self.logger.info("Reached Marker")
 
-                # TODO: Add support for notifying (with LEDs) that we have reached marker
-                # core.notify.notify_finish()
+                # Transmit that we have reached the marker
+                core.rovecomm_node.write(
+                    core.RoveCommPacket(
+                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                        "B",
+                        (1),
+                    ),
+                    True,
+                )
+
+                # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")

@@ -1,12 +1,15 @@
 from core.constants import *
 from core.states.state_machine import StateMachine
 from core.rovecomm import RoveComm, RoveCommPacket
-import core.notify
 from core.waypoints import WaypointHandler
-import core.states
+import core.states as states
 from core.states import AutonomyEvents
-import core.vision
+import core.vision as vision
 import json
+import sys
+
+# reference to self
+this = sys.modules[__name__]
 
 # RoveComm node, must be declared before it can be used.
 rovecomm_node: RoveComm
@@ -21,14 +24,18 @@ def setup(type="REGULAR"):
     """
     # load the manifest depending on type
     if type == "REGULAR":
-        core.UDP_OUTGOING_PORT = 11000
-        core.manifest = open("core/manifest.json", "r").read()
-        core.manifest = json.loads(core.manifest)
+        this.UDP_OUTGOING_PORT = 11000
+        this.manifest = open("core/manifest.json", "r").read()
+        this.manifest = json.loads(this.manifest)
     elif type == "SIM":
-        core.UDP_OUTGOING_PORT = 11001
-        core.manifest = open("core/manifest_sim.json", "r").read()
-        core.manifest = json.loads(core.manifest)
+        this.UDP_OUTGOING_PORT = 11001
+        this.manifest = open("core/manifest.json", "r").read()
+        this.manifest = json.loads(this.manifest)
+
+        # For simulation, all Ips are localhost
+        for board in this.manifest:
+            this.manifest[board]["Ip"] = "127.0.0.1"
 
     # Initialize basic handlers
-    core.waypoint_handler = WaypointHandler()
-    core.states.state_machine = StateMachine()
+    this.waypoint_handler = WaypointHandler()
+    this.states.state_machine = StateMachine()
