@@ -4,3 +4,4 @@ import algorithms.gps_navigate
 import algorithms.heading_hold
 import algorithms.marker_search
 import algorithms.PID_controller
+import algorithms.obstacle_avoider
