@@ -36,45 +36,54 @@ class SimCamHandler:
 
         self.thread = threading.Thread(target=self.frame_grabber, args=())
 
-    # Should this be a generator or a thread? Generator might help cuz I could schedule this in the ASYNC calls
     def frame_grabber(self):
         """
         Function to be executed as a thread, grabs latest depth/regular images
         from network and then passes them to the respective feed handlers
         """
         data = b""
-        payload_size = struct.calcsize("Q")
+
+        # Size of the number that specifies the size of frame
+        data_length_size = struct.calcsize("Q")
+        # Size of the character that indicates frame type
         type_size = struct.calcsize("c")
 
+        # An image frame message streamed from the simulator contains the following info:
+        # +---------------------+--------------------------------+------------------------+
+        # |     uint32t (Q)     |            char (C)            |  message (bytearray)   |
+        # +---------------------+--------------------------------+------------------------+
+        # | The number of bytes | The type of image frame:       | The bytes in the image |
+        # | in the image frame  | "r" for regular, "d" for depth | frame itself           |
+        # +---------------------+--------------------------------+------------------------+
+
         while not self._stop.is_set():
-            # First read the message size, we know it's a 8 byte number
-            while len(data) < payload_size:
+            # First read the in the data length specifier (should be 8 bits)
+            while len(data) < data_length_size:
                 packet = self.client_socket.recv(4 * 1024)
                 if not packet:
                     break
                 data += packet
-            # Grab only the payload size
-            packed_msg_size = data[:payload_size]
 
-            # Store rest of data
-            data = data[payload_size:]
-
-            # Calculate the message size
-            msg_size = struct.unpack("Q", packed_msg_size)[0]
-
-            # Read in the rest of the data
-            while len(data) < type_size:
-                data += self.client_socket.recv(4 * 1024)
+            # Grab only the data length size
+            packed_msg_size = data[:data_length_size]
+            data = data[data_length_size:]
 
             # The first element in data is the type of frame encoded as a single byte
             # Either "r" or "d" for regular or depth
+            while len(data) < type_size:
+                data += self.client_socket.recv(4 * 1024)
             type = data[:type_size]
             data = data[type_size:]
             msg_type = struct.unpack("c", type)[0]
 
-            # Now keep reading the payload until we have read in all expected data
+            # Calculate the message size
+            msg_size = struct.unpack("Q", packed_msg_size)[0]
+
+            # Now keep reading the payload until we have read in all expected data in
+            # the frame
             while len(data) < msg_size:
                 data += self.client_socket.recv(4 * 1024)
+
             frame_data = data[:msg_size]
             data = data[msg_size:]
 
@@ -108,7 +117,9 @@ class SimCamHandler:
         """
         Returns the depth matrix (in meters) ahead of the current rover
         """
+        # Convert depth data to numpy array
         self.depth_data = np.asarray(self.depth_data)
+        # Resize current data (in list form) to matrix with expected dimensions
         self.depth_data = self.depth_data.reshape((self.dimY, self.dimX, 1))
         return self.depth_data
 

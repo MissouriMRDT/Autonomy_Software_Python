@@ -11,14 +11,16 @@ class ApproachingMarker(RoverState):
     """
 
     def start(self):
+        # TODO: Schedule AR Tag detection
         loop = asyncio.get_event_loop()
 
-        # TODO: Schedule AR Tag detection
-        # self.ar_tag_task = loop.create_task()
+        # self.ar_tag_task = loop.create_task(print_nopes())
+        # self.obstacle_task = loop.create_task(print_hellos())
 
     def exit(self):
-        # Cancel all state specific tasks
+        # Cancel all state specific coroutines
         # self.ar_tag_task.cancel()
+        # self.obstacle_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -58,7 +60,9 @@ class ApproachingMarker(RoverState):
         radius = 1
 
         if ball_in_frame:
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(75, center, radius)
+            (left, right), distance = algorithms.follow_marker.drive_to_marker(
+                75, center, radius
+            )
             self.logger.info("Marker in frame")
 
             if distance < 0.5:
@@ -69,15 +73,19 @@ class ApproachingMarker(RoverState):
                 # Transmit that we have reached the marker
                 core.rovecomm_node.write(
                     core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"][
+                            "dataId"
+                        ],
                         "B",
                         (1),
                     ),
                     True,
                 )
 
-                # TODO: Add support for notifying (with LEDs) that we have reached marker
-                # core.notify.notify_finish()
+                # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                interfaces.multimedia_board.send_lighting_state(
+                    core.OperationState.REACHED_MARKER
+                )
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
