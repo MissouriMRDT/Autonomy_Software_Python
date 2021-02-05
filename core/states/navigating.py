@@ -52,7 +52,7 @@ class Navigating(RoverState):
         """
 
         gps_data = core.waypoint_handler.get_waypoint()
-        print(gps_data)
+
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
