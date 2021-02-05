@@ -70,10 +70,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     for depth in li:
         max_li.append(
             len(
-                depth_matrix[
-                    (depth_matrix < depth + core.DEPTH_STEP_SIZE)
-                    & (depth_matrix > depth)
-                ]
+                depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
                 * (1 / (min_depth - depth))
             )
         )
@@ -85,9 +82,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
-        maskDepth = np.where(
-            (depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0
-        )
+        maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
 
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
@@ -128,11 +123,12 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
 
     # Grab point cloud and calculate the angle
     pc = core.vision.camera_handler.grab_point_cloud()
-    point = pc.get_value(cX, cY)[1]
+    point = []
 
     # If the center coordinate of the obstacle happens to have no data
     # look at some neighboring points
     permutations = [
+        [cX, cY],
         [cX + 1, cY],
         [cX, cY + 1],
         [cX + 1, cY + 1],
@@ -143,8 +139,8 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
 
     # loop through the permuations and check if those values are NaN
     for index in range(len(permutations)):
+        point = pc.get_value(permutations[index][0], permutations[index][1])[1]
         if not math.isnan(point[0]):
-            point = pc.get_value(permutations[index][0], permutations[index][1])[1]
             cX = permutations[index][0]
             cY = permutations[index][1]
             break
@@ -155,13 +151,14 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     angle = round(math.degrees(math.atan2(point[0] - core.ZED_X_OFFSET, point[2])), 2)
 
     # Distance is the corresponding value in the depth map of the center of the obstacle
-    distance = round(depth_data.get_value(cY, cX)[1], 2)
+    distance = round(depth_data[cY][cX], 2)
 
     # Draw the obstacle if annotate is true
     if annotate:
+        cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
         cv2.putText(
             reg_img,
-            f"Obstacle Detected at {angle, round(depth_data.get_value(cY ,cX)[1], 2)}",
+            f"Obstacle Detected at {angle, round(depth_data[cY][cX], 2)}",
             (cX - 100, cY - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
@@ -169,6 +166,5 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
             2,
         )
         cv2.circle(reg_img, (cX, cY), 7, (255, 255, 255), -1)
-        cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
 
     return angle, distance, (cX, cY)

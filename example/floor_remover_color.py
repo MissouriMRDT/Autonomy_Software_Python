@@ -22,8 +22,7 @@ def main() -> None:
     while True:
         # Test grabbing the latest camera frames
         reg_img = core.vision.camera_handler.grab_regular()
-        depth_data = core.vision.camera_handler.grab_depth_data()
-        depth_matrix = depth_data.get_data()
+        depth_matrix = core.vision.camera_handler.grab_depth_data()
 
         #
         mask, lower = algorithms.obstacle_detector.get_floor_mask(
@@ -38,9 +37,7 @@ def main() -> None:
         test_img = cv2.bitwise_and(reg_img, reg_img, mask=mask)
 
         if obstacle != []:
-            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
-                depth_data, obstacle, True, reg_img
-            )
+            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, True, reg_img)
 
         if DISPLAY == True:
             # Display the camera frames we just grabbed (should show us if potential issues occur)
