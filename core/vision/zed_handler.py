@@ -23,7 +23,7 @@ class ZedHandler:
         self.init.camera_resolution = sl.RESOLUTION.HD720
         self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         self.init.coordinate_units = sl.UNIT.METER
-        self.init.camera_fps = 30
+        self.init.camera_fps = 60
         self.init.depth_minimum_distance = 1
         # self.init.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP  # OpenGL coordinate system
 
@@ -91,10 +91,6 @@ class ZedHandler:
 
                 # Now let the feed_handler stream/save the frames
                 # self.feed_handler.handle_frame("regular", self.reg_img)
-                # self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / self.init.camera_fps)
-
-                # Sleep for desired frame rate, reduces usage
                 time.sleep(1 / self.init.camera_fps)
 
     def grab_regular(self):
