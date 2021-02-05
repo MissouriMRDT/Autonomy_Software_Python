@@ -71,7 +71,10 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     for depth in li:
         max_li.append(
             len(
-                depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
+                depth_matrix[
+                    (depth_matrix < depth + core.DEPTH_STEP_SIZE)
+                    & (depth_matrix > depth)
+                ]
                 * (1 / (min_depth - depth))
             )
         )
@@ -83,7 +86,9 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
-        maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
+        maskDepth = np.where(
+            (depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0
+        )
 
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
@@ -122,7 +127,6 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
 
-    """
     # Grab point cloud and calculate the angle
     pc = core.vision.camera_handler.grab_point_cloud()
     point = []
@@ -150,9 +154,9 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
     # This will give us the angle between the left lens of the ZED and the obstacle on the
     # x plane
-    angle = round(math.degrees(math.atan2(point[0] - core.ZED_X_OFFSET, point[2])), 2)
-    """
-    angle = 1
+    angle = round(math.degrees(math.atan2(point[0] + core.ZED_X_OFFSET, point[2])), 2)
+
+    # angle = 1
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data[cY][cX], 2)
 
@@ -161,7 +165,9 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
         if rect:
             rect = cv2.boundingRect(obstacle)
             x, y, w, h = rect
-            cv2.rectangle(reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2)
+            cv2.rectangle(
+                reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2
+            )
         else:
             cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
         cv2.putText(
