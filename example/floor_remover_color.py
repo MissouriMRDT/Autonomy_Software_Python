@@ -6,7 +6,8 @@ import algorithms
 import numpy as np
 import pyzed.sl as sl
 
-DISPLAY = False
+DISPLAY = True
+
 
 def main() -> None:
     """
@@ -31,7 +32,7 @@ def main() -> None:
 
         depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
 
-        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 3)
+        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 4)
         # print(obstacle)
         reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
         test_img = cv2.bitwise_and(reg_img, reg_img, mask=mask)
@@ -42,7 +43,7 @@ def main() -> None:
             )
 
         if DISPLAY == True:
-             # Display the camera frames we just grabbed (should show us if potential issues occur)
+            # Display the camera frames we just grabbed (should show us if potential issues occur)
             cv2.imshow("reg", reg_img)
             cv2.imshow("test", test_img)
             cv2.imshow("low", lower)
@@ -51,7 +52,8 @@ def main() -> None:
                 break
         else:
             core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
-            #time.sleep(1 / 30)
+            # time.sleep(1 / 30)
+
 
 if __name__ == "__main__":
     # Run main()
