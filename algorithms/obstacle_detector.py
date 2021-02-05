@@ -32,6 +32,7 @@ def get_floor_mask(reg_img, dimX, dimY):
 
     # Get a mask of the possible range of colors of the floor
     mask = cv2.inRange(test_img, smallest, largest)
+
     # Invert the mask so we select everything BUT the floor
     mask = cv2.bitwise_not(mask)
 
@@ -99,7 +100,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     return []
 
 
-def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
+def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=False):
     """
     Tracks the provided contour, returning angle, distance and center and also optionally
     annotates the provided image with the info and outlined obstacle
@@ -121,6 +122,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
 
+    """
     # Grab point cloud and calculate the angle
     pc = core.vision.camera_handler.grab_point_cloud()
     point = []
@@ -149,13 +151,19 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None):
     # This will give us the angle between the left lens of the ZED and the obstacle on the
     # x plane
     angle = round(math.degrees(math.atan2(point[0] - core.ZED_X_OFFSET, point[2])), 2)
-
+    """
+    angle = 1
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data[cY][cX], 2)
 
     # Draw the obstacle if annotate is true
     if annotate:
-        cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
+        if rect:
+            rect = cv2.boundingRect(obstacle)
+            x, y, w, h = rect
+            cv2.rectangle(reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2)
+        else:
+            cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
         cv2.putText(
             reg_img,
             f"Obstacle Detected at {angle, round(depth_data[cY][cX], 2)}",

@@ -12,12 +12,8 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-DRIVE_POWER = (
-    250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
-)
-WAYPOINT_DISTANCE_THRESHOLD = (
-    1.5  # maximum threshold in meters between rover and waypoint
-)
+DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 
 SEARCH_DISTANCE = 0.008
@@ -28,13 +24,9 @@ LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
 
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 0.007  # kilometers
-MIN_OBSTACLE_PIXEL_AREA = 2000  # minimum contour area in pixels of detected obstacle
-DEPTH_STEP_SIZE = (
-    0.5  # Depth in meters that each segment of obstacle detection will run on
-)
-NUM_DEPTH_SEGMENTS = (
-    3  # Number of segments of depth map to actually run contour detection on
-)
+MIN_OBSTACLE_PIXEL_AREA = 4000  # minimum contour area in pixels of detected obstacle
+DEPTH_STEP_SIZE = 0.5  # Depth in meters that each segment of obstacle detection will run on
+NUM_DEPTH_SEGMENTS = 3  # Number of segments of depth map to actually run contour detection on
 ZED_X_OFFSET = 0.060325
 
 Coordinate = collections.namedtuple("Coordinate", ["lat", "lon"])
