@@ -10,7 +10,7 @@ def get_approach_status(goal, location, start):
     """
     Calculates the current approach status of the rover in reference to goal and starting location
 
-    Returns
+    Returns:
     -------
         approach_status : enum
             whether we are APPROACHING, PAST_GOAL or CLOSE_ENOUGH
@@ -41,7 +41,7 @@ def calculate_move(goal, location, start, speed=150):
     """
     Calculates the necessary left and right speeds to keep the rover on course for goal location
 
-    Returns
+    Returns:
     -------
         left_speed : int16
             the desired left speed between -1000, 1000

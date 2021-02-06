@@ -95,6 +95,7 @@ class RoveCommPacket:
         Sets packet's IP to address parameter
 
         Parameters:
+        -----------
             ip (String)
             port (Integer)
         """
@@ -178,6 +179,7 @@ class RoveComm:
         Sets the callback function for any incoming packets with the given data id
 
         Parameters:
+        -----------
             data_id (Integer): Data id to call the function for
             func (Function): The function to be called
         """
@@ -188,10 +190,12 @@ class RoveComm:
         Writes the given packet to its destination address
 
         Parameters:
+        -----------
             packet (RoveCommPacket): The packet to send
             reliable (Bool): Whether to send over TCP or UDP
 
         Returns:
+        --------
             success (int): An integer, either 0 or 1 depending on whether or not
             an exception occured during writing
         """
@@ -238,8 +242,10 @@ class RoveCommEthernetUdp:
     def subscribe(self, ip_octet):
         """
         Parameters:
+        -----------
             ip_octet (String): The ip to subscribe to
         Returns:
+        --------
             success (int): An integer, either 0 or 1 depending on whether or not
             an exception occured during writing
         """
@@ -251,9 +257,11 @@ class RoveCommEthernetUdp:
         subscribers.
 
         Parameters:
+        -----------
             packet (RoveCommPacket): A packet containing the data and header info
             to be transmitted over the rover network
         Returns:
+        --------
             success (int): An integer, either 0 or 1 depending on whether or not
             an exception occured during writing
         """
@@ -286,6 +294,7 @@ class RoveCommEthernetUdp:
         parsing in other code.
 
         Returns:
+        --------
             return_packet (RoveCommPacket): A RoveCommPacket that contains a
             RoveComm message received over the network
         """
@@ -382,9 +391,11 @@ class RoveCommEthernetTcp:
         Transmits a packet to the destination IP (if there is one)
 
         Parameters:
+        -----------
             packet (RoveCommPacket): A packet containing the data and header info
             to be transmitted over the rover network
         Returns:
+        --------
             success (int): An integer, either 0 or 1 depending on whether or not
             an exception occured during writing
         """
@@ -449,6 +460,7 @@ class RoveCommEthernetTcp:
         parsing in other code.
 
         Returns:
+        --------
             packets (tuple of RoveCommPacket instances): RoveCommPackets
             that contain RoveComm messages received over the network
         """
