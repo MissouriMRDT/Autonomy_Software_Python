@@ -117,6 +117,40 @@ class ZedHandler:
         )  # Retrieve depth
         return self.depth_map
 
+    def grab_point_cloud(self):
+        """
+        Returns 3D point cloud data captured with ZED
+        """
+        point_cloud = sl.Mat()
+        self.zed.retrieve_measure(
+            point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size
+        )
+        return point_cloud
+
+    def get_floor(self):
+        """
+        Returns the estimated floor plane (ZED SDK)
+        """
+        plane = sl.Plane()  # detected plane
+        reset_tracking_floor_frame = sl.Transform()
+        find_plane_status = self.zed.find_floor_plane(plane, reset_tracking_floor_frame)
+        # mesh = plane.extract_mesh()
+        return plane, find_plane_status
+
+    def get_info(self):
+        """
+        Returns information regarding ZED camera calibration parameters
+        """
+        info = self.zed.get_camera_information().calibration_parameters
+        return info
+
+    def get_pose(self, pose):
+        """
+        Returns the estimated pose of the ZED camera
+        """
+        tracking_state = self.zed.get_position(pose)
+        return tracking_state
+
     def start(self):
         """
         Starts up the frame grabber thread, which constantly polls the ZED camera
@@ -143,29 +177,3 @@ class ZedHandler:
         self.feed_handler.close()
 
         self.logger.info("Closing ZED capture")
-
-    def grab_point_cloud(self):
-        """
-        Returns 3D point cloud data captured with ZED
-        """
-        point_cloud = sl.Mat()
-        self.zed.retrieve_measure(
-            point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size
-        )
-        return point_cloud
-
-    def get_floor(self):
-        plane = sl.Plane()  # detected plane
-        reset_tracking_floor_frame = sl.Transform()
-        find_plane_status = self.zed.find_floor_plane(plane, reset_tracking_floor_frame)
-        # mesh = plane.extract_mesh()
-        return plane, find_plane_status
-
-    def get_info(self):
-        info = self.zed.get_camera_information().calibration_parameters
-        print(info)
-        return info
-
-    def get_pose(self, pose):
-        tracking_state = self.zed.get_position(pose)
-        return tracking_state
