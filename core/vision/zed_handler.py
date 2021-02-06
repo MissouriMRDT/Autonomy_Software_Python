@@ -25,7 +25,12 @@ class ZedHandler:
         self.init.coordinate_units = sl.UNIT.METER
         self.init.camera_fps = 60
         self.init.depth_minimum_distance = 1
-        # self.init.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP  # OpenGL coordinate system
+
+        # Define the camera resolutions
+        self.depth_res_x = 1280
+        self.depth_res_y = 720
+        self.reg_res_x = 640
+        self.reg_res_y = 480
 
         # Open the camera
         err = self.zed.open(self.init)
