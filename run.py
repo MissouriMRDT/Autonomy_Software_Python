@@ -28,7 +28,7 @@ def setup_logger(level) -> logging.Logger:
     logging.config.dictConfig(yaml_conf)
 
     for handler in logging.getLogger().handlers:
-        if isinstance(handler, type(logging.StreamHandler())):
+        if isinstance(handler, type(rich.logging.RichHandler())):
             handler.setLevel(level)
 
     return logging.getLogger()
