@@ -23,7 +23,7 @@ types_int_to_byte = {
     4: "l",
     5: "L",
     6: "f",
-    7: "d",  # double
+    7: "d",
     8: "c",
 }
 
