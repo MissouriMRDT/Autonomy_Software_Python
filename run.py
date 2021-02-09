@@ -38,13 +38,26 @@ def main() -> None:
     parser = argparse.ArgumentParser()
 
     # Maps the passed in file name to a known module and main() (if it is known)
-    parser.add_argument("--file", help="Specify the name of the custom module to be run", default="autonomy.py")
+    parser.add_argument(
+        "--file",
+        help="Specify the name of the custom module to be run",
+        default="autonomy.py",
+    )
 
     # Optional parameter to set logging level
-    parser.add_argument("--level", choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
+    parser.add_argument(
+        "--level",
+        choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
+        default="INFO",
+    )
 
     # Optional parameter to set the vision system to use
-    parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
+    parser.add_argument(
+        "--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED"
+    )
+
+    # Optional parameter specify whether we are streaming or not
+    parser.add_argument("--stream", choices=["Y", "N"], default="Y")
 
     # Optional parameter to set the mode of operation:
     # Regular (on rover) or Sim (using the autonomy simulator)
@@ -75,7 +88,7 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision)
+    core.vision.setup(args.vision, args.stream)
 
     # Initialize the Interfaces
     interfaces.setup()
@@ -102,7 +115,7 @@ def main() -> None:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
-    else:
+    except KeyboardInterrupt:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         loop = asyncio.get_event_loop()
