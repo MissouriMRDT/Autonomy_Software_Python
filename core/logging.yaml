@@ -7,10 +7,10 @@ formatters:
     datefmt: '%Y-%m-%d %H:%M:%S'
 handlers:
   console:
-    class: logging.StreamHandler
+    class: rich.logging.RichHandler
     level: 0
     formatter: simple
-    stream: ext://sys.stdout
+    rich_tracebacks: True
   csv:
     class: core.logging_handlers.CsvHandler
     level: 0

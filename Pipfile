@@ -17,6 +17,7 @@ mypy = "*"
 pandas = "*"
 numpy = "==1.19.3"
 pyyaml = "*"
+rich = "*"
 
 [packages]
 simplejson = "*"
@@ -29,3 +30,4 @@ matplotlib = "*"
 pyfakewebcam = "*"
 pyyaml = "*"
 numpy = "==1.19.3"
+rich = "*"
