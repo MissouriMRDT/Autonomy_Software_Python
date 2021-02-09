@@ -1,10 +1,20 @@
-import core.vision.feed_handler
+from core.vision.feed_handler import FeedHandler
+import sys
+
+# reference to self
+this = sys.modules[__name__]
 
 # Camera Handler, used to setup camera and grab frames/point cloud data
 camera_handler: None
 
+# Feed Handler, used to stream/save videos
+feed_handler = FeedHandler()
 
-def setup(type="ZED"):
+# Flag to indicate whether or not we are streaming
+STREAM_FLAG = True
+
+
+def setup(type="ZED", stream="Y"):
     """
     Sets up the vision system and camera/feed handlers
 
@@ -14,16 +24,22 @@ def setup(type="ZED"):
     if type == "ZED":
         from core.vision.zed_handler import ZedHandler
 
-        core.vision.camera_handler = ZedHandler()
-        core.vision.camera_handler.start()
+        this.camera_handler = ZedHandler()
+        this.camera_handler.start()
     elif type == "SIM":
         from core.vision.sim_cam_handler import SimCamHandler
 
-        core.vision.camera_handler = SimCamHandler()
-        core.vision.camera_handler.start()
+        this.camera_handler = SimCamHandler()
+        this.camera_handler.start()
     else:
         # TODO: Initialize a regular webcam here
         pass
+
+    # Flag to enable whether or not we are streaming feeds
+    if stream == "Y":
+        this.STREAM_FLAG = True
+    else:
+        this.STREAM_FLAG = False
 
 
 def close(type="ZED"):
@@ -31,6 +47,6 @@ def close(type="ZED"):
     Closes any handlers initialized in the vision subsystem
     """
     if type == "ZED" or type == "SIM":
-        core.vision.camera_handler.close()
+        this.camera_handler.close()
     else:
         pass
