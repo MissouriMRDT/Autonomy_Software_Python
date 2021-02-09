@@ -35,9 +35,8 @@ types_byte_to_int = {
     "l": 4,
     "L": 5,
     "f": 6,
-    "q": 7,  # int64
-    "d": 8,  # double
-    "c": 9,  # char
+    "d": 7,
+    "c": 8,
 }
 
 types_byte_to_size = {
