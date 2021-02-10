@@ -14,14 +14,8 @@ class CsvHandler(WatchedFileHandler):
 
         if new_file:
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            if not os.path.exists(
-                "/".join(f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1])
-            ):
-                os.makedirs(
-                    "/".join(
-                        f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1]
-                    )
-                )
+            if not os.path.exists("/".join(f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1])):
+                os.makedirs("/".join(f"{filename[:-4]}-{timestamp}{filename[-4:]}".split("/")[:-1]))
             f = open(f"{filename[:-4]}-{timestamp}{filename[-4:]}", "w")
             f.write(header + "\n")
             f.close()
@@ -62,7 +56,5 @@ class RoveCommHandler(logging.Handler):
         if len(msg) > 255:
             msg = msg[:252] + "..."
 
-        packet = RoveCommPacket(
-            self.data_id, "c", tuple([char.encode("utf-8") for char in msg]), "", 0
-        )
+        packet = RoveCommPacket(self.data_id, "c", tuple([char.encode("utf-8") for char in msg]), "", 0)
         core.rovecomm_node.write(packet, self.reliable)
