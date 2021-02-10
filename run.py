@@ -52,9 +52,7 @@ def main() -> None:
     )
 
     # Optional parameter to set the vision system to use
-    parser.add_argument(
-        "--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED"
-    )
+    parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
 
     # Optional parameter specify whether we are streaming or not
     parser.add_argument("--stream", choices=["Y", "N"], default="Y")

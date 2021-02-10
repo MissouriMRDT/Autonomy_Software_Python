@@ -60,9 +60,7 @@ class ApproachingMarker(RoverState):
         radius = 1
 
         if ball_in_frame:
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(
-                75, center, radius
-            )
+            (left, right), distance = algorithms.follow_marker.drive_to_marker(75, center, radius)
             self.logger.info("Marker in frame")
 
             if distance < 0.5:
@@ -73,9 +71,7 @@ class ApproachingMarker(RoverState):
                 # Transmit that we have reached the marker
                 core.rovecomm_node.write(
                     core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"][
-                            "dataId"
-                        ],
+                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
                         "B",
                         (1),
                     ),
@@ -83,9 +79,7 @@ class ApproachingMarker(RoverState):
                 )
 
                 # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                interfaces.multimedia_board.send_lighting_state(
-                    core.OperationState.REACHED_MARKER
-                )
+                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")

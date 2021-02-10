@@ -78,7 +78,10 @@ class SearchPattern(RoverState):
             self.logger.info("Search Pattern: Marker seen at %s with r=%i, locking on..." % (center, radius))
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
-        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
+        if (
+            algorithms.gps_navigate.get_approach_status(goal, current, start)
+            != core.ApproachState.APPROACHING
+        ):
             interfaces.drive_board.stop()
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up

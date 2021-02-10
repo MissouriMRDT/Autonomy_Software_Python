@@ -11,12 +11,10 @@ class WaypointHandler:
         self.gps_data: core.GPSData = None
 
         core.rovecomm_node.set_callback(
-            core.manifest["Autonomy"]["Commands"]["AddWaypoints"]["dataId"],
-            self.add_waypoint,
+            core.manifest["Autonomy"]["Commands"]["AddWaypoints"]["dataId"], self.add_waypoint
         )
         core.rovecomm_node.set_callback(
-            core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"],
-            self.clear_waypoints,
+            core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
         )
 
         self.logger = logging.getLogger(__name__)
@@ -87,7 +85,5 @@ class WaypointHandler:
 
         self.gps_data.goal = current_goal
 
-        self.logger.info(
-            f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})"
-        )
+        self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data

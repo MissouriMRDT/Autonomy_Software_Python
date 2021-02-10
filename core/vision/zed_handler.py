@@ -70,9 +70,7 @@ class ZedHandler:
                 # Grab images, and grab the data as opencv/numpy matrix
                 self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
                 self.reg_img = image_zed.get_data()
-                self.zed.retrieve_image(
-                    depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size
-                )
+                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
                 self.depth_img = depth_image_zed.get_data()
 
                 # Now let the feed_handler stream/save the frames

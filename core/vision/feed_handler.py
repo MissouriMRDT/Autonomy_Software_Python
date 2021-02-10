@@ -31,9 +31,7 @@ def feed_process(
         )  # append v4l output to list of cameras
 
     if save_video:
-        video_filename = f"logs/stream_{feed_id}_" + time.strftime(
-            "%Y%m%d-%H%M%S"
-        )  # save videos to unique files
+        video_filename = f"logs/stream_{feed_id}_" + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
         video_writer = cv2.VideoWriter(
             video_filename + "_left.avi",
             fourcc,

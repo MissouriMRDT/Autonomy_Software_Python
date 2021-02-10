@@ -26,9 +26,7 @@ class NavBoard:
 
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
-        core.rovecomm_node.set_callback(
-            core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data
-        )
+        core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
         core.rovecomm_node.set_callback(
             core.manifest["Nav"]["Telemetry"]["LidarData"]["dataId"], self.process_lidar_data
         )
