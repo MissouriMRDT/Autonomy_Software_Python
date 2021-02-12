@@ -105,28 +105,10 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     return []
 
 
-def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=False):
+def compute_precise_angle(cX, cY):
     """
-    Tracks the provided contour, returning angle, distance and center and also optionally
-    annotates the provided image with the info and outlined obstacle
-
-    Parameters:
-        depth_data (zed depth map)
-        obstacle - the contour detected as an obstacle
-        annotate (bool) - whether or not to also annotate the provided image with the contour/centroid/etc
-        reg_img - the color image from the ZED
-
-    Returns:
-        angle - the angle of the obstacle in relation to the left ZED camera
-        distance - the distance of the center of the obstacle from the ZED
-        center (x, y) - the coordinates (pixels) of the center of the obstacle
-
+    Computes the precise angle of the centroid
     """
-    # Find center of contour and mark it on image
-    M = cv2.moments(obstacle)
-    cX = int(M["m10"] / M["m00"])
-    cY = int(M["m01"] / M["m00"])
-
     # Grab point cloud and calculate the angle
     pc = core.vision.camera_handler.grab_point_cloud()
     point = []
@@ -156,7 +138,39 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     # x plane
     angle = round(math.degrees(math.atan2(point[0] + core.ZED_X_OFFSET, point[2])), 2)
 
-    # angle = 1
+    return angle
+
+
+def track_obstacle(
+    depth_data, obstacle, precise_angle=False, annotate=False, reg_img=None, rect=False
+):
+    """
+    Tracks the provided contour, returning angle, distance and center and also optionally
+    annotates the provided image with the info and outlined obstacle
+
+    Parameters:
+        depth_data (zed depth map)
+        obstacle - the contour detected as an obstacle
+        annotate (bool) - whether or not to also annotate the provided image with the contour/centroid/etc
+        reg_img - the color image from the ZED
+
+    Returns:
+        angle - the angle of the obstacle in relation to the left ZED camera
+        distance - the distance of the center of the obstacle from the ZED
+        center (x, y) - the coordinates (pixels) of the center of the obstacle
+
+    """
+    # Find center of contour and mark it on image
+    M = cv2.moments(obstacle)
+    cX = int(M["m10"] / M["m00"])
+    cY = int(M["m01"] / M["m00"])
+
+    if precise_angle:
+        angle = compute_precise_angle(cX, cY)
+    else:
+        # Return 15 degrees right or left depending on which side of the rover the object was
+        angle = 15 if cX > (1280 / 2) else -15
+
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data[cY][cX], 2)
 
