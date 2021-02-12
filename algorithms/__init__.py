@@ -5,3 +5,4 @@ import algorithms.heading_hold as heading_hold
 import algorithms.marker_search as marker_search
 import algorithms.PID_controller as PID_controller
 import algorithms.obstacle_detector as obstacle_detector
+import algorithms.obstacle_avoider as obstacle_avoider
