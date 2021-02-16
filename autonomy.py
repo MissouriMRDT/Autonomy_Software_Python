@@ -17,9 +17,7 @@ def main() -> None:
 
     # Setup feeds for AR Tag and obstacle avoidance
     core.vision.feed_handler.add_feed(2, "artag", stream_video=core.vision.STREAM_FLAG)
-    core.vision.feed_handler.add_feed(
-        3, "obstacle", stream_video=core.vision.STREAM_FLAG
-    )
+    core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())

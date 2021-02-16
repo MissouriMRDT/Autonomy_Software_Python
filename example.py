@@ -25,6 +25,11 @@ def main() -> None:
 
     logger.info(f"Measured heading: {interfaces.nav_board.heading()}")
 
+    try:
+        print(1 / 0)
+    except Exception:
+        logger.exception("Unable to print")
+
 
 if __name__ == "__main__":
     # Run main()
