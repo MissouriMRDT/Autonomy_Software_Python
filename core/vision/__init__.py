@@ -1,4 +1,5 @@
 from core.vision.feed_handler import FeedHandler
+import core.vision.obstacle_avoidance as obstacle_avoidance
 import sys
 
 # reference to self

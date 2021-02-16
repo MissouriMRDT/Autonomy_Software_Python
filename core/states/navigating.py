@@ -1,3 +1,5 @@
+import asyncio
+from core.vision import obstacle_avoidance
 from core.waypoints import WaypointHandler
 import core
 import interfaces
@@ -13,6 +15,18 @@ class Navigating(RoverState):
     base station’s best guess of the best path for the rover due to terrain identified
     on RED’s map.
     """
+
+    def start(self):
+        # TODO: Schedule AR Tag detection
+        loop = asyncio.get_event_loop()
+
+        self.obstacle_task = loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+
+    def exit(self):
+        # Cancel all state specific coroutines
+        # self.ar_tag_task.cancel()
+        # self.obstacle_task.cancel()
+        pass
 
     def on_event(self, event) -> RoverState:
         """
@@ -35,6 +49,10 @@ class Navigating(RoverState):
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
 
+        elif event == core.AutonomyEvents.OBSTACLE_AVOIDANCE:
+            self.logger.error(f"Avoiding Obstacle")
+            state = core.states.Idle()
+
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
             state = core.states.Idle()
@@ -52,27 +70,24 @@ class Navigating(RoverState):
         """
 
         gps_data = core.waypoint_handler.get_waypoint()
-        print(gps_data)
+
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
-            self.logger.error(
-                "Navigating: No waypoint, please add a waypoint to start navigating"
-            )
+            self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
             return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
 
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
-
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
 
+        if obstacle_avoidance.is_obstacle():
+            return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
+
         # Check if we are still approaching the goal
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start)
-            != core.ApproachState.APPROACHING
-        ):
+        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )
@@ -80,9 +95,7 @@ class Navigating(RoverState):
             # If there are more points, set the new one and start from top
             if not core.waypoint_handler.is_empty():
                 gps_data = core.waypoint_handler.get_new_waypoint()
-                self.logger.info(
-                    f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})"
-                )
+                self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
             # Otherwise Trigger Search Pattern

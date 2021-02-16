@@ -1,3 +1,4 @@
+import algorithms
 import numpy as np
 import cv2
 import core
@@ -71,10 +72,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     for depth in li:
         max_li.append(
             len(
-                depth_matrix[
-                    (depth_matrix < depth + core.DEPTH_STEP_SIZE)
-                    & (depth_matrix > depth)
-                ]
+                depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
                 * (1 / (min_depth - depth))
             )
         )
@@ -86,9 +84,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
-        maskDepth = np.where(
-            (depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0
-        )
+        maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
 
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
@@ -141,9 +137,7 @@ def compute_precise_angle(cX, cY):
     return angle
 
 
-def track_obstacle(
-    depth_data, obstacle, precise_angle=False, annotate=False, reg_img=None, rect=False
-):
+def track_obstacle(depth_data, obstacle, precise_angle=False, annotate=False, reg_img=None, rect=False):
     """
     Tracks the provided contour, returning angle, distance and center and also optionally
     annotates the provided image with the info and outlined obstacle
@@ -179,9 +173,7 @@ def track_obstacle(
         if rect:
             rect = cv2.boundingRect(obstacle)
             x, y, w, h = rect
-            cv2.rectangle(
-                reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2
-            )
+            cv2.rectangle(reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2)
         else:
             cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
         cv2.putText(
