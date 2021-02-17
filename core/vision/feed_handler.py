@@ -2,6 +2,7 @@ import cv2
 import time
 import sys
 import multiprocessing as mp
+import os
 
 # Pyfakewebcam requires linux
 if sys.platform == "linux":
@@ -32,7 +33,11 @@ def feed_process(
         )  # append v4l output to list of cameras
 
     if save_video:
-        video_filename = f"logs/stream_{feed_id}_" + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
+        if not os.path.isdir("logs/videos/"):
+            os.mkdir("logs/videos/")
+        video_filename = f"logs/videos/stream_{feed_id}_" + time.strftime(
+            "%Y%m%d-%H%M%S"
+        )  # save videos to unique files
         video_writer = cv2.VideoWriter(
             video_filename + "_left.avi",
             fourcc,
@@ -60,7 +65,7 @@ def feed_process(
                     video_writer.write(save_img)
         except KeyboardInterrupt:
             p_output.close()
-            break
+            exit(0)
 
 
 class FeedHandler:
@@ -97,7 +102,7 @@ class FeedHandler:
                 stream_video,
             ),
         )
-        proc.daemon = True
+
         proc.start()
         proc_output.close()  # We don't need output on our end
 
@@ -111,8 +116,6 @@ class FeedHandler:
         for feed_id, (process, pipe_in, _event) in self.feeds.items():
             # Terminate all the processes and wait to join
             _event.set()
-
-            time.sleep(0.25)
 
             # Close the pipe
             pipe_in.close()
