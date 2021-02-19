@@ -9,7 +9,15 @@ if sys.platform == "linux":
 
 
 def feed_process(
-    pipe, num, feed_id, fourcc, frame_rate, resolution_x, resolution_y, save_video=True, stream_video=True
+    pipe,
+    num,
+    feed_id,
+    fourcc,
+    frame_rate,
+    resolution_x,
+    resolution_y,
+    save_video=True,
+    stream_video=True,
 ):
     """
     Function to be run as a process, configures streaming and recording of frames.
@@ -25,7 +33,10 @@ def feed_process(
     if save_video:
         video_filename = f"logs/stream_{feed_id}_" + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
         video_writer = cv2.VideoWriter(
-            video_filename + "_left.avi", fourcc, frame_rate, (resolution_x, resolution_y)
+            video_filename + "_left.avi",
+            fourcc,
+            frame_rate,
+            (resolution_x, resolution_y),
         )  # append video writer to list of video writers
 
     p_output, p_input = pipe

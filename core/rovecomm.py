@@ -23,9 +23,8 @@ types_int_to_byte = {
     4: "l",
     5: "L",
     6: "f",
-    7: "q",  # int64, this needs to stay here to not break RED. Leave this comment here Skelton.
-    8: "d",  # double
-    9: "c",
+    7: "d",
+    8: "c",
 }
 
 types_byte_to_int = {
@@ -36,9 +35,8 @@ types_byte_to_int = {
     "l": 4,
     "L": 5,
     "f": 6,
-    "q": 7,  # int64
-    "d": 8,  # double
-    "c": 9,  # char
+    "d": 7,
+    "c": 8,
 }
 
 types_byte_to_size = {

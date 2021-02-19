@@ -67,7 +67,10 @@ class Navigating(RoverState):
         )
 
         # Check if we are still approaching the goal
-        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
+        if (
+            algorithms.gps_navigate.get_approach_status(goal, current, start)
+            != core.ApproachState.APPROACHING
+        ):
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )

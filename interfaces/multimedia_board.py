@@ -27,7 +27,7 @@ class MultiMedia:
                 "B",
                 (state,),
                 core.manifest["Multimedia"]["Ip"],
-                core.manifest["Multimedia"]["Port"]
+                core.manifest["Multimedia"]["Port"],
             ),
             True,
         )

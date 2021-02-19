@@ -11,7 +11,7 @@ class WaypointHandler:
         self.gps_data: core.GPSData = None
 
         core.rovecomm_node.set_callback(
-            core.manifest["Autonomy"]["Commands"]["AddWaypoint"]["dataId"], self.add_waypoint
+            core.manifest["Autonomy"]["Commands"]["AddWaypoints"]["dataId"], self.add_waypoint
         )
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
@@ -80,6 +80,7 @@ class WaypointHandler:
             current_goal = self.waypoints.popleft()
         except IndexError:
             self.logger.error("Tried popping waypoint from empty deque")
+            self.gps_data = None
             return None
 
         self.gps_data.goal = current_goal

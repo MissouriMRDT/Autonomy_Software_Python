@@ -2,6 +2,7 @@ import argparse
 import logging
 import logging.config
 import yaml
+import rich
 import core
 import interfaces
 import importlib
@@ -27,7 +28,7 @@ def setup_logger(level) -> logging.Logger:
     logging.config.dictConfig(yaml_conf)
 
     for handler in logging.getLogger().handlers:
-        if isinstance(handler, type(logging.StreamHandler())):
+        if isinstance(handler, type(rich.logging.RichHandler())):
             handler.setLevel(level)
 
     return logging.getLogger()
@@ -37,13 +38,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
 
     # Maps the passed in file name to a known module and main() (if it is known)
-    parser.add_argument("--file", help="Specify the name of the custom module to be run", default="autonomy.py")
+    parser.add_argument(
+        "--file",
+        help="Specify the name of the custom module to be run",
+        default="autonomy.py",
+    )
 
     # Optional parameter to set logging level
-    parser.add_argument("--level", choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"], default="INFO")
+    parser.add_argument(
+        "--level",
+        choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
+        default="INFO",
+    )
 
     # Optional parameter to set the vision system to use
     parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
+
+    # Optional parameter specify whether we are streaming or not
+    parser.add_argument("--stream", choices=["Y", "N"], default="Y")
 
     # Optional parameter to set the mode of operation:
     # Regular (on rover) or Sim (using the autonomy simulator)
@@ -74,7 +86,7 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision)
+    core.vision.setup(args.vision, args.stream)
 
     # Initialize the Interfaces
     interfaces.setup()
@@ -90,18 +102,18 @@ def main() -> None:
         # Couldn't find module because file doesn't exist or tried to import
         # from package
         logger.error(f"Failed to import module '{args.file}'")
-        logger.error(error)
+        logger.exception(error)
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
-    except NameError as error:
+    except AttributeError as error:
         # Successful import but module does not define main
         logger.error(f"{args.file}: Undefined reference to main")
-        logger.error(error)
+        logger.exception(error)
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         exit(1)
-    else:
+    except KeyboardInterrupt:
         core.rovecomm_node.close_thread()
         core.vision.close(args.vision)
         loop = asyncio.get_event_loop()

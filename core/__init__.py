@@ -27,10 +27,12 @@ def setup(type="REGULAR"):
         this.UDP_OUTGOING_PORT = 11000
         this.manifest = open("core/manifest.json", "r").read()
         this.manifest = json.loads(this.manifest)
+        this.manifest = this.manifest["RovecommManifest"]
     elif type == "SIM":
         this.UDP_OUTGOING_PORT = 11001
         this.manifest = open("core/manifest.json", "r").read()
         this.manifest = json.loads(this.manifest)
+        this.manifest = this.manifest["RovecommManifest"]
 
         # For simulation, all Ips are localhost
         for board in this.manifest:
