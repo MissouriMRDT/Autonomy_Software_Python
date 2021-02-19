@@ -14,7 +14,6 @@ class Idle(RoverState):
         Defines all transitions between states based on events
         """
         state: RoverState = None
-
         if event == core.AutonomyEvents.START:
             state = core.states.Navigating()
 
@@ -38,5 +37,4 @@ class Idle(RoverState):
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
-        print(core.vision.obstacle_avoidance)
         return self

@@ -22,7 +22,6 @@ pandas = "*"
 numpy = "==1.19.3"
 geopy = "==1.23.0"
 snakeviz = "*"
-pyyaml = "*"
 rich = "*"
 
 [packages]

@@ -8,7 +8,8 @@ class RoverState:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-
+        print(self.logger)
+        self.logger.info("Test")
         # Call start(), use to schedule tasks
         self.start()
 

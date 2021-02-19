@@ -25,7 +25,7 @@ class Navigating(RoverState):
     def exit(self):
         # Cancel all state specific coroutines
         # self.ar_tag_task.cancel()
-        # self.obstacle_task.cancel()
+        self.obstacle_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -50,8 +50,7 @@ class Navigating(RoverState):
             state = core.states.Idle()
 
         elif event == core.AutonomyEvents.OBSTACLE_AVOIDANCE:
-            self.logger.error(f"Avoiding Obstacle")
-            state = core.states.Idle()
+            state = core.states.Avoidance()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
@@ -83,7 +82,8 @@ class Navigating(RoverState):
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
 
-        if obstacle_avoidance.is_obstacle():
+        if core.vision.obstacle_avoidance.is_obstacle() and core.vision.obstacle_avoidance.get_distance() < 1.5:
+            self.logger.info("Detected obstacle, now avoiding")
             return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
 
         # Check if we are still approaching the goal

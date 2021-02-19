@@ -27,7 +27,7 @@ def setup_logger(level) -> logging.Logger:
     # logging file
     yaml_conf = yaml.safe_load(open("core/logging.yaml", "r").read())
     logging.config.dictConfig(yaml_conf)
-
+    print(level)
     for handler in logging.getLogger().handlers:
         if isinstance(handler, type(rich.logging.RichHandler())):
             handler.setLevel(level)

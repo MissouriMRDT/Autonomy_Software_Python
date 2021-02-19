@@ -1,15 +1,10 @@
-from math import dist
-from algorithms import obstacle_detector
 import core
 import algorithms
 import cv2
 import asyncio
-import sys
 
-this = sys.modules[__name__]
-this.detect = False
-this.angle = None
-this.distance = None
+# Dict to hold the obstacle info
+obstacle = {"detected": False, "angle": None, "distance": None}
 
 
 async def async_obstacle_detector():
@@ -31,17 +26,18 @@ async def async_obstacle_detector():
 
         if obstacle != []:
             # Track the obstacle in the depth matrix
-            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, False)
+            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
+                depth_matrix, obstacle, False, True, reg_img
+            )
             # Update the current obstacle info
-            this.detect = True
-            this.angle = angle
-            this.distance = distance
+            obstacle["detected"] = True
+            obstacle["angle"] = angle
+            obstacle["distance"] = distance
         else:
             # Update the current obstacle info
-            this.detect = False
-            this.angle = None
-            this.distance = None
-
+            obstacle["detected"] = False
+            obstacle["angle"] = None
+            obstacle["distance"] = None
         await asyncio.sleep(1 / 30)
 
 
@@ -53,12 +49,12 @@ def is_obstacle():
     -------------
         detect (bool) - whether or not something was detected
     """
-    return this.detect
+    return obstacle["detected"]
 
 
 def get_angle():
-    return this.angle
+    return obstacle["angle"]
 
 
 def get_distance():
-    return this.distance
+    return obstacle["distance"]

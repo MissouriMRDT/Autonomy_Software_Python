@@ -85,12 +85,12 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
             interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], obstacle_lat, obstacle_lon
         )
         radius *= 1000
-        radius += 2.0
+        radius += 0.5
         points = []
 
         increments = 4
         angle_increments = 90 / (increments - 1)
-        point_angle = get_relative_angle_subtract(angle, 90)
+        point_angle = get_relative_angle_subtract(angle, 90) + angle_increments
 
         for i in range(increments):
             print(point_angle)

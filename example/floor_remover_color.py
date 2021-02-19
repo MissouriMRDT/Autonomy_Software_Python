@@ -37,7 +37,9 @@ def main() -> None:
         test_img = cv2.bitwise_and(reg_img, reg_img, mask=mask)
 
         if obstacle != []:
-            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, True, reg_img)
+            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
+                depth_matrix, obstacle, False, True, reg_img
+            )
 
         if DISPLAY == True:
             # Display the camera frames we just grabbed (should show us if potential issues occur)
