@@ -27,8 +27,8 @@ class AutonomyEvents(Enum):
 
 
 StateMapping = {
-    Idle(): 0,
-    Navigating(): 1,
-    SearchPattern(): 2,
-    ApproachingMarker(): 3,
+    "Idle": 0,
+    "Navigating": 1,
+    "SearchPattern": 2,
+    "ApproachingMarker": 3,
 }

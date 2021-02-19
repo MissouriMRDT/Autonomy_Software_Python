@@ -10,6 +10,7 @@ def drive_through_gate():
     # TODO: Will attempt to drive through a gate composed of two AR Tags
     pass
 
+
 def drive_to_marker(speed, center):
     """
     Calculates the angle and distance of the AR marker with given center pixels.
@@ -31,15 +32,18 @@ def drive_to_marker(speed, center):
     # Center coordinates
     cX, cY = center
     
+    # Depth image is at half resolution
+    cX = int(cX / 2)
+    cY = int(cY / 2)
+
+    print(cX, cY)
+    
     # Grab the distance from the depth map
     distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
 
-    # Grab the angle from the point cloud
-    pc = core.vision.camera_handler.grab_point_cloud()
-    point = pc.get_value(cX, cY)[1]
-
-    # Angle is tangent of opposing (x) and adjacent (z)
-    angle = round(math.degrees(math.atan2(point[0] + core.ZED_X_OFFSET, point[2])), 2)
+    # H FOV = 85, WIDTH = 640
+    angle_per_pixel = 85 / 640
+    angle = (cX - (640 / 2)) * angle_per_pixel
 
     logger.info(f"Distance to marker: {distance}")
     logger.info(f"Angle to marker: {angle}")

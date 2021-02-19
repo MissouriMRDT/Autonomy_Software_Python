@@ -53,12 +53,17 @@ class ApproachingMarker(RoverState):
     async def run(self) -> RoverState:
         # Call AR Tag tracking code to find position and size of AR Tag
         # TODO: hook this up to actual tracking code
-        ball_in_frame = True
-        center = 0
-        radius = 1
+        tag_in_frame: bool = False
 
-        if ball_in_frame:
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(75, center, radius)
+        tags = algorithms.ar_tag.detect_ar_tag()
+        print(tags)
+
+        if len(tags) > 0:
+            tag_in_frame = True
+            center = (tags[0][0] + int(tags[0][2] / 2), tags[0][1] + int(tags[0][3] / 2))
+
+        if tag_in_frame:
+            (left, right), distance = algorithms.follow_marker.drive_to_marker(100, center)
             self.logger.info("Marker in frame")
 
             if distance < 0.5:
