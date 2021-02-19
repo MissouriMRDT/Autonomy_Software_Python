@@ -104,43 +104,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     return []
 
 
-def compute_precise_angle(cX, cY):
-    """
-    Computes the precise angle of the centroid
-    """
-    # Grab point cloud and calculate the angle
-    pc = core.vision.camera_handler.grab_point_cloud()
-    point = []
-
-    # If the center coordinate of the obstacle happens to have no data
-    # look at some neighboring points
-    permutations = [
-        [cX, cY],
-        [cX + 1, cY],
-        [cX, cY + 1],
-        [cX + 1, cY + 1],
-        [cX - 1, cY],
-        [cX, cY - 1],
-        [cX - 1, cY - 1],
-    ]
-
-    # loop through the permuations and check if those values are NaN
-    for index in range(len(permutations)):
-        point = pc.get_value(permutations[index][0], permutations[index][1])[1]
-        if not math.isnan(point[0]):
-            cX = permutations[index][0]
-            cY = permutations[index][1]
-            break
-
-    # The angle is the arc tan of opposing side (x offset) divided by the adjacent (z offset)
-    # This will give us the angle between the left lens of the ZED and the obstacle on the
-    # x plane
-    angle = round(math.degrees(math.atan2(point[0] + core.ZED_X_OFFSET, point[2])), 2)
-
-    return angle
-
-
-def track_obstacle(depth_data, obstacle, precise_angle=False, annotate=False, reg_img=None, rect=False):
+def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=False):
     """
     Tracks the provided contour, returning angle, distance and center and also optionally
     annotates the provided image with the info and outlined obstacle
@@ -162,14 +126,12 @@ def track_obstacle(depth_data, obstacle, precise_angle=False, annotate=False, re
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
 
-    if precise_angle:
-        angle = compute_precise_angle(cX, cY)
-    else:
-        # Return 15 degrees right or left depending on which side of the rover the object was
-        angle = 15 if cX > (1280 / 2) else -15
-
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data[cY][cX], 2)
+
+    # H FOV = 85, WIDTH = 640
+    angle_per_pixel = 85 / 640
+    angle = (cX - (640 / 2)) * angle_per_pixel
 
     # Draw the obstacle if annotate is true
     if annotate:
