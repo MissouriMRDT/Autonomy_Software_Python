@@ -3,7 +3,7 @@ import core
 import interfaces
 import algorithms
 from core.states import RoverState
-
+import time
 
 class ApproachingMarker(RoverState):
     """
@@ -56,9 +56,12 @@ class ApproachingMarker(RoverState):
         # Call AR Tag tracking code to find position and size of AR Tag
         # TODO: hook this up to actual tracking code
         tag_in_frame: bool = False
+        tags = []
 
-        tags = algorithms.ar_tag.detect_ar_tag()
-        print(tags)
+        while len(tags) <= 0:
+            tags = algorithms.ar_tag.detect_ar_tag()
+
+        print(len(tags))
 
         if len(tags) > 0:
             tag_in_frame = True
@@ -66,22 +69,25 @@ class ApproachingMarker(RoverState):
 
         if tag_in_frame:
             (left, right), distance = algorithms.follow_marker.drive_to_marker(100, center)
+            
             self.logger.info("Marker in frame")
 
-            if distance < 0.5:
+            if distance < 1:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
 
                 # Transmit that we have reached the marker
+                """
                 core.rovecomm_node.write(
                     core.RoveCommPacket(
                         core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
                         "B",
-                        (1),
+                        (1,),
                     ),
-                    True,
+                    False,
                 )
+                """
 
                 # Tell multimedia board to flash our LED matrix green to indicate reached marker
                 interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
@@ -93,5 +99,5 @@ class ApproachingMarker(RoverState):
         else:
             self.logger.info("Lost sign of marker, returning to Search Pattern")
             return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
-
         return self
+

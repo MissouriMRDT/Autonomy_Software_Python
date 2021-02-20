@@ -31,6 +31,7 @@ async def autonomy_state_loop():
         logger.debug(f"Current State: {core.states.state_machine.state}")
 
         # Transmit the current state to Base Station
+        
         core.rovecomm_node.write(
             core.RoveCommPacket(
                 core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],

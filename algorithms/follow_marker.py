@@ -40,7 +40,8 @@ def drive_to_marker(speed, center):
     
     # Grab the distance from the depth map
     distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
-
+    distance /= 1000
+    
     # H FOV = 85, WIDTH = 640
     angle_per_pixel = 85 / 640
     angle = (cX - (640 / 2)) * angle_per_pixel
