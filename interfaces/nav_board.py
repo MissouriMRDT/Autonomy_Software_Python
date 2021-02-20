@@ -33,13 +33,14 @@ class NavBoard:
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
+        self._heading = int(self._heading)
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
-        lat = lat * 1e-7
-        lon = lon * 1e-7
+        #lat = lat * 1e-7
+        #lon = lon * 1e-7
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
         self._location = core.Coordinate(lat, lon)
