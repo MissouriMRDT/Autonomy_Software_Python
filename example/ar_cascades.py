@@ -53,58 +53,24 @@ def main() -> None:
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
-    # for ALVAR tags the border is actually 2 black bits wide
-    parameters = aruco.DetectorParameters_create()
-    parameters.markerBorderBits = 2
-    parameters.polygonalApproxAccuracyRate = 0.08
-    # cap = cv2.VideoCapture("algorithms/ar3.avi")
+
     while True:
-        # Test grabbing the latest camera frames
-        reg_img = core.vision.camera_handler.grab_regular()
-        # ret, reg_img = cap.read()
-        # depth_img = vision.camera_handler.grab_depth()
+        reg_img = core.vision.camera_handler.grab_regular().copy()
         tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
-        tags_imgs = list()
         gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
 
         tags = tag_cascade.detectMultiScale(gray, 1.05, 5)
 
         for (x, y, w, h) in tags:
-            tags_imgs.append((reg_img.copy()[y : y + h, x : x + w], x, y, w, h))
-            rect_img = cv2.rectangle(reg_img.copy(), (x, y), (x + w, y + h), (255, 0, 0), 2)
+            reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-        #cv2.imshow("img", rect_img)
-        #corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-        #img = aruco.drawDetectedMarkers(gray, corners, ids)
-        #core.vision.camera_handler.feed_handler.handle_frame("regular", img)
+        # core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
+        cv2.imshow("reg", reg_img)
 
-        if len(tags) > 0:
-            core.vision.camera_handler.feed_handler.handle_frame("regular", rect_img)
-        else:
-            core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
 
-        """
-        #core.vision.camera_handler.feed_handler.handle_frame("regular", img)
-        #cv2.imshow("ar", img)
 
-        # Go through tags detected and insert them on a white background
-        # run ARUCO detection on them to see if accuracy increases
-        for i, tag in enumerate(tags_imgs):
-            im, x, y, w, h = tag
-            print(w, h)
-            img_1 = np.zeros((720, 1280), dtype=np.uint8)
-            img_1.fill(255)
-
-            im = cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY)
-            ret, im = cv2.threshold(im, 60, 255, cv2.THRESH_BINARY)
-            img_1[y : y + h, x : x + w] = im
-            corners, ids, rejectedImgPoints = aruco.detectMarkers(img_1, aruco_dict, parameters=parameters)
-            img_1 = aruco.drawDetectedMarkers(img_1, corners, ids)
-            #cv2.imshow(f"detect{i}", img_1)
-
-        #if cv2.waitKey(1) & 0xFF == ord("q"):
-        #    break
-        """
 if __name__ == "__main__":
     # Run main()
     main()

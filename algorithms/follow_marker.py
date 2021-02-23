@@ -31,17 +31,19 @@ def drive_to_marker(speed, center):
 
     # Center coordinates
     cX, cY = center
-    
+
     # Depth image is at half resolution
     cX = int(cX / 2)
     cY = int(cY / 2)
 
     print(cX, cY)
-    
+
     # Grab the distance from the depth map
     distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
-    distance /= 1000
-    
+
+    if not isinstance(core.vision.camera_handler, core.vision.sim_cam_handler.SimCamHandler):
+        distance /= 1000
+
     # H FOV = 85, WIDTH = 640
     angle_per_pixel = 85 / 640
     angle = (cX - (640 / 2)) * angle_per_pixel

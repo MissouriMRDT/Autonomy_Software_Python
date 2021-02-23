@@ -5,6 +5,7 @@ import algorithms
 from core.states import RoverState
 import time
 
+
 class ApproachingMarker(RoverState):
     """
     Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
@@ -68,8 +69,8 @@ class ApproachingMarker(RoverState):
             center = (tags[0][0] + int(tags[0][2] / 2), tags[0][1] + int(tags[0][3] / 2))
 
         if tag_in_frame:
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(100, center)
-            
+            (left, right), distance = algorithms.follow_marker.drive_to_marker(250, center)
+
             self.logger.info("Marker in frame")
 
             if distance < 1:
@@ -100,4 +101,3 @@ class ApproachingMarker(RoverState):
             self.logger.info("Lost sign of marker, returning to Search Pattern")
             return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
         return self
-

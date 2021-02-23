@@ -36,7 +36,7 @@ def feed_process(
             video_filename + "_left.avi",
             fourcc,
             frame_rate,
-            (resolution_x, resolution_y),
+            (1280, 720),
         )  # append video writer to list of video writers
 
     p_output, p_input = pipe
@@ -45,7 +45,7 @@ def feed_process(
     while True:
         data = p_output.recv()
         # Resize image to reduce bandwidth/size
-        image = cv2.resize(data, (resolution_x, resolution_y))
+        image = cv2.resize(data, (1280, 720))
         # OpenCV video writer expects BGR color channels
         save_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
         # Motion expects RGB color channels
@@ -53,9 +53,11 @@ def feed_process(
 
         # Stream and record video if applicable
         if stream_video and sys.platform == "linux":
+            stream_img = cv2.resize(stream_img, (resolution_x, resolution_y))
             streamer.schedule_frame(stream_img)
         if save_video:
             video_writer.write(save_img)
+        time.sleep(1 / 30)
 
 
 class FeedHandler:

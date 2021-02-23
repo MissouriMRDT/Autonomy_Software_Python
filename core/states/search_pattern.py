@@ -66,8 +66,13 @@ class SearchPattern(RoverState):
 
         # Check to see if AR Tag was detected
         # TODO: hook this up to actual tracking code
+        tags = algorithms.ar_tag.detect_ar_tag()
         found_tag = False
-        center, radius = 0, 0
+
+        if len(tags) > 0:
+            found_tag = True
+
+        # center, radius = 0, 0
 
         if found_tag:
             interfaces.drive_board.stop()
@@ -75,13 +80,10 @@ class SearchPattern(RoverState):
             # Sleep for a brief second
             await asyncio.sleep(0.1)
 
-            self.logger.info("Search Pattern: Marker seen at %s with r=%i, locking on..." % (center, radius))
+            self.logger.info("Search Pattern: Marker seen")  # at %s with r=%i, locking on..." % (center, radius))
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start)
-            != core.ApproachState.APPROACHING
-        ):
+        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             interfaces.drive_board.stop()
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
