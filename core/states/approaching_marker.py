@@ -6,6 +6,12 @@ from core.states import RoverState
 import time
 
 
+async def print_hellos():
+    while True:
+        print("Hello")
+        await asyncio.sleep(1)
+
+
 class ApproachingMarker(RoverState):
     """
     Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
@@ -14,14 +20,11 @@ class ApproachingMarker(RoverState):
     def start(self):
         # TODO: Schedule AR Tag detection
         loop = asyncio.get_event_loop()
-
-        # self.ar_tag_task = loop.create_task(print_nopes())
-        # self.obstacle_task = loop.create_task(print_hellos())
+        self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
 
     def exit(self):
         # Cancel all state specific coroutines
-        # self.ar_tag_task.cancel()
-        # self.obstacle_task.cancel()
+        self.ar_tag_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -59,16 +62,11 @@ class ApproachingMarker(RoverState):
         tag_in_frame: bool = False
         tags = []
 
-        while len(tags) <= 0:
-            tags = algorithms.ar_tag.detect_ar_tag()
-
-        print(len(tags))
-
-        if len(tags) > 0:
-            tag_in_frame = True
+        tag_in_frame = core.vision.ar_tag_detector.is_ar_tag()
+        if tag_in_frame:
+            tags = core.vision.ar_tag_detector.get_tags()
             center = (tags[0][0] + int(tags[0][2] / 2), tags[0][1] + int(tags[0][3] / 2))
 
-        if tag_in_frame:
             (left, right), distance = algorithms.follow_marker.drive_to_marker(250, center)
 
             self.logger.info("Marker in frame")

@@ -36,8 +36,6 @@ def drive_to_marker(speed, center):
     cX = int(cX / 2)
     cY = int(cY / 2)
 
-    print(cX, cY)
-
     # Grab the distance from the depth map
     distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
 

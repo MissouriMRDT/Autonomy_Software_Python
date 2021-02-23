@@ -15,11 +15,11 @@ class SearchPattern(RoverState):
         loop = asyncio.get_event_loop()
 
         # TODO: Schedule AR Tag detection
-        # self.ar_tag_task = loop.create_task()
+        self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
 
     def exit(self):
         # Cancel all state specific tasks
-        # self.ar_tag_task.cancel()
+        self.ar_tag_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -66,15 +66,7 @@ class SearchPattern(RoverState):
 
         # Check to see if AR Tag was detected
         # TODO: hook this up to actual tracking code
-        tags = algorithms.ar_tag.detect_ar_tag()
-        found_tag = False
-
-        if len(tags) > 0:
-            found_tag = True
-
-        # center, radius = 0, 0
-
-        if found_tag:
+        if core.vision.ar_tag_detector.is_ar_tag():
             interfaces.drive_board.stop()
 
             # Sleep for a brief second
