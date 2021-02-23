@@ -41,6 +41,6 @@ class StateMachine(object):
             # Update the state display on lighting to Teleop
             interfaces.multimedia_board.send_lighting_state(core.OperationState.TELEOP)
             self.disable_flag = False
-        # print("Boo")
+
         # Run the current state
         self.state = await self.state.run()

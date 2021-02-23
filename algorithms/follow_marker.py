@@ -40,6 +40,7 @@ def drive_to_marker(speed, center):
     distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
 
     if not isinstance(core.vision.camera_handler, core.vision.sim_cam_handler.SimCamHandler):
+        # ZED units are currently in millimeters
         distance /= 1000
 
     # H FOV = 85, WIDTH = 640

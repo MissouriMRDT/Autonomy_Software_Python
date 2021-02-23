@@ -71,7 +71,7 @@ class ApproachingMarker(RoverState):
 
             self.logger.info("Marker in frame")
 
-            if distance < 1:
+            if distance < 0.75:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
