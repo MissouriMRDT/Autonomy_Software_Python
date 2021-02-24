@@ -1,9 +1,10 @@
+from numpy.core.numeric import NaN
 import interfaces
 import math
 import logging
 import core
-import interfaces
 import algorithms.heading_hold as hh
+import itertools
 
 
 def drive_through_gate():
@@ -37,9 +38,20 @@ def drive_to_marker(speed, center):
     cY = int(cY / 2)
 
     # Grab the distance from the depth map
-    distance = core.vision.camera_handler.grab_depth_data()[cY][cX]
+    distance = NaN  # core.vision.camera_handler.grab_depth_data()[cY][cX]
 
-    if not isinstance(core.vision.camera_handler, core.vision.sim_cam_handler.SimCamHandler):
+    # Find some permutations we can use in case of noisy data
+    coordinates = [0, 1, -1, 2, -2]
+    perm = list(itertools.permutations(coordinates, 2))
+
+    # Grab the distance from the depth map, iterating over pixels if the distance is not finite
+    index = 0
+    while not math.isfinite(distance):
+        distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
+        index += 1
+
+    # Grab the distance from the depth map
+    if type(core.vision.camera_handler).__name__ == "ZedHandler":
         # ZED units are currently in millimeters
         distance /= 1000
 
