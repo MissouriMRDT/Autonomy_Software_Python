@@ -9,7 +9,7 @@ class StateMachine(object):
     """
 
     def __init__(self):
-        self.state = core.states.Idle()
+        self.state = core.states.ApproachingMarker()
 
         # Set shutdown and start flags
         self.enable_flag = False
