@@ -3,6 +3,7 @@ import logging
 import cv2
 from cv2 import aruco
 import numpy as np
+import time
 
 # define an empty custom dictionary with
 aruco_dict = aruco.custom_dictionary(2, 5, 1)
@@ -53,23 +54,21 @@ def main() -> None:
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
+    core.vision.camera_handler.feed_handler.add_feed(2, "artag")
 
     while True:
-        reg_img = core.vision.camera_handler.grab_regular().copy()
+        reg_img = core.vision.camera_handler.grab_regular()
         tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
         gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
 
         tags = tag_cascade.detectMultiScale(gray, 1.05, 5)
 
         for (x, y, w, h) in tags:
+            print(x, y, w, h)
             reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-        # core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
-        cv2.imshow("reg", reg_img)
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
-
+        core.vision.camera_handler.feed_handler.handle_frame("artag", reg_img)
+        time.sleep(1/30)
 
 if __name__ == "__main__":
     # Run main()

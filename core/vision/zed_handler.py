@@ -79,9 +79,8 @@ class ZedHandler:
                 self.depth_img = depth_image_zed.get_data()
 
                 # Now let the feed_handler stream/save the frames
-                # self.feed_handler.handle_frame("regular", self.reg_img)
+                self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / 30)
 
                 # Sleep for desired frame rate, reduces usage
                 time.sleep(1 / self.init.camera_fps)
