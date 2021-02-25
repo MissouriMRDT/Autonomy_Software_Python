@@ -20,11 +20,11 @@ class ApproachingMarker(RoverState):
     def start(self):
         # TODO: Schedule AR Tag detection
         loop = asyncio.get_event_loop()
-        self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
+        #self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
 
     def exit(self):
         # Cancel all state specific coroutines
-        self.ar_tag_task.cancel()
+        #self.ar_tag_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -62,16 +62,17 @@ class ApproachingMarker(RoverState):
         tag_in_frame: bool = False
         tags = []
 
-        tag_in_frame = core.vision.ar_tag_detector.is_ar_tag()
-        if tag_in_frame:
-            tags = core.vision.ar_tag_detector.get_tags()
+        tags_dict = core.vision.ar_tag_detector.async_ar_tag_detector()
+        if len(tags_dict) > 0:
+            #print(tags_dict)
+            tags = tags_dict["tags"]
             center = (tags[0][0] + int(tags[0][2] / 2), tags[0][1] + int(tags[0][3] / 2))
 
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(250, center)
+            (left, right), distance = algorithms.follow_marker.drive_to_marker(125, center)
 
             self.logger.info("Marker in frame")
 
-            if distance < 0.75:
+            if distance < 1.25:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
@@ -95,7 +96,7 @@ class ApproachingMarker(RoverState):
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
 
-        else:
-            self.logger.info("Lost sign of marker, returning to Search Pattern")
-            return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
+        #else:
+        #    self.logger.info("Lost sign of marker, returning to Search Pattern")
+        #    return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
         return self

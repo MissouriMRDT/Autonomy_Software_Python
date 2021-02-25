@@ -4,50 +4,6 @@ import cv2
 from cv2 import aruco
 import numpy as np
 import time
-
-# define an empty custom dictionary with
-aruco_dict = aruco.custom_dictionary(2, 5, 1)
-# add empty bytesList array to fill with 3 markers later
-aruco_dict.bytesList = np.empty(shape=(2, 4, 4), dtype=np.uint8)
-
-# add custom markers as defined by the ALVAR library
-mybits = np.array(
-    [
-        [1, 1, 0, 1, 1],
-        [1, 1, 0, 1, 1],
-        [1, 0, 1, 0, 1],
-        [0, 1, 1, 1, 0],
-        [
-            0,
-            1,
-            1,
-            1,
-            0,
-        ],
-    ],
-    dtype=np.uint8,
-)
-aruco_dict.bytesList[0] = aruco.Dictionary_getByteListFromBits(mybits)
-
-mybits_1 = np.array(
-    [
-        [1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1],
-        [1, 0, 1, 0, 1],
-        [1, 1, 0, 1, 1],
-        [
-            1,
-            1,
-            0,
-            1,
-            1,
-        ],
-    ],
-    dtype=np.uint8,
-)
-aruco_dict.bytesList[1] = aruco.Dictionary_getByteListFromBits(mybits_1)
-
-
 def main() -> None:
     """
     Main function for video stream script, tests streaming/recording zed footage
