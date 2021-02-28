@@ -20,7 +20,7 @@ class ZedHandler:
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+        self.init.depth_mode = sl.DEPTH_MODE.QUALITY
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = 30
 

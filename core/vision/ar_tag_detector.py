@@ -6,30 +6,32 @@ import asyncio
 # Dict to hold the obstacle info
 ar_tag = {"detected": False, "tags": None}
 
-tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
+#tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
 
 
-async def async_ar_tag_detector():
+def async_ar_tag_detector():
     """
     Async function to find obstacles
     """
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
-        rect_img = reg_img.copy()
+        tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
         gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
 
-        tags = tag_cascade.detectMultiScale(gray, 1.3, 5)
+        tags = tag_cascade.detectMultiScale(gray, 1.05, 5)
 
         for (x, y, w, h) in tags:
-            rect_img = cv2.rectangle(reg_img.copy(), (x, y), (x + w, y + h), (255, 0, 0), 2)
+            #print(x, y, w, h)
+            reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-        core.vision.camera_handler.feed_handler.handle_frame("artag", rect_img)
+
+        core.vision.camera_handler.feed_handler.handle_frame("artag", reg_img)
 
         if len(tags) > 0:
             ar_tag["detected"] = True
             ar_tag["tags"] = tags
-
-        await asyncio.sleep(1 / 30)
+            return ar_tag
+        return {}
 
 
 def is_ar_tag():
