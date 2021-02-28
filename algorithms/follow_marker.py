@@ -38,11 +38,11 @@ def drive_to_marker(speed, center):
     cY = int(cY / 2)
 
     # Grab the distance from the depth map
-    distance = NaN  # core.vision.camera_handler.grab_depth_data()[cY][cX]
+    distance = NaN
 
     # Find some permutations we can use in case of noisy data
     coordinates = [0, 1, -1, 2, -2]
-    perm = list(itertools.permutations(coordinates, 2))
+    perm = [p for p in itertools.product(coordinates, repeat=2)]
 
     # Grab the distance from the depth map, iterating over pixels if the distance is not finite
     index = 0
