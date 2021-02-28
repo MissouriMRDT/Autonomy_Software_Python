@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -27,9 +29,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv
         pipenv install -d 
-    - name: Checkout Submodules
-      run: |
-        git submodule update --init --recursive.
     - name: Unit and coverage test with pytest
       run: |
         pipenv run pytest -v --cov=../Autonomy_Software
