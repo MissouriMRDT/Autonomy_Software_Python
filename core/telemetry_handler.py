@@ -1,5 +1,5 @@
 import core
-from core.rovecomm import RoveCommPacket
+from core import RoveCommPacket
 import logging
 
 
