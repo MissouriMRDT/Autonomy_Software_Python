@@ -14,7 +14,7 @@ There are a couple of simple steps in order to get started writing software for 
 1. Clone the repo in an appropriate place. Standard practice is to clone it inside a directory such as RoverSoftware.
 
 ```
-git clone https://github.com/MissouriMRDT/Autonomy_Software.git
+git clone --recurse-submodules https://github.com/MissouriMRDT/Autonomy_Software.git
 ```
 
 2. Install Python 3.8 or higher, and then install pipenv using pip

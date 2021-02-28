@@ -2,8 +2,7 @@ import logging
 import core
 from core.telemetry_handler import telemetry_handler
 import time
-from core.rovecomm import RoveCommPacket
-from core.rovecomm import ROVECOMM_SUBSCRIBE_REQUEST
+from core.rovecomm_module.rovecomm import RoveCommPacket, ROVECOMM_SUBSCRIBE_REQUEST
 
 global packets
 packets = []
