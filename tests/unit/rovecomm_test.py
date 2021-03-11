@@ -1,4 +1,4 @@
-from core.rovecomm import RoveCommPacket
+from core.rovecomm_module.rovecomm import RoveCommPacket
 import core
 import time
 import struct
