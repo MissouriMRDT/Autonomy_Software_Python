@@ -37,6 +37,7 @@ def main() -> None:
         test_img = cv2.bitwise_and(reg_img, reg_img, mask=mask)
 
         if obstacle != []:
+            print("Obstacle")
             angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, True, reg_img)
 
         if DISPLAY == True:

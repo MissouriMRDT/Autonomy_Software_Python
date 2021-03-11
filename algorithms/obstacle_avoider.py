@@ -85,7 +85,7 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
             interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], obstacle_lat, obstacle_lon
         )
         radius *= 1000
-        radius += 1
+        radius += 0.5
         points = []
 
         increments = 4

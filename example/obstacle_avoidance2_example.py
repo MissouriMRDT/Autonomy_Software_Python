@@ -25,22 +25,56 @@ logger.info("Executing function: main()")
 def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
     points = []
     obstacle = []
-    print(nav_board.heading())
-    # Finding the obstacle
-    while obstacle == []:
-        depth_data = core.vision.camera_handler.grab_depth_data()
-        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1, 3)
+    previous_loc = interfaces.nav_board.location()
+    target = core.Coordinate(37.95143624790924, -91.76908311165961)
+
+    cv2.namedWindow("img")
+    print(target)
+    while (
+        algorithms.gps_navigate.get_approach_status(
+            target,
+            interfaces.nav_board.location(),
+            previous_loc,
+            0.5,
+        )
+        == core.constants.ApproachState.APPROACHING
+    ):
+        left, right = algorithms.gps_navigate.calculate_move(
+            target,
+            interfaces.nav_board.location(),
+            previous_loc,
+            250,
+        )
         reg_img = core.vision.camera_handler.grab_regular()
-        core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
+
+        reg_img = cv2.resize(reg_img, (1280, 720))
+        cv2.imshow("img", reg_img)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+        logger.debug(f"Navigating: Driving at ({left}, {right})")
+        interfaces.drive_board.send_drive(left, right)
+        time.sleep(0.01)
 
     reg_img = core.vision.camera_handler.grab_regular()
+    depth_matrix = core.vision.camera_handler.grab_depth_data()
+
+    mask, lower = algorithms.obstacle_detector.get_floor_mask(
+        reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
+    )
+
+    depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
+
+    obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 0.1, 5)
+
     reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
 
-    angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
-        depth_data, obstacle, True, reg_img
-    )
+    if obstacle != []:
+        angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, True, reg_img)
+
+    reg_img = cv2.resize(reg_img, (1280, 720))
+    cv2.imshow("img", reg_img)
+
     angle = (nav_board.heading() + angle) % 360
-    core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
 
     angle, distance = obstacle_detection()
 
@@ -52,9 +86,7 @@ def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
         distance, nav_board.location()[0], nav_board.location()[1], angle
     )
 
-    points = obstacle_avoider.plan_avoidance_route(
-        angle, distance, obstacle_lat, obstacle_lon, type="Circle"
-    )
+    points = obstacle_avoider.plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Circle")
 
     previous_loc = one_meter_from_obstacle
 
@@ -71,8 +103,6 @@ def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
             )
             == core.constants.ApproachState.APPROACHING
         ):
-            # logger.info(f"Target coordinates: Lat: {new_lat}, Lon: {new_lon}")
-            reg_img = core.vision.camera_handler.grab_regular()
             left, right = algorithms.gps_navigate.calculate_move(
                 core.constants.Coordinate(new_lat, new_lon),
                 interfaces.nav_board.location(),
@@ -82,13 +112,30 @@ def simulate_obstacle_avoidance(DETECT_OBSTACLE=True):
 
             logger.debug(f"Navigating: Driving at ({left}, {right})")
             interfaces.drive_board.send_drive(left, right)
-            # cv2.imshow("img", reg_img)
-            # if cv2.waitKey(1) & 0xFF == ord("q"):
-            #    break
-            time.sleep(0.1)
 
-        # if FOUND_OBSTACLE:
-        #    break
+            # Image
+            reg_img = core.vision.camera_handler.grab_regular()
+            depth_matrix = core.vision.camera_handler.grab_depth_data()
+
+            #
+            mask, lower = algorithms.obstacle_detector.get_floor_mask(
+                reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
+            )
+
+            depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
+
+            obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 0.1, 5)
+            reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
+
+            if obstacle != []:
+                angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_matrix, obstacle, True, reg_img)
+
+            reg_img = cv2.resize(reg_img, (1280, 720))
+            cv2.imshow("img", reg_img)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+            time.sleep(0.01)
+
         interfaces.drive_board.stop()
         previous_loc = core.constants.Coordinate(new_lat, new_lon)
 
