@@ -1,4 +1,5 @@
 import asyncio
+from core.vision.ar_tag_detector import is_ar_tag
 import core
 import interfaces
 import algorithms
@@ -20,11 +21,11 @@ class ApproachingMarker(RoverState):
     def start(self):
         # TODO: Schedule AR Tag detection
         loop = asyncio.get_event_loop()
-        #self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
+        self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
 
     def exit(self):
         # Cancel all state specific coroutines
-        #self.ar_tag_task.cancel()
+        self.ar_tag_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
@@ -58,17 +59,16 @@ class ApproachingMarker(RoverState):
 
     async def run(self) -> RoverState:
         # Call AR Tag tracking code to find position and size of AR Tag
-        # TODO: hook this up to actual tracking code
-        tag_in_frame: bool = False
-        tags = []
 
-        tags_dict = core.vision.ar_tag_detector.async_ar_tag_detector()
-        if len(tags_dict) > 0:
-            #print(tags_dict)
-            tags = tags_dict["tags"]
-            center = (tags[0][0] + int(tags[0][2] / 2), tags[0][1] + int(tags[0][3] / 2))
+        if core.vision.ar_tag_detector.is_ar_tag():
+            # Grab the AR tags
+            tags = core.vision.ar_tag_detector.get_tags()
 
-            (left, right), distance = algorithms.follow_marker.drive_to_marker(125, center)
+            # Currently only orienting based on one AR Tag
+            distance = tags[0].distance
+            angle = tags[0].angle
+
+            (left, right) = algorithms.follow_marker.drive_to_marker(125, distance, angle)
 
             self.logger.info("Marker in frame")
 
@@ -78,7 +78,6 @@ class ApproachingMarker(RoverState):
                 self.logger.info("Reached Marker")
 
                 # Transmit that we have reached the marker
-                """
                 core.rovecomm_node.write(
                     core.RoveCommPacket(
                         core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
@@ -87,7 +86,6 @@ class ApproachingMarker(RoverState):
                     ),
                     False,
                 )
-                """
 
                 # Tell multimedia board to flash our LED matrix green to indicate reached marker
                 interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
@@ -96,7 +94,4 @@ class ApproachingMarker(RoverState):
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
 
-        #else:
-        #    self.logger.info("Lost sign of marker, returning to Search Pattern")
-        #    return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
         return self

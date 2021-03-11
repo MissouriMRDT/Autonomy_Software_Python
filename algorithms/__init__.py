@@ -4,4 +4,4 @@ import algorithms.gps_navigate as gps_navigate
 import algorithms.heading_hold as heading_hold
 import algorithms.marker_search as marker_search
 import algorithms.PID_controller as PID_controller
-import algorithms.AR_tag as ar_tag
+import algorithms.AR_tag as AR_tag
