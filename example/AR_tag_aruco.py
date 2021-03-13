@@ -76,18 +76,6 @@ def main() -> None:
         # draw bounding box and ID on the markers
         img = aruco.drawDetectedMarkers(gray, corners, ids)
 
-        # resize frame to show even on smaller screens
-        # frame = cv2.resize(frame, None, fx = 1.6, fy = 1.6)
-        # Display the resulting frame
-        # cv2.imshow('frame',img)
-
-        # Stream the AR Tag video feed
-        # vision.camera_handler.feed_handler.handle_frame("ar", img)
-
-        # stackedImages = cv2.resize(stackedImages, (1920, 1080))
-        # stackedImage = cv2.cvtColor(stackedImages, cv2.COLOR_RGBA2RGB)
-
-        # Display the camera frames we just grabbed (should show us if potential issues occur)
         cv2.imshow("img", img)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
