@@ -17,7 +17,7 @@ WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover a
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 
 SEARCH_DISTANCE = 0.008
-DELTA_THETA = math.pi / 2
+DELTA_THETA = math.pi / 4
 
 # LiDAR maximum distance before we decide we would yeet off a cliff.
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
