@@ -64,7 +64,7 @@ class ApproachingMarker(RoverState):
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
 
-            # Currently only orienting based on one AR Tag
+            # Currently only orienting based on one AR Tag-
             distance = tags[0].distance
             angle = tags[0].angle
 

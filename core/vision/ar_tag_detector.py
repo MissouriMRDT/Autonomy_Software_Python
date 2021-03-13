@@ -17,7 +17,7 @@ async def async_ar_tag_detector():
 
         tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
 
-        core.vision.camera_handler.feed_handler.handle_frame("artag", reg_img)
+        core.vision.feed_handler.handle_frame("artag", reg_img)
 
         if len(tags) > 0:
             ar_tag["detected"] = True

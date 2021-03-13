@@ -1,11 +1,6 @@
-from numpy.core.numeric import NaN
 import interfaces
-import math
 import logging
-import core
 import algorithms.heading_hold as hh
-import itertools
-import numpy as np
 
 
 def drive_through_gate():

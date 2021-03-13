@@ -8,6 +8,7 @@
 
 import math
 
+
 # Haversine Function for calculating bearing and distance
 # Source:
 # http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
