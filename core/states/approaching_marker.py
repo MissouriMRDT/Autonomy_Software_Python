@@ -7,21 +7,16 @@ from core.states import RoverState
 import time
 
 
-async def print_hellos():
-    while True:
-        print("Hello")
-        await asyncio.sleep(1)
-
-
 class ApproachingMarker(RoverState):
     """
     Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
     """
 
     def start(self):
-        # TODO: Schedule AR Tag detection
+        # Schedule AR Tag detection
         loop = asyncio.get_event_loop()
         self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
+        self.num_detection_attempts = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -71,6 +66,7 @@ class ApproachingMarker(RoverState):
             (left, right) = algorithms.follow_marker.drive_to_marker(125, distance, angle)
 
             self.logger.info("Marker in frame")
+            self.num_detection_attempts = 0
 
             if distance < 1.25:
                 interfaces.drive_board.stop()
@@ -93,5 +89,13 @@ class ApproachingMarker(RoverState):
             else:
                 self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
+        else:
+            self.num_detection_attempts += 1
+
+            # If we have attempted to track an AR Tag unsuccesfully
+            # MAX_DETECTION_ATTEMPTS times, we will return to search pattern
+            if self.num_detection_attempts >= core.MAX_DETECTION_ATTEMPTS:
+                self.logger.info("Lost sign of marker, returning to Search Pattern")
+                return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 
         return self

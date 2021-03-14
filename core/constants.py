@@ -16,8 +16,12 @@ DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 
+# Search Pattern Parameters
 SEARCH_DISTANCE = 0.008
 DELTA_THETA = math.pi / 4
+
+# Vision Parameters
+MAX_DETECTION_ATTEMPTS = 5
 
 # LiDAR maximum distance before we decide we would yeet off a cliff.
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
