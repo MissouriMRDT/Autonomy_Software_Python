@@ -14,24 +14,13 @@ def main() -> None:
 
     # Give the system a second to set everything up, start reading in frames
     time.sleep(1)
-    core.vision.camera_handler.feed_handler.add_feed(2, "artag")
+    core.vision.feed_handler.add_feed(2, "artag")
 
     while True:
         # Test grabbing the latest camera frames
-        #reg_img = core.vision.camera_handler.grab_regular()
-        depth_data = core.vision.camera_handler.grab_depth()
-        core.vision.camera_handler.feed_handler.handle_frame("artag", depth_data)
-        
-        # Plot the depth data as a grayscale image
-        #plt.imshow(depth_data, cmap="gray", vmin=0, vmax=20)
-        #plt.draw()
-        #plt.pause(0.01)
+        reg_img = core.vision.camera_handler.grab_regular()
 
-        # Display the camera frames we just grabbed (should show us if potential issues occur)
-        #cv2.imshow("reg", reg_img)
-
-        #if cv2.waitKey(1) & 0xFF == ord("q"):
-        #    break
+        core.vision.feed_handler.handle_frame("artag", reg_img)
 
 
 if __name__ == "__main__":

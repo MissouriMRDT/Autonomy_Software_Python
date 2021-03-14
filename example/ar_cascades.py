@@ -13,7 +13,7 @@ def main() -> None:
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
-    core.vision.camera_handler.feed_handler.add_feed(2, "artag")
+    core.vision.feed_handler.add_feed(2, "artag")
 
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
@@ -21,7 +21,7 @@ def main() -> None:
         # Detect some AR Tags
         tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
 
-        core.vision.camera_handler.feed_handler.handle_frame("artag", reg_img)
+        core.vision.feed_handler.handle_frame("artag", reg_img)
         time.sleep(1 / 30)
 
 
