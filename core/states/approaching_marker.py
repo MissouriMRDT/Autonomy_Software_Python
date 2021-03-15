@@ -53,8 +53,8 @@ class ApproachingMarker(RoverState):
         return state
 
     async def run(self) -> RoverState:
+
         # Call AR Tag tracking code to find position and size of AR Tag
-        self.logger.info("Test")
         if core.vision.ar_tag_detector.is_ar_tag():
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
