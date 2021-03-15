@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from algorithms.AR_tag import Tag
 import core
@@ -12,7 +13,6 @@ async def async_ar_tag_detector():
     Async function to find obstacles.
     """
     while True:
-        ar_tag = {}
         reg_img = core.vision.camera_handler.grab_regular()
 
         tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
@@ -25,6 +25,8 @@ async def async_ar_tag_detector():
         else:
             ar_tag["detected"] = False
             ar_tag["tags"] = []
+
+        await asyncio.sleep(1 / 30)
 
 
 def is_ar_tag():
