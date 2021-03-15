@@ -54,7 +54,7 @@ class ApproachingMarker(RoverState):
 
     async def run(self) -> RoverState:
         # Call AR Tag tracking code to find position and size of AR Tag
-
+        self.logger.info("Test")
         if core.vision.ar_tag_detector.is_ar_tag():
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
@@ -63,7 +63,7 @@ class ApproachingMarker(RoverState):
             distance = tags[0].distance
             angle = tags[0].angle
 
-            (left, right) = algorithms.follow_marker.drive_to_marker(125, distance, angle)
+            left, right = algorithms.follow_marker.drive_to_marker(125, distance, angle)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0
@@ -87,7 +87,7 @@ class ApproachingMarker(RoverState):
                 interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
-                self.logger.debug(f"Driving to target with speeds: ({left}, {right})")
+                self.logger.info(f"Driving to target with speeds: ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
         else:
             self.num_detection_attempts += 1

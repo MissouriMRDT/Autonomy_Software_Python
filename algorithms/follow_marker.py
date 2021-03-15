@@ -30,4 +30,4 @@ def drive_to_marker(speed, distance, angle):
     left, right = hh.get_motor_power_from_heading(speed, goal_heading)
 
     logger.debug(f"Driving at: {left}, {right} to marker")
-    return (left, right), distance
+    return left, right
