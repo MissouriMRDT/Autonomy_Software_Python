@@ -7,7 +7,7 @@ import itertools
 import core
 import numpy as np
 
-tag_cascade = cv2.CascadeClassifier("algorithms/cascade30.xml")
+tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
 
 Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
 
@@ -34,8 +34,8 @@ def detect_ar_tag(reg_img):
         reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
         # Calculate the center points of the AR Tag
-        cX = x + w
-        cY = y + h
+        cX = x + (w / 2)
+        cY = y + (h / 2)
 
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
