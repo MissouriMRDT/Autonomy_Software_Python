@@ -28,7 +28,7 @@ async def autonomy_state_loop():
         # Run the current state in the state machine (and handle enable/disable)
         await core.states.state_machine.run()
 
-        logger.debug(f"Current State: {core.states.state_machine.state}")
+        logger.info(f"Current State: {core.states.state_machine.state}")
 
         # Transmit the current state to Base Station
 
