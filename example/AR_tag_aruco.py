@@ -55,7 +55,7 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     # Add feed
-    vision.camera_handler.feed_handler.add_feed(2, "ar")
+    core.vision.camera_handler.feed_handler.add_feed(2, "ar")
 
     while True:
         # Test grabbing the latest camera frames
