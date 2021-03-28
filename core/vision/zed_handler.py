@@ -20,7 +20,7 @@ class ZedHandler:
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+        self.init.depth_mode = sl.DEPTH_MODE.QUALITY
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = 30
 
@@ -53,8 +53,10 @@ class ZedHandler:
 
         # Prepare new image size to retrieve half-resolution images
         image_size = self.zed.get_camera_information().camera_resolution
-        image_size.width = image_size.width / 2
-        image_size.height = image_size.height / 2
+
+        self.depth_size = self.zed.get_camera_information().camera_resolution
+        self.depth_size.width = self.depth_size.width / 2
+        self.depth_size.height = self.depth_size.height / 2
 
         # Declare your sl.Mat matrices
         image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
@@ -70,7 +72,7 @@ class ZedHandler:
                 # Grab images, and grab the data as opencv/numpy matrix
                 self.zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
                 self.reg_img = image_zed.get_data()
-                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
+                self.zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, self.depth_size)
                 self.depth_img = depth_image_zed.get_data()
 
                 # Now let the feed_handler stream/save the frames
@@ -91,6 +93,11 @@ class ZedHandler:
         Returns the latest depth frame captured from the ZED
         """
         return self.depth_img
+
+    def grab_depth_data(self):
+        self.depth_map = sl.Mat()
+        self.zed.retrieve_measure(self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size)
+        return self.depth_map.get_data()
 
     def start(self):
         """

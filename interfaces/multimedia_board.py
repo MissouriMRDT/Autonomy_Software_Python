@@ -27,9 +27,9 @@ class MultiMedia:
                 "B",
                 (state,),
                 core.manifest["Multimedia"]["Ip"],
-                core.manifest["Multimedia"]["Port"],
+                core.UDP_OUTGOING_PORT,
             ),
-            True,
+            False,
         )
 
     def send_rgb(self, rgb):

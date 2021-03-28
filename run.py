@@ -92,7 +92,7 @@ def main() -> None:
     interfaces.setup()
 
     # Sleep so everything can be set up
-    time.sleep(0.1)
+    time.sleep(2)
 
     try:
         # Remove .py and directly import module

@@ -38,8 +38,6 @@ class NavBoard:
     def process_gps_data(self, packet):
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
-        lat = lat * 1e-7
-        lon = lon * 1e-7
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
         self._location = core.Coordinate(lat, lon)

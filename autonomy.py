@@ -1,6 +1,7 @@
 import core
 import logging
 import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +13,7 @@ def main() -> None:
     logger.info("Entering main autonomy loop")
 
     # Setting up the asyncio loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = asyncio.get_event_loop()
 
     # Setup feeds for AR Tag and obstacle avoidance
     core.vision.feed_handler.add_feed(2, "artag", stream_video=core.vision.STREAM_FLAG)
@@ -28,9 +28,10 @@ async def autonomy_state_loop():
         # Run the current state in the state machine (and handle enable/disable)
         await core.states.state_machine.run()
 
-        logger.debug(f"Current State: {core.states.state_machine.state}")
+        logger.info(f"Current State: {core.states.state_machine.state}")
 
         # Transmit the current state to Base Station
+
         core.rovecomm_node.write(
             core.RoveCommPacket(
                 core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],
