@@ -33,7 +33,6 @@ class NavBoard:
 
     def process_imu_data(self, packet):
         self._pitch, self._heading, self._roll = packet.data
-        self._heading = self._heading
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet):

@@ -53,13 +53,10 @@ class ZedHandler:
 
         # Prepare new image size to retrieve half-resolution images
         image_size = self.zed.get_camera_information().camera_resolution
-        
+
         self.depth_size = self.zed.get_camera_information().camera_resolution
         self.depth_size.width = self.depth_size.width / 2
         self.depth_size.height = self.depth_size.height / 2
-
-        #image_size.width = image_size.width / 2
-        #image_size.height = image_size.height / 2
 
         # Declare your sl.Mat matrices
         image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)

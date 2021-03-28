@@ -8,21 +8,19 @@ def drive_through_gate():
     pass
 
 
-def drive_to_marker(speed, distance, angle):
+def drive_to_marker(speed, angle):
     """
-    Calculates the angle and distance of the AR marker with given center pixels.
-    Then returns drive speeds necessary to stay on course towards it.
+    Returns drive speeds necessary to stay on course towards a single marker.
 
     Parameters:
     -----------
         speed - the desired drive speed
-        center - the center pixels of the AR Tag detected (x, y)
+        angle - the angle towards the given AR marker
 
     Returns:
     -----------
         left - the desired speed for left motors
         right - the desired speed for right motors
-        distance - the distance the AR marker is away from the rover
     """
     logger = logging.getLogger(__name__)
 

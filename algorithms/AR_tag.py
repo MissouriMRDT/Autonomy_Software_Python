@@ -92,7 +92,8 @@ def track_ar_tag(center):
 
     # H FOV = 85, WIDTH = 640
     angle_per_pixel = 85 / 640
-    angle = (cX - (640 / 2)) * angle_per_pixel
+    pixel_offset = cX - (640 / 2)
+    angle = pixel_offset * angle_per_pixel
 
     logger.info(f"Distance to marker: {distance}")
     logger.info(f"Angle to marker: {angle}")

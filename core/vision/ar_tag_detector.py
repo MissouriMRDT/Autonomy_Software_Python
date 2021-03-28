@@ -5,7 +5,7 @@ import core
 import algorithms
 
 # Dict to hold the obstacle info
-ar_tag = {}
+ar_tags = []
 
 
 async def async_ar_tag_detector():
@@ -20,11 +20,9 @@ async def async_ar_tag_detector():
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
         if len(tags) > 0:
-            ar_tag["detected"] = True
-            ar_tag["tags"] = tags
+            ar_tags.extend(tags)
         else:
-            ar_tag["detected"] = False
-            ar_tag["tags"] = []
+            ar_tags.clear()
 
         await asyncio.sleep(1 / 30)
 
@@ -37,7 +35,7 @@ def is_ar_tag():
     -------------
         detect (bool) - whether or not something was detected
     """
-    return ar_tag["detected"]
+    return len(ar_tags) > 0
 
 
 def get_tags() -> List[Tag]:
@@ -48,4 +46,4 @@ def get_tags() -> List[Tag]:
     --------
         tags - A list of named tuples of the type Tag
     """
-    return ar_tag["tags"]
+    return ar_tags

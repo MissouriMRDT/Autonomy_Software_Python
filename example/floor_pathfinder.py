@@ -12,7 +12,7 @@ DISPLAY = True
 
 def main() -> None:
     """
-    Main function for video stream script, tests streaming/recording camera footage
+    Tests some basic bob detection with OpenCV
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")

@@ -63,7 +63,7 @@ class ApproachingMarker(RoverState):
             distance = tags[0].distance
             angle = tags[0].angle
 
-            left, right = algorithms.follow_marker.drive_to_marker(125, distance, angle)
+            left, right = algorithms.follow_marker.drive_to_marker(125, angle)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0

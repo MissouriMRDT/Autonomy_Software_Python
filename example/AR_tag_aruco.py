@@ -49,19 +49,18 @@ aruco_dict.bytesList[1] = aruco.Dictionary_getByteListFromBits(mybits_1)
 
 def main() -> None:
     """
-    Main function for video stream script, tests streaming/recording zed footage
+    Tests AR Tag detection using the aruco method
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
 
     # Add feed
-    # vision.camera_handler.feed_handler.add_feed(2, "ar")
-    cap = cv2.VideoCapture(0)
+    vision.camera_handler.feed_handler.add_feed(2, "ar")
 
     while True:
         # Test grabbing the latest camera frames
-        # img = core.vision.camera_handler.grab_regular()
-        ret, img = cap.read()
+        img = core.vision.camera_handler.grab_regular()
+
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # for ALVAR tags the border is actually 2 black bits wide

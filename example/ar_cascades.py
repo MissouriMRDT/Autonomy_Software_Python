@@ -9,7 +9,7 @@ import time
 
 def main() -> None:
     """
-    Main function for video stream script, tests streaming/recording zed footage
+    Tests ar tag detection using cascades
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
@@ -22,6 +22,8 @@ def main() -> None:
         tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
 
         core.vision.feed_handler.handle_frame("artag", reg_img)
+
+        # Sleep so we only process around when we expect a new frame
         time.sleep(1 / 30)
 
 

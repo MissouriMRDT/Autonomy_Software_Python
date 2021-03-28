@@ -13,8 +13,6 @@ class SearchPattern(RoverState):
 
     def start(self):
         loop = asyncio.get_event_loop()
-
-        # TODO: Schedule AR Tag detection
         self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
 
     def exit(self):
