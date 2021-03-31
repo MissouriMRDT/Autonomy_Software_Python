@@ -20,6 +20,7 @@ async def async_ar_tag_detector():
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
         if len(tags) > 0:
+            ar_tags.clear()
             ar_tags.extend(tags)
         else:
             ar_tags.clear()
