@@ -39,6 +39,8 @@ def state_string_to_class(state_str: str) -> core.states.RoverState:
         return core.states.SearchPattern()
     elif state_str == "ApproachingMarker":
         return core.states.ApproachingMarker()
+    elif state_str == "Avoidance":
+        return core.states.Avoidance()
     else:
         # Blank transitions are unexpected, and therefore cause the transition back to
         # Idle
@@ -85,9 +87,7 @@ def test_search_pattern_transitions():
         # Default state to Search Pattern
         state = core.states.SearchPattern()
         # Assert that the transition that occurs is the same as specified in the csv
-        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
-            search_pattern_transitions[i]
-        )
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(search_pattern_transitions[i])
 
 
 def test_approaching_marker_transitions():
@@ -102,3 +102,15 @@ def test_approaching_marker_transitions():
         assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(
             approaching_marker_transitions[i]
         )
+
+
+def test_avoidance_transitions():
+    # All the transitions for ApproachingMarker() defined in csv
+    avoidance_transitions = df["Avoidance"]
+
+    # Test each of the possible transitions for the Navigating state individually
+    for i in range(len(avoidance_transitions)):
+        # Default state to ApproachingMarker
+        state = core.states.Avoidance()
+        # Assert that the transition that occurs is the same as specified in the csv
+        assert state.on_event(core.states.AutonomyEvents(i + 1)) == state_string_to_class(avoidance_transitions[i])
