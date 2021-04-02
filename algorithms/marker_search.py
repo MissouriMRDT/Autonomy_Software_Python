@@ -12,10 +12,12 @@ def calculate_next_coordinate(start, former_goal):
     the area with camera
 
     Parameters:
+    -----------
         start (gps coordinate) - the coordinate at which Search Pattern was initated
-        former_goal (gps coordinate) - the previous gps coordinate in the search pattern
+        former goal (gps coordinate) - the previous gps coordinate in the search pattern
 
     Returns:
+    --------
         gps coordinate - the next point to travers to in the spiral
     """
 

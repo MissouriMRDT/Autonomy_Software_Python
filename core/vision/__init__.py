@@ -1,6 +1,7 @@
 from core.vision.feed_handler import FeedHandler
 import core.vision.obstacle_avoidance as obstacle_avoidance
 import sys
+import core.vision.ar_tag_detector as ar_tag_detector
 
 # reference to self
 this = sys.modules[__name__]

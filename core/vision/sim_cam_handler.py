@@ -1,5 +1,5 @@
 import logging
-from core.vision.feed_handler import FeedHandler
+from core.vision import feed_handler
 import threading
 import socket, cv2, pickle, struct
 import gzip
@@ -19,7 +19,7 @@ class SimCamHandler:
         self.client_socket.connect((self.host_ip, self.port))
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
-        self.feed_handler = FeedHandler()
+        self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
         # Define the camera resolutions
@@ -29,7 +29,7 @@ class SimCamHandler:
         self.reg_res_y = 720
 
         # Add the desired feeds
-        self.feed_handler.add_feed(2, "regular")
+        self.feed_handler.add_feed(10, "regular")
 
         # Create initial frames
         self.reg_img = None

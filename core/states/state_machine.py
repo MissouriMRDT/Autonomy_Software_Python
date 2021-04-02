@@ -1,3 +1,4 @@
+from core.states.state import RoverState
 import core
 import logging
 import interfaces
@@ -9,7 +10,7 @@ class StateMachine(object):
     """
 
     def __init__(self):
-        self.state = core.states.Idle()
+        self.state: RoverState = core.states.Idle()
 
         # Set shutdown and start flags
         self.enable_flag = False

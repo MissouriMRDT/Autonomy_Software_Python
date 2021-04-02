@@ -60,6 +60,7 @@ def feed_process(
 
                 # Stream and record video if applicable
                 if stream_video and sys.platform == "linux":
+                    stream_img = cv2.resize(stream_img, (int(resolution_x / 2), int(resolution_y / 2)))
                     streamer.schedule_frame(stream_img)
                 if save_video:
                     video_writer.write(save_img)
@@ -67,9 +68,12 @@ def feed_process(
             p_output.close()
             exit(0)
 
+        # We only need to handle frames at the desired frame rate (no need to be blocking)
+        time.sleep(1 / 30)
+
 
 class FeedHandler:
-    def __init__(self, resolution_x=640, resolution_y=480, frame_rate=30):
+    def __init__(self, resolution_x=1280, resolution_y=720, frame_rate=30):
         """
         Configure the resolution and framerate of all feed handlers
         """
@@ -132,6 +136,7 @@ class FeedHandler:
 
         # Resize the image
         img = cv2.resize(img, (self.resolution_x, self.resolution_y))
+
         # Encode the image before pickling to speed up
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
         result, encimg = cv2.imencode(".jpg", img, encode_param)
