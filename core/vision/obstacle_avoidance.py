@@ -37,9 +37,8 @@ async def async_obstacle_detector():
             obstacle_dict["detected"] = False
             obstacle_dict["angle"] = None
             obstacle_dict["distance"] = None
-        cv2.imshow("reg", reg_img)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+
+        core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / 30)
 
 

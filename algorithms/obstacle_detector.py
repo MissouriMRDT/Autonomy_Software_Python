@@ -8,15 +8,19 @@ import heapq
 
 def get_floor_mask(reg_img, dimX, dimY):
     """
-    Returns a cv2 mask that indentifies the floor in the provided reg_img of dimensions dimX, dimY
-
+    Returns a cv2 mask that indentifies the floor in the provided reg_img of dimensions dimX, dimY.
+    This currently works through determing the color of the lower 15th of the image and generating
+    a color mask that removes those colors from the image.
     This can then be used to remove the floor from a corresponding depth map/color image.
 
     Parameters:
+    -----------
         reg_img - the color image where we will perform floor detection
         dimX - width in pixels of desire mask (size of image to be applied to)
         dimY - height in pixels of desire mask (size of image to be applied to)
+
     Returns:
+    --------
         mask - the mask of the floor
     """
     # Perform various blur operations on the image to enhance accuracy of color segmentation
@@ -27,6 +31,7 @@ def get_floor_mask(reg_img, dimX, dimY):
 
     test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
 
+    # Only take the lower 15 of image, and find color range
     lower_portion = test_img[int((14 / 15) * dimY) :]
     smallest = lower_portion.min(axis=(0, 1))
     largest = lower_portion.max(axis=(0, 1))
@@ -53,9 +58,13 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     of closeness whether or not they have
 
     Parameters:
-        depth_data (zed depth map)
+    -----------
+        depth_data - zed depth map
+        min_depth - the minimum depth to look at (in meters)
+        max_depth - the maximum depth to look at (in meters)
 
     Returns:
+    --------
         blob - the contour with greatest area, or [] if there were none of sufficent size
     """
     width = core.vision.camera_handler.depth_res_x
@@ -66,10 +75,6 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     # Depth segments between min and max with step
     li = np.arange(min_depth, max_depth, core.DEPTH_STEP_SIZE)
     max_li = []
-
-    # Cut off a bottom chunk of the image. This is usually floor/small obstacles and throws off the detector
-    # for i in range(1, int(height / 3)):
-    #    depth_matrix[height - i] = [0] * width
 
     # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
     for depth in li:
@@ -110,12 +115,17 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     annotates the provided image with the info and outlined obstacle
 
     Parameters:
-        depth_data (zed depth map)
+    -----------
+        depth_data - zed depth map
         obstacle - the contour detected as an obstacle
-        annotate (bool) - whether or not to also annotate the provided image with the contour/centroid/etc
+        annotate (bool) - whether or not to also annotate the provided image with the
+        contour/centroid/etc
         reg_img - the color image from the ZED
+        rect - whether or not we should draw a rectangle bounding box or use the exact
+        contour shape
 
     Returns:
+    --------
         angle - the angle of the obstacle in relation to the left ZED camera
         distance - the distance of the center of the obstacle from the ZED
         center (x, y) - the coordinates (pixels) of the center of the obstacle
