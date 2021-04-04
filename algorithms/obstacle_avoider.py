@@ -24,7 +24,7 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
     """
     if type == "Rectangle":
         points = []
-        # Find point 2m to the right of our current location
+        # Find point 3.5m to the right of our current location
         right_2M_lat, right_2M_lon = coords_obstacle(
             3.5,
             interfaces.nav_board.location()[0],
@@ -33,12 +33,12 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
         )
         points.append((right_2M_lat, right_2M_lon))
 
-        # Now find point 4m ahead of last point
-        ahead_4X_lat, ahead_4X_lon = coords_obstacle(5.5 * distance, right_2M_lat, right_2M_lon, angle)
-        points.append((ahead_4X_lat, ahead_4X_lon))
+        # Now find point 5.5 times the original distance ahead of last point
+        ahead_5_5X_lat, ahead_5_5X_lon = coords_obstacle(5.5 * distance, right_2M_lat, right_2M_lon, angle)
+        points.append((ahead_5_5X_lat, ahead_5_5X_lon))
 
-        # Now move left 2m
-        left_2M_lat, left_2M_lon = coords_obstacle(3.5, ahead_4X_lat, ahead_4X_lon, (angle - 90) % 360)
+        # Now move left 3.5m
+        left_2M_lat, left_2M_lon = coords_obstacle(3.5, ahead_5_5X_lat, ahead_5_5X_lon, (angle - 90) % 360)
         points.append((left_2M_lat, left_2M_lon))
 
         # return the GPS coordinates on our route
@@ -48,7 +48,9 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
         bearing, radius = geomath.haversine(
             interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], obstacle_lat, obstacle_lon
         )
+        # Convert to meters
         radius *= 1000
+        # Add in an additional .5 meters to compensate for regular GPS inaccuracy
         radius += 0.5
         points = []
 
