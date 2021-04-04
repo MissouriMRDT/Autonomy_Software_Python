@@ -78,6 +78,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
 
     # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
     for depth in li:
+        # Calculates the number of elements at each depth and scales their value by closeness
         max_li.append(
             len(
                 depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
@@ -92,6 +93,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
+        # 1 for all entries at depth, 0 for those not. Needed for findContours()
         maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
 
         # Find any contours

@@ -24,11 +24,12 @@ def main() -> None:
         reg_img = core.vision.camera_handler.grab_regular()
         depth_matrix = core.vision.camera_handler.grab_depth_data()
 
-        #
+        # Grab the mask for the floor
         mask, lower = algorithms.obstacle_detector.get_floor_mask(
             reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
         )
 
+        # Remove the floor from the depth data
         depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
 
         obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 4)
