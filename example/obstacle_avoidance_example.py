@@ -5,14 +5,13 @@ import logging
 import interfaces
 from geopy import Point
 from geopy.distance import VincentyDistance
-import matplotlib.pyplot as plt
 import algorithms.heading_hold
 import algorithms.obstacle_avoider
 
 
 def main() -> None:
     """
-    Main function for example script, tests geomath code
+    Test script for obstacle avoidance (not detection)
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
@@ -42,19 +41,19 @@ def main() -> None:
         logger.info(f"Driving towards : Lat: {new_lat}, Lon: {new_lon} now")
         while (
             algorithms.gps_navigate.get_approach_status(
-                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc
+                core.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc
             )
-            == core.constants.ApproachState.APPROACHING
+            == core.ApproachState.APPROACHING
         ):
             left, right = algorithms.gps_navigate.calculate_move(
-                core.constants.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
+                core.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
             )
             logger.debug(f"Navigating: Driving at ({left}, {right})")
             interfaces.drive_board.send_drive(left, right)
             time.sleep(0.1)
 
         interfaces.drive_board.stop()
-        previous_loc = core.constants.Coordinate(new_lat, new_lon)
+        previous_loc = core.Coordinate(new_lat, new_lon)
 
 
 def obstacle_detection():

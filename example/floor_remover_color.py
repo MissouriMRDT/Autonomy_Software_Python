@@ -11,7 +11,7 @@ DISPLAY = True
 
 def main() -> None:
     """
-    Main function for video stream script, tests streaming/recording camera footage
+    Test script for removing the floor from an image
     """
     logger = logging.getLogger(__name__)
     logger.info("Executing function: main()")
@@ -49,8 +49,8 @@ def main() -> None:
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
-            core.vision.camera_handler.feed_handler.handle_frame("regular", reg_img)
-            # time.sleep(1 / 30)
+            core.vision.feed_handler.handle_frame("regular", reg_img)
+            time.sleep(1 / 30)
 
 
 if __name__ == "__main__":
