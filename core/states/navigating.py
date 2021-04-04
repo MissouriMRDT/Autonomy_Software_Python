@@ -17,14 +17,12 @@ class Navigating(RoverState):
     """
 
     def start(self):
-        # TODO: Schedule AR Tag detection
         loop = asyncio.get_event_loop()
 
         self.obstacle_task = loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
 
     def exit(self):
         # Cancel all state specific coroutines
-        # self.ar_tag_task.cancel()
         self.obstacle_task.cancel()
         pass
 

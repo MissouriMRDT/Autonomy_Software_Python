@@ -64,9 +64,10 @@ class Avoidance(RoverState):
 
         if is_obstacle:
             angle = core.vision.obstacle_avoidance.get_angle()
-            angle = (interfaces.nav_board.heading() + angle) % 360
-
             distance = core.vision.obstacle_avoidance.get_distance()
+
+            # Calculate the absolute heading of the obstacle, in relation to the rover
+            angle = (interfaces.nav_board.heading() + angle) % 360
 
             # find the gps coordinate of the obstacle
             obstacle_lat, obstacle_lon = obstacle_avoider.coords_obstacle(
@@ -83,15 +84,15 @@ class Avoidance(RoverState):
                 self.logger.info(f"Driving towards : Lat: {new_lat}, Lon: {new_lon} now")
                 while (
                     algorithms.gps_navigate.get_approach_status(
-                        core.constants.Coordinate(new_lat, new_lon),
+                        core.Coordinate(new_lat, new_lon),
                         interfaces.nav_board.location(),
                         previous_loc,
                         0.5,
                     )
-                    == core.constants.ApproachState.APPROACHING
+                    == core.ApproachState.APPROACHING
                 ):
                     left, right = algorithms.gps_navigate.calculate_move(
-                        core.constants.Coordinate(new_lat, new_lon),
+                        core.Coordinate(new_lat, new_lon),
                         interfaces.nav_board.location(),
                         previous_loc,
                         250,
@@ -101,6 +102,6 @@ class Avoidance(RoverState):
                     interfaces.drive_board.send_drive(left, right)
                     time.sleep(0.01)
                 interfaces.drive_board.stop()
-                previous_loc = core.constants.Coordinate(new_lat, new_lon)
+                previous_loc = core.Coordinate(new_lat, new_lon)
 
         return self
