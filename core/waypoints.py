@@ -28,7 +28,7 @@ class WaypointHandler:
         self.waypoints.append(waypoint)
         self.logger.info(f"Added Waypoint: lat ({latitude}), lon({longitude})")
 
-    def clear_waypoints(self):
+    def clear_waypoints(self, packet) -> None:
         """
         Clears the deque of waypoints
         """
