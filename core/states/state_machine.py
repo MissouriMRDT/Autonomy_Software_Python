@@ -11,6 +11,7 @@ class StateMachine(object):
 
     def __init__(self):
         self.state: RoverState = core.states.Idle()
+        self.prev_state: RoverState = core.states.Idle()
 
         # Set shutdown and start flags
         self.enable_flag = False
@@ -29,6 +30,9 @@ class StateMachine(object):
     def disable(self, packet):
         self.disable_flag = True
 
+    def get_prev_state(self):
+        return self.prev_state
+
     async def run(self):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:
@@ -44,4 +48,10 @@ class StateMachine(object):
             self.disable_flag = False
 
         # Run the current state
-        self.state = await self.state.run()
+        new_state = await self.state.run()
+
+        # Save prev state if we transition
+        if new_state != self.state:
+            self.prev_state = self.state
+
+        self.state = new_state

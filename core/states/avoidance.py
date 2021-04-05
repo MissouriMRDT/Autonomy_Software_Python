@@ -40,6 +40,9 @@ class Avoidance(RoverState):
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
 
+        elif event == core.AutonomyEvents.END_OBSTACLE_AVOIDANCE:
+            state = core.states.state_machine.get_prev_state()
+
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
             state = core.states.Idle()
@@ -102,4 +105,4 @@ class Avoidance(RoverState):
                 interfaces.drive_board.stop()
                 previous_loc = core.Coordinate(new_lat, new_lon)
 
-        return self
+        return self.on_event(core.AutonomyEvents.END_OBSTACLE_AVOIDANCE)
