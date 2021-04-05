@@ -6,7 +6,7 @@ import algorithms.heading_hold as hh
 import core
 
 
-def get_approach_status(goal, location, start):
+def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_THRESHOLD):
     """
     Calculates the current approach status of the rover in reference to goal and starting location
 
@@ -21,7 +21,7 @@ def get_approach_status(goal, location, start):
     (c_bearing, c_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
 
     distanceMeters = c_distance * 1000.0
-    close_enough = distanceMeters < core.WAYPOINT_DISTANCE_THRESHOLD
+    close_enough = distanceMeters < tolerance
 
     bearing_diff = (s_bearing - c_bearing) % 360.0
     past_goal = 180 - core.BEARING_FLIP_THRESHOLD <= bearing_diff <= 180 + core.BEARING_FLIP_THRESHOLD

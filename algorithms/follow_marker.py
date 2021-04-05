@@ -1,6 +1,9 @@
 import interfaces
 import logging
+import core
+import math
 import algorithms.heading_hold as hh
+import itertools
 
 
 def drive_through_gate():

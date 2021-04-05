@@ -2,6 +2,7 @@ import cv2
 import time
 import sys
 import multiprocessing as mp
+import os
 
 # Pyfakewebcam requires linux
 if sys.platform == "linux":
@@ -16,6 +17,7 @@ def feed_process(
     frame_rate,
     resolution_x,
     resolution_y,
+    _event,
     save_video=True,
     stream_video=True,
 ):
@@ -31,7 +33,11 @@ def feed_process(
         )  # append v4l output to list of cameras
 
     if save_video:
-        video_filename = f"logs/stream_{feed_id}_" + time.strftime("%Y%m%d-%H%M%S")  # save videos to unique files
+        if not os.path.isdir("logs/videos/"):
+            os.mkdir("logs/videos/")
+        video_filename = f"logs/videos/stream_{feed_id}_" + time.strftime(
+            "%Y%m%d-%H%M%S"
+        )  # save videos to unique files
         video_writer = cv2.VideoWriter(
             video_filename + "_left.avi",
             fourcc,
@@ -42,22 +48,25 @@ def feed_process(
     p_output, p_input = pipe
     p_input.close()  # We are only reading
 
-    while True:
-        data = p_output.recv()
-        # Resize image to reduce bandwidth/size
-        image = cv2.resize(data, (resolution_x, resolution_y))
-        # OpenCV video writer expects BGR color channels
-        save_img = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-        # Motion expects RGB color channels
-        stream_img = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+    while not _event.is_set():
+        try:
+            if p_output.poll(0):
+                data = p_output.recv()
+                data = cv2.imdecode(data, 1)
+                # OpenCV video writer expects BGR color channels
+                save_img = cv2.cvtColor(data, cv2.COLOR_BGRA2BGR)
+                # Motion expects RGB color channels
+                stream_img = cv2.cvtColor(data, cv2.COLOR_BGRA2RGB)
 
-        # Stream and record video if applicable
-        if stream_video and sys.platform == "linux":
-            # Only stream at half resolution
-            stream_img = cv2.resize(stream_img, (int(resolution_x / 2), int(resolution_y / 2)))
-            streamer.schedule_frame(stream_img)
-        if save_video:
-            video_writer.write(save_img)
+                # Stream and record video if applicable
+                if stream_video and sys.platform == "linux":
+                    stream_img = cv2.resize(stream_img, (int(resolution_x / 2), int(resolution_y / 2)))
+                    streamer.schedule_frame(stream_img)
+                if save_video:
+                    video_writer.write(save_img)
+        except KeyboardInterrupt:
+            p_output.close()
+            exit(0)
 
         # We only need to handle frames at the desired frame rate (no need to be blocking)
         time.sleep(1 / 30)
@@ -81,6 +90,7 @@ class FeedHandler:
         """
         # Create a process to send frames to, to be saved and scheduled to stream
         proc_output, proc_input = mp.Pipe()
+        _event = mp.Event()
         proc = mp.Process(
             target=feed_process,
             args=(
@@ -91,6 +101,7 @@ class FeedHandler:
                 self.frame_rate,
                 self.resolution_x,
                 self.resolution_y,
+                _event,
                 save_video,
                 stream_video,
             ),
@@ -100,16 +111,19 @@ class FeedHandler:
         proc_output.close()  # We don't need output on our end
 
         # Add the process and pipe to the dictionary
-        self.feeds[feed_id] = (proc, proc_input)
+        self.feeds[feed_id] = (proc, proc_input, _event)
 
     def close(self):
         """
         Closes all feeds and waits for processes to join
         """
-        for feed_id, (process, pipe_in) in self.feeds.items():
+        for feed_id, (process, pipe_in, _event) in self.feeds.items():
+            # Terminate all the processes and wait to join
+            _event.set()
+
             # Close the pipe
             pipe_in.close()
-            # Terminate all the processes and wait to join
+
             process.terminate()
             process.join()
 
@@ -118,5 +132,17 @@ class FeedHandler:
         Passes the image to a corresponding process to stream/save the frame
         """
         # Frames is a dictionary of (process, pipe_in)
-        process, pipe_in = self.feeds[feed_id]
-        pipe_in.send(img)
+        process, pipe_in, _event = self.feeds[feed_id]
+
+        # Resize the image
+        img = cv2.resize(img, (self.resolution_x, self.resolution_y))
+
+        # Encode the image before pickling to speed up
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+        result, encimg = cv2.imencode(".jpg", img, encode_param)
+
+        # Try writing if pipe is still open
+        try:
+            pipe_in.send(encimg)
+        except BrokenPipeError:
+            return

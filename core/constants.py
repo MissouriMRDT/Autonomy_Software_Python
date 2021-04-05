@@ -28,10 +28,14 @@ LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
 
 # Range at which we switch from GPS to optical tracking
 VISION_RANGE = 0.007  # kilometers
+MIN_OBSTACLE_PIXEL_AREA = 4000  # minimum contour area in pixels of detected obstacle
+DEPTH_STEP_SIZE = 0.5  # Depth in meters that each segment of obstacle detection will run on
+NUM_DEPTH_SEGMENTS = 3  # Number of segments of depth map to actually run contour detection on
+ZED_X_OFFSET = 0.060325
 
 Coordinate = collections.namedtuple("Coordinate", ["lat", "lon"])
 
-# RoveComm Numerical Values
+# RoveComm Numerical Values used to map events to enumerations to send over rovecomm
 rovecomm_event_list = open("core/rovecomm_values.json", "r").read()
 rovecomm_event_list = json.loads(rovecomm_event_list)
 

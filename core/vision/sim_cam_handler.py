@@ -21,8 +21,12 @@ class SimCamHandler:
 
         self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
-        self.dimX = 640
-        self.dimY = 360
+
+        # Define the camera resolutions
+        self.depth_res_x = 640
+        self.depth_res_y = 360
+        self.reg_res_x = 1280
+        self.reg_res_y = 720
 
         # Add the desired feeds
         self.feed_handler.add_feed(10, "regular")
@@ -120,7 +124,7 @@ class SimCamHandler:
         # Convert depth data to numpy array
         self.depth_data = np.asarray(self.depth_data)
         # Resize current data (in list form) to matrix with expected dimensions
-        self.depth_data = self.depth_data.reshape((self.dimY, self.dimX, 1))
+        self.depth_data = self.depth_data.reshape((self.depth_res_y, self.depth_res_x, 1))
         return self.depth_data
 
     def start(self):

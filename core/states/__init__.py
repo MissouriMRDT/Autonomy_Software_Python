@@ -4,6 +4,7 @@ from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
 from core.states.approaching_marker import ApproachingMarker
+from core.states.avoidance import Avoidance
 from enum import Enum
 
 # State Machine handler, takes care of running states and enabling/disabling autonomy
@@ -31,4 +32,5 @@ StateMapping = {
     "Navigating": 1,
     "SearchPattern": 2,
     "ApproachingMarker": 3,
+    "Avoidance": 4,
 }

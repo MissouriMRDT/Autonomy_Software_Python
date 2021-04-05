@@ -1,3 +1,5 @@
+import asyncio
+from core.vision import obstacle_avoidance
 from core.waypoints import WaypointHandler
 import core
 import interfaces
@@ -13,6 +15,16 @@ class Navigating(RoverState):
     base station’s best guess of the best path for the rover due to terrain identified
     on RED’s map.
     """
+
+    def start(self):
+        loop = asyncio.get_event_loop()
+
+        self.obstacle_task = loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+
+    def exit(self):
+        # Cancel all state specific coroutines
+        self.obstacle_task.cancel()
+        pass
 
     def on_event(self, event) -> RoverState:
         """
@@ -34,6 +46,9 @@ class Navigating(RoverState):
 
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
+
+        elif event == core.AutonomyEvents.OBSTACLE_AVOIDANCE:
+            state = core.states.Avoidance()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
@@ -61,16 +76,16 @@ class Navigating(RoverState):
 
         goal, start = gps_data.data()
         current = interfaces.nav_board.location()
-
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
 
+        if core.vision.obstacle_avoidance.is_obstacle() and core.vision.obstacle_avoidance.get_distance() < 1.5:
+            self.logger.info("Detected obstacle, now avoiding")
+            return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
+
         # Check if we are still approaching the goal
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start)
-            != core.ApproachState.APPROACHING
-        ):
+        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )

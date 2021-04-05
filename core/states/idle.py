@@ -14,7 +14,6 @@ class Idle(RoverState):
         Defines all transitions between states based on events
         """
         state: RoverState = None
-
         if event == core.AutonomyEvents.START:
             state = core.states.Navigating()
 
