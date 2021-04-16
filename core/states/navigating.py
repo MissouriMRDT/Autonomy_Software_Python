@@ -17,13 +17,10 @@ class Navigating(RoverState):
     """
 
     def start(self):
-        loop = asyncio.get_event_loop()
-
-        self.obstacle_task = loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+        pass
 
     def exit(self):
         # Cancel all state specific coroutines
-        self.obstacle_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:

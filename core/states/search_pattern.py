@@ -12,12 +12,10 @@ class SearchPattern(RoverState):
     """
 
     def start(self):
-        loop = asyncio.get_event_loop()
-        self.ar_tag_task = loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
+        pass
 
     def exit(self):
         # Cancel all state specific tasks
-        self.ar_tag_task.cancel()
         pass
 
     def on_event(self, event) -> RoverState:
