@@ -17,6 +17,15 @@ class Camera:
     def frame_grabber(self):
         raise NotImplementedError("Frame_grabber not implemented for this camera type")
 
+    def grab_regular(self):
+        raise NotImplementedError("Grab_regular not implemented for this camera type")
+
+    def grab_depth(self):
+        raise NotImplementedError("Grab_depth not implemented for this camera type")
+
+    def grab_depth_data(self):
+        raise NotImplementedError("Grab_depth_data not implemented for this camera type")
+
     def get_reg_res(self) -> Tuple[int, int]:
         """
         Returns the resolution for the regular images
