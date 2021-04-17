@@ -40,7 +40,7 @@ async def autonomy_state_loop():
             core.RoveCommPacket(
                 core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],
                 "B",
-                (core.states.StateMapping[core.states.state_machine.state],),
+                (core.states.state_machine.get_state_str(),),
                 port=core.UDP_OUTGOING_PORT,
             ),
             False,
