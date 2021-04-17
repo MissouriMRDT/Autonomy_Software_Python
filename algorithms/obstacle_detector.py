@@ -67,8 +67,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     --------
         blob - the contour with greatest area, or [] if there were none of sufficent size
     """
-    width = core.vision.camera_handler.depth_res_x
-    height = core.vision.camera_handler.depth_res_y
+    width, height = core.vision.camera_handler.get_depth_res()
 
     maskDepth = np.zeros([height, width], np.uint8)
 

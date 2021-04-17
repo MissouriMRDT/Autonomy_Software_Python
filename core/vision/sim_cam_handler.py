@@ -6,7 +6,7 @@ import gzip
 import numpy as np
 
 
-class SimCamHandler:
+class SimCamHandler(Camera):
     def __init__(self):
         """
         Sets up the simulator camera with the specified parameters

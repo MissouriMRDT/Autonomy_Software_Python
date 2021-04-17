@@ -1,12 +1,14 @@
 import time
+from typing import Tuple
 import pyzed.sl as sl
 import logging
 from core.vision import feed_handler
+from core.vision import Camera
 import threading
 import time
 
 
-class ZedHandler:
+class ZedHandler(Camera):
     def __init__(self):
         """
         Sets up the ZED camera with the specified parameters

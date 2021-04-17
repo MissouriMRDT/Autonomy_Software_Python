@@ -26,6 +26,7 @@ async def async_ar_tag_detector():
             ar_tags.extend(tags)
         else:
             ar_tags.clear()
+
         logger.info("Running AR Tag async")
 
         await asyncio.sleep(1 / 30)
