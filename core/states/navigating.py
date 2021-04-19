@@ -77,7 +77,14 @@ class Navigating(RoverState):
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
 
-        if core.vision.obstacle_avoidance.is_obstacle() and core.vision.obstacle_avoidance.get_distance() < 1.5:
+        if (
+            core.vision.obstacle_avoidance.is_obstacle()
+            and core.vision.obstacle_avoidance.get_distance() < 1.5
+            and core.vision.obstacle_avoidance.get_distance()
+            < (
+                algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000
+            )  # If distance to goal is less than distance to object, continue
+        ):
             self.logger.info("Detected obstacle, now avoiding")
             return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
 
