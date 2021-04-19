@@ -30,6 +30,9 @@ class SimCamHandler(Camera):
         self.reg_res_y = 720
         self.hfov = 85
 
+        # Desired FPS
+        self.fps = 30
+
         # Add the desired feeds
         self.feed_handler.add_feed(10, "regular")
 

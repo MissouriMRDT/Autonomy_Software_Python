@@ -27,9 +27,7 @@ async def async_ar_tag_detector():
         else:
             ar_tags.clear()
 
-        logger.info("Running AR Tag async")
-
-        await asyncio.sleep(1 / 30)
+        await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 
 def is_ar_tag():

@@ -43,7 +43,7 @@ async def async_obstacle_detector():
             obstacle_dict["distance"] = None
 
         core.vision.feed_handler.handle_frame("obstacle", reg_img)
-        await asyncio.sleep(1 / 30)
+        await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 
 def is_obstacle():

@@ -19,21 +19,24 @@ class ZedHandler(Camera):
         self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
-        # Set configuration parameters
-        self.input_type = sl.InputType()
-        self.init = sl.InitParameters(input_t=self.input_type)
-        self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
-        self.init.coordinate_units = sl.UNIT.MILLIMETER
-        self.init.camera_fps = 30
-        self.init.depth_minimum_distance = 1
-
         # Define the camera resolutions
         self.depth_res_x = 640
         self.depth_res_y = 360
         self.reg_res_x = 1280
         self.reg_res_y = 720
         self.hfov = 85
+
+        # Define the desired runtime FPS
+        self.fps = 30
+
+        # Set configuration parameters
+        self.input_type = sl.InputType()
+        self.init = sl.InitParameters(input_t=self.input_type)
+        self.init.camera_resolution = sl.RESOLUTION.HD720
+        self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
+        self.init.coordinate_units = sl.UNIT.MILLIMETER
+        self.init.camera_fps = self.fps
+        self.init.depth_minimum_distance = 1
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -92,7 +95,7 @@ class ZedHandler(Camera):
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / self.init.camera_fps)
+                time.sleep(1 / self.fps)
 
     def grab_regular(self):
         """

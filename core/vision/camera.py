@@ -3,11 +3,17 @@ from typing import Tuple
 
 class Camera:
     def __init__(self):
+        # Resolutions
         self.reg_res_x = 0
         self.reg_res_y = 0
         self.depth_res_x = 0
         self.depth_res_y = 0
+
+        # Other params
         self.hfov = 0
+
+        # Desired FPS
+        self.fps = 0
 
     def start(self):
         raise NotImplementedError("Start not implemented for this camera type")
@@ -51,3 +57,6 @@ class Camera:
 
     def get_hfov(self) -> int:
         return self.hfov
+
+    def get_fps(self) -> int:
+        return self.fps
