@@ -7,6 +7,7 @@ class Camera:
         self.reg_res_y = 0
         self.depth_res_x = 0
         self.depth_res_y = 0
+        self.hfov = 0
 
     def start(self):
         raise NotImplementedError("Start not implemented for this camera type")
@@ -47,3 +48,6 @@ class Camera:
             reg_res_y - the resolution of the height of the image
         """
         return self.depth_res_x, self.depth_res_y
+
+    def get_hfov(self) -> int:
+        return self.hfov

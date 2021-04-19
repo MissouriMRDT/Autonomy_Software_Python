@@ -33,6 +33,7 @@ class ZedHandler(Camera):
         self.depth_res_y = 360
         self.reg_res_x = 1280
         self.reg_res_y = 720
+        self.hfov = 85
 
         # Open the camera
         err = self.zed.open(self.init)

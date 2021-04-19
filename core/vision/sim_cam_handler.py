@@ -1,3 +1,4 @@
+from core.vision.camera import Camera
 import logging
 from core.vision import feed_handler
 import threading
@@ -27,6 +28,7 @@ class SimCamHandler(Camera):
         self.depth_res_y = 360
         self.reg_res_x = 1280
         self.reg_res_y = 720
+        self.hfov = 85
 
         # Add the desired feeds
         self.feed_handler.add_feed(10, "regular")

@@ -90,10 +90,12 @@ def track_ar_tag(center):
         # ZED units are currently in millimeters
         distance /= 1000
 
-    # H FOV = 85
+    # Grab the camera parameters
     img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
+    hfov = core.vision.camera_handler.get_hfov()
 
-    angle_per_pixel = 85 / img_res_x
+    # Calculate the angle of the object using camera params
+    angle_per_pixel = hfov / img_res_x
     pixel_offset = cX - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
 
