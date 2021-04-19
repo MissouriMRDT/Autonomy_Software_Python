@@ -162,7 +162,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (255, 255, 255),
-            2,-
+            2,
         )
         cv2.circle(reg_img, (cX, cY), 7, (255, 255, 255), -1)
 
