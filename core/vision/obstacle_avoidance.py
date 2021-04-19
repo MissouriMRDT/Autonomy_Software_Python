@@ -22,7 +22,11 @@ async def async_obstacle_detector():
 
         depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
         obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 4)
-        reg_img = cv2.resize(reg_img, (int(1280 / 2), int(720 / 2)))
+
+        # Resize the image so it matches the dimensions of the depth data
+        depth_img_x, depth_img_y = core.vision.camera_handler.get_depth_res()
+        reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
+
         if obstacle != []:
             # Track the obstacle in the depth matrix
             angle, distance, _ = algorithms.obstacle_detector.track_obstacle(

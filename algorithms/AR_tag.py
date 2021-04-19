@@ -91,11 +91,10 @@ def track_ar_tag(center):
         distance /= 1000
 
     # H FOV = 85
-    res_x, res_y = core.vision.camera_handler.get_depth_res()
-    res_x /= 2
+    img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
 
-    angle_per_pixel = 85 / res_x
-    pixel_offset = cX - (res_x / 2)
+    angle_per_pixel = 85 / img_res_x
+    pixel_offset = cX - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
 
     logger.info(f"Distance to marker: {distance}")

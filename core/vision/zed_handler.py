@@ -97,13 +97,13 @@ class ZedHandler(Camera):
         """
         Returns the latest regular frame captured from the ZED
         """
-        return self.reg_img
+        return self.reg_img.copy()
 
     def grab_depth(self):
         """
         Returns the latest depth frame captured from the ZED
         """
-        return self.depth_img
+        return self.depth_img.copy()
 
     def grab_depth_data(self):
         self.depth_map = sl.Mat()

@@ -140,9 +140,12 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     # Distance is the corresponding value in the depth map of the center of the obstacle
     distance = round(depth_data[cY][cX], 2)
 
-    # H FOV = 85, WIDTH = 640
-    angle_per_pixel = 85 / 640
-    angle = (cX - (640 / 2)) * angle_per_pixel
+    # H FOV = 85
+    img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
+
+    angle_per_pixel = 85 / img_res_x
+    pixel_offset = cX - (img_res_x / 2)
+    angle = pixel_offset * angle_per_pixel
 
     # Draw the obstacle if annotate is true
     if annotate:
@@ -159,7 +162,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (255, 255, 255),
-            2,
+            2,-
         )
         cv2.circle(reg_img, (cX, cY), 7, (255, 255, 255), -1)
 
