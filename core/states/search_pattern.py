@@ -36,6 +36,9 @@ class SearchPattern(RoverState):
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
 
+        elif event == core.AutonomyEvents.SEARCH_RADIUS_EXCEEDED:
+            state = core.states.Idle()
+
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
             state = core.states.Idle()
@@ -75,6 +78,11 @@ class SearchPattern(RoverState):
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
             await asyncio.sleep(0.1)
+
+            # Check to see if we're too far from start, stop infinite searching
+            if (algorithms.geomath.haversine(current.lat, current.lon, start.lat, start.lon)[1]*1000) > core.MAX_SEARCH_RADIUS:
+                self.logger.info(f"Search Pattern: Maximum Radius Exceeded")
+                return self.on_event(core.AutonomyEvents.SEARCH_RADIUS_EXCEEDED)
 
             # Find and set the next goal in the search pattern
             goal = algorithms.marker_search.calculate_next_coordinate(start, goal)

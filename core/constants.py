@@ -15,6 +15,7 @@ SCALING_FACTOR = 10.0  # pixel-meters
 DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
+MAX_SEARCH_RADIUS = 100 # meters
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 0.008
