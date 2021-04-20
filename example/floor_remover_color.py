@@ -34,9 +34,9 @@ def main() -> None:
 
         obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 4)
 
-        width, height = core.vision.camera_handler.get_reg_res()
-        reg_img = cv2.resize(reg_img, (int(width / 2), int(height / 2)))  
-        
+        width, height = core.vision.camera_handler.get_depth_res()
+        reg_img = cv2.resize(reg_img, (width, height))
+
         test_img = cv2.bitwise_and(reg_img, reg_img, mask=mask)
 
         if obstacle != []:

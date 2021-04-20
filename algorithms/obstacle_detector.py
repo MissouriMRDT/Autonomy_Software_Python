@@ -45,9 +45,6 @@ def get_floor_mask(reg_img, dimX, dimY):
     return mask, lower_portion
 
 
-1
-
-
 def detect_obstacle(depth_matrix, min_depth, max_depth):
     """
     Detects an obstacle in the corresponding depth map. This works by filtering the depth map
