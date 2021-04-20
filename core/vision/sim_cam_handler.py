@@ -1,3 +1,4 @@
+from core.vision.camera import Camera
 import logging
 from core.vision import feed_handler
 import threading
@@ -6,7 +7,7 @@ import gzip
 import numpy as np
 
 
-class SimCamHandler:
+class SimCamHandler(Camera):
     def __init__(self):
         """
         Sets up the simulator camera with the specified parameters
@@ -27,6 +28,10 @@ class SimCamHandler:
         self.depth_res_y = 360
         self.reg_res_x = 1280
         self.reg_res_y = 720
+        self.hfov = 85
+
+        # Desired FPS
+        self.fps = 30
 
         # Add the desired feeds
         self.feed_handler.add_feed(10, "regular")

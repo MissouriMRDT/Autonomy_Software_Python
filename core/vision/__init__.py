@@ -1,4 +1,5 @@
 from core.vision.feed_handler import FeedHandler
+from core.vision.camera import Camera
 import core.vision.obstacle_avoidance as obstacle_avoidance
 import sys
 import core.vision.ar_tag_detector as ar_tag_detector
@@ -7,7 +8,7 @@ import core.vision.ar_tag_detector as ar_tag_detector
 this = sys.modules[__name__]
 
 # Camera Handler, used to setup camera and grab frames/point cloud data
-camera_handler: None
+camera_handler: Camera = Camera()
 
 # Feed Handler, used to stream/save videos
 feed_handler = FeedHandler()

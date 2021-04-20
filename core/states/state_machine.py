@@ -33,6 +33,9 @@ class StateMachine(object):
     def get_prev_state(self):
         return self.prev_state
 
+    def get_state_str(self) -> int:
+        return core.states.StateMapping[str(self.state)]
+
     async def run(self):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:

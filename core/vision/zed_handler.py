@@ -1,12 +1,14 @@
 import time
+from typing import Tuple
 import pyzed.sl as sl
 import logging
 from core.vision import feed_handler
+from core.vision import Camera
 import threading
 import time
 
 
-class ZedHandler:
+class ZedHandler(Camera):
     def __init__(self):
         """
         Sets up the ZED camera with the specified parameters
@@ -17,20 +19,24 @@ class ZedHandler:
         self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
+        # Define the camera resolutions
+        self.depth_res_x = 640
+        self.depth_res_y = 360
+        self.reg_res_x = 1280
+        self.reg_res_y = 720
+        self.hfov = 85
+
+        # Define the desired runtime FPS
+        self.fps = 30
+
         # Set configuration parameters
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
         self.init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
         self.init.coordinate_units = sl.UNIT.MILLIMETER
-        self.init.camera_fps = 30
+        self.init.camera_fps = self.fps
         self.init.depth_minimum_distance = 1
-
-        # Define the camera resolutions
-        self.depth_res_x = 640
-        self.depth_res_y = 360
-        self.reg_res_x = 1280
-        self.reg_res_y = 720
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -89,19 +95,19 @@ class ZedHandler:
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / self.init.camera_fps)
+                time.sleep(1 / self.fps)
 
     def grab_regular(self):
         """
         Returns the latest regular frame captured from the ZED
         """
-        return self.reg_img
+        return self.reg_img.copy()
 
     def grab_depth(self):
         """
         Returns the latest depth frame captured from the ZED
         """
-        return self.depth_img
+        return self.depth_img.copy()
 
     def grab_depth_data(self):
         self.depth_map = sl.Mat()

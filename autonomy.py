@@ -19,6 +19,10 @@ def main() -> None:
     core.vision.feed_handler.add_feed(2, "artag", stream_video=core.vision.STREAM_FLAG)
     core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
+    # Create our two detection tasks
+    loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
+    loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())
 
@@ -36,7 +40,7 @@ async def autonomy_state_loop():
             core.RoveCommPacket(
                 core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],
                 "B",
-                (core.states.StateMapping[core.states.state_machine.state],),
+                (core.states.state_machine.get_state_str(),),
                 port=core.UDP_OUTGOING_PORT,
             ),
             False,
