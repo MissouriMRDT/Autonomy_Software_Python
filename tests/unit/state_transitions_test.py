@@ -1,3 +1,4 @@
+from math import nan
 import pandas as pd
 import core.states
 
@@ -10,8 +11,6 @@ This file provides unit tests for state transitions for all states in core/state
 
 If issues are encountered:
 Double check to make sure docs/state_machine_matrix.csv is up-to-date.
-
-Added a new state? Make sure to define the string mapping in state_string_to_class()
 
 Added a new event? Make sure to update the state machine matrix csv. If the number of
 events is not correct, it will cause issues.
@@ -31,20 +30,12 @@ def state_string_to_class(state_str: str) -> core.states.RoverState:
     Returns:
         state (RoverState)
     """
-    if state_str == "Idle":
+    if state_str == "" or pd.isnull(state_str):
+        # Blank transitions are unexpected, and therefore cause the transition back to Idle
         return core.states.Idle()
-    elif state_str == "Navigating":
-        return core.states.Navigating()
-    elif state_str == "SearchPattern":
-        return core.states.SearchPattern()
-    elif state_str == "ApproachingMarker":
-        return core.states.ApproachingMarker()
-    elif state_str == "Avoidance":
-        return core.states.Avoidance()
     else:
-        # Blank transitions are unexpected, and therefore cause the transition back to
-        # Idle
-        return core.states.Idle()
+        state = getattr(core.states, state_str)
+        return state()
 
 
 def setup_module(module):
@@ -105,7 +96,7 @@ def test_approaching_marker_transitions():
 
 
 def test_avoidance_transitions():
-    # All the transitions for ApproachingMarker() defined in csv
+    # All the transitions for Avoidance() defined in csv
     avoidance_transitions = df["Avoidance"]
 
     # Test each of the possible transitions for the Navigating state individually
