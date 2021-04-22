@@ -29,7 +29,7 @@ def feed_process(
     # Only attempt to stream video if on Linux (due to package dependancies)
     if stream_video and sys.platform == "linux":
         streamer = pyfakewebcam.FakeWebcam(
-            f"/dev/video{num}", resolution_x, resolution_y
+            f"/dev/video{num}", int(resolution_x/2), int(resolution_y/2)
         )  # append v4l output to list of cameras
 
     if save_video:

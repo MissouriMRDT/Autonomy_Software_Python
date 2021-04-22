@@ -3,6 +3,7 @@ from typing import List
 from algorithms.AR_tag import Tag
 import core
 import algorithms
+import logging
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -12,6 +13,7 @@ async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
+    logger = logging.getLogger(__name__)
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
 
@@ -24,6 +26,7 @@ async def async_ar_tag_detector():
             ar_tags.extend(tags)
         else:
             ar_tags.clear()
+        logger.info("Running AR Tag async")
 
         await asyncio.sleep(1 / 30)
 
