@@ -112,7 +112,7 @@ class ZedHandler(Camera):
     def grab_depth_data(self):
         self.depth_map = sl.Mat()
         self.zed.retrieve_measure(self.depth_map, sl.MEASURE.DEPTH, sl.MEM.CPU, self.depth_size)  # Retrieve depth
-        return self.depth_map
+        return self.depth_map.get_data()
 
     def grab_point_cloud(self):
         """
@@ -172,3 +172,25 @@ class ZedHandler(Camera):
         self.feed_handler.close()
 
         self.logger.info("Closing ZED capture")
+    
+    def get_reg_res(self) -> Tuple[int, int]:
+        """
+        Returns the resolution for the regular images
+
+        Returns:
+        --------
+            reg_res_x - the resolution of the width of the image
+            reg_res_y - the resolution of the height of the image
+        """
+        return self.reg_res_x, self.reg_res_y
+
+    def get_depth_res(self) -> Tuple[int, int]:
+        """
+        Returns the resolution for the depth images
+
+        Returns:
+        --------
+            reg_res_x - the resolution of the width of the image
+            reg_res_y - the resolution of the height of the image
+        """
+        return self.depth_res_x, self.depth_res_y

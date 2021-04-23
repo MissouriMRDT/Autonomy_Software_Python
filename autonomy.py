@@ -6,6 +6,11 @@ import time
 logger = logging.getLogger(__name__)
 
 
+def custom_exception_handler(loop, context):
+    print(context)
+    loop.stop()
+
+
 def main() -> None:
     """
     Main autonomy loop
@@ -14,14 +19,15 @@ def main() -> None:
 
     # Setting up the asyncio loop
     loop = asyncio.get_event_loop()
+    loop.set_exception_handler(custom_exception_handler)
 
     # Setup feeds for AR Tag and obstacle avoidance
     core.vision.feed_handler.add_feed(2, "artag", stream_video=core.vision.STREAM_FLAG)
-    core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
+    #core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     # Create our two detection tasks
     loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
-    loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+    #loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
 
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())

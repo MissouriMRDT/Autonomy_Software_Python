@@ -12,6 +12,8 @@ async def async_obstacle_detector():
     """
     Async function to find obstacles
     """
+    logger = logging.getLogger(__name__)
+
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
         depth_matrix = core.vision.camera_handler.grab_depth_data()
@@ -41,7 +43,7 @@ async def async_obstacle_detector():
             obstacle_dict["detected"] = False
             obstacle_dict["angle"] = None
             obstacle_dict["distance"] = None
-
+        logger.info("obstacle")
         core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
