@@ -72,7 +72,7 @@ def track_ar_tag(center):
     distance = NaN
 
     # Find some permutations we can use in case of noisy data
-    coordinates = [0, 1, -1, 2, -2]
+    coordinates = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]
     perm = list(itertools.permutations(coordinates, 2))
 
     # Grab the distance from the depth map, iterating over pixels if the distance is not finite
@@ -84,6 +84,7 @@ def track_ar_tag(center):
             index += 1
         else:
             index = 0
+
 
     # Grab the distance from the depth map
     if type(core.vision.camera_handler).__name__ == "ZedHandler":
