@@ -32,7 +32,7 @@ async def async_obstacle_detector():
         if obstacle != []:
             # Track the obstacle in the depth matrix
             angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
-                depth_matrix, obstacle, False, True, reg_img
+                depth_matrix, obstacle, True, reg_img, False
             )
             # Update the current obstacle info
             obstacle_dict["detected"] = True
