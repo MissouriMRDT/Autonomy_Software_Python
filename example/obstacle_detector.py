@@ -7,7 +7,7 @@ import time
 
 # Define depth img/data so we can use them for OpenCV window callbacks
 depth_img = None
-depth_data = None
+depth_matrix = None
 
 DISPLAY = True
 
@@ -16,11 +16,11 @@ def click_print_depth(event, x, y, flags, param):
     global depth_img, depth_data
     if event == cv2.EVENT_LBUTTONDOWN:
         print(depth_img[y][x])
-        print(depth_data.get_data()[y][x])
+        print(depth_matrix[y][x])
 
 
 def main():
-    global depth_img, depth_data
+    global depth_img, depth_matrix
 
     # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
     if DISPLAY:
@@ -30,18 +30,26 @@ def main():
         core.vision.feed_handler.add_feed(2, "regular", stream_video=core.vision.STREAM_FLAG)
 
     while True:
-        depth_img = core.vision.camera_handler.grab_depth()
         reg_img = core.vision.camera_handler.grab_regular()
+        depth_matrix = core.vision.camera_handler.grab_depth_data()
+        depth_img = core.vision.camera_handler.grab_depth()
+        mask, lower = algorithms.obstacle_detector.get_floor_mask(
+            reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
+        )
 
-        depth_data = core.vision.camera_handler.grab_depth_data()
-        depth_data = depth_data.get_data()
-        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_data, 1, 3)
+        depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
+        obstacle = algorithms.obstacle_detector.detect_obstacle(depth_matrix, 1, 5)
 
-        width, height = core.vision.camera_handler.get_reg_res()
-        reg_img = cv2.resize(reg_img, (int(width / 2), int(height / 2)))
+        # Resize the image so it matches the dimensions of the depth data
+        depth_img_x, depth_img_y = core.vision.camera_handler.get_depth_res()
+        reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
 
         if obstacle != []:
-            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(depth_data, obstacle, True, reg_img)
+            print("Obstacle")
+            # Track the obstacle in the depth matrix
+            angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
+                depth_matrix, obstacle, True, reg_img, True
+            )
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:

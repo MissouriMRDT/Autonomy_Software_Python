@@ -77,7 +77,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
         # Calculates the number of elements at each depth and scales their value by closeness
         max_li.append(
             len(
-                depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
+                depth_matrix[(depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000)]
                 * (1 / ((depth - min_depth) + 1))
             )
         )
@@ -90,11 +90,13 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
         # 1 for all entries at depth, 0 for those not. Needed for findContours()
-        maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
+        maskDepth = np.where(
+            (depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000), 1, 0
+        )
 
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
-
+        print(len(contours))
         # Check if there are contours to be detected at this depth
         if contours != []:
             # choose the largest blob at this depth
