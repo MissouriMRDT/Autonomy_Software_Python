@@ -3,9 +3,6 @@ from interfaces.nav_board import NavBoard
 from interfaces.multimedia_board import MultiMedia
 import sys
 
-# reference to self
-this = sys.modules[__name__]
-
 # Create instances of all interfaces
 drive_board: DriveBoard
 
@@ -18,6 +15,7 @@ def setup():
     """
     Sets up all of the interfaces
     """
-    this.nav_board = NavBoard()
-    this.drive_board = DriveBoard()
-    this.multimedia_board = MultiMedia()
+    global drive_board, nav_board, multimedia_board
+    nav_board = NavBoard()
+    drive_board = DriveBoard()
+    multimedia_board = MultiMedia()

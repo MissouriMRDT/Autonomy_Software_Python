@@ -1,4 +1,4 @@
-from core.vision.camera import Camera
+from core.vision.cameras.camera import Camera
 import logging
 from core.vision import feed_handler
 import threading
@@ -7,7 +7,7 @@ import gzip
 import numpy as np
 
 
-class SimCamHandler(Camera):
+class SimCam(Camera):
     def __init__(self):
         """
         Sets up the simulator camera with the specified parameters
@@ -115,13 +115,6 @@ class SimCamHandler(Camera):
         """
         return self.reg_img
 
-    def grab_depth(self):
-        """
-        Returns the latest depth frame captured from the simulator
-        """
-        self.logger.error("Tried calling grap_depth() for simulator! Not supported currently")
-        return None
-
     def grab_depth_data(self):
         """
         Returns the depth matrix (in meters) ahead of the current rover
@@ -156,10 +149,3 @@ class SimCamHandler(Camera):
         self.feed_handler.close()
 
         self.logger.info("Closing Simulator capture")
-
-    def grab_point_cloud(self):
-        """
-        Returns 3D point cloud data captured with simulator
-        """
-        self.logger.error("Tried calling grab_point_cloud() for simulator! Not supported currently")
-        return None
