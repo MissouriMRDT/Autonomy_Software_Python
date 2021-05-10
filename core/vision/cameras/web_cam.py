@@ -80,6 +80,10 @@ class WebCam(Camera):
         """
         # Set the threading event so we kill the thread
         self._stop.set()
+
+        # Close cv2 capture
+        self.cap.close()
+
         # Wait for the thread to join
         self.thread.join()
 
