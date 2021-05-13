@@ -82,10 +82,8 @@ def track_ar_tag(center):
             distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
             index += 1
 
-    # Grab the distance from the depth map
-    if type(core.vision.camera_handler).__name__ == "ZedHandler":
-        # ZED units are currently in millimeters
-        distance /= 1000
+    # Vision system reports depth in mm, we want in meters
+    distance /= 1000
 
     # Grab the camera parameters
     img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
