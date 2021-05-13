@@ -1,9 +1,6 @@
 import algorithms
 import core.vision
 import logging
-import cv2
-from cv2 import aruco
-import numpy as np
 import time
 
 

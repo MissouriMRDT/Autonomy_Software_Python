@@ -1,9 +1,6 @@
 import time
 import core.vision
 import logging
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def main() -> None:

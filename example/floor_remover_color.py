@@ -4,7 +4,6 @@ import logging
 import cv2
 import algorithms
 import numpy as np
-import pyzed.sl as sl
 
 DISPLAY = True
 

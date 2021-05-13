@@ -3,8 +3,6 @@ import algorithms
 import core
 import logging
 import interfaces
-from geopy import Point
-from geopy.distance import VincentyDistance
 import algorithms.heading_hold
 import algorithms.obstacle_avoider
 

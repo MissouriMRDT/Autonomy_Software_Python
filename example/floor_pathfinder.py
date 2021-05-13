@@ -4,8 +4,6 @@ import logging
 import cv2
 import algorithms
 import numpy as np
-import pyzed.sl as sl
-import math
 
 DISPLAY = True
 
