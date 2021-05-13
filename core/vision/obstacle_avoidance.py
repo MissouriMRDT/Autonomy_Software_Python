@@ -44,7 +44,8 @@ async def async_obstacle_detector():
             obstacle_dict["angle"] = None
             obstacle_dict["distance"] = None
 
-        logger.info("obstacle")
+        if obstacle_dict["detected"]:
+            logger.info(f'Obstacle detected at distance: {obstacle_dict["distance"]}')
         core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
