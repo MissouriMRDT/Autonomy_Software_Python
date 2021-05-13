@@ -20,8 +20,6 @@ class WebCam(Camera):
         self.logger = logging.getLogger(__name__)
 
         # Define the camera resolutions
-        self.depth_res_x = 640
-        self.depth_res_y = 360
         self.reg_res_x = 1280
         self.reg_res_y = 720
         self.hfov = 85
