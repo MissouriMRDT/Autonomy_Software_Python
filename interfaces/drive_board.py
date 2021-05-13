@@ -4,6 +4,15 @@ import logging
 
 
 def clamp(n, min_n, max_n):
+    """
+    Clamps value n between min_n and max_n
+
+    Parameters:
+    -----------
+        n - the value to be clamped
+        min_n - the minimum value it can be
+        max_n - the maximum value it can be
+    """
     return max(min(max_n, n), min_n)
 
 
