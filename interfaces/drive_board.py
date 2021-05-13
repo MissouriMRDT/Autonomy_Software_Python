@@ -6,7 +6,9 @@ import logging
 def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)
 
+
 MIN_SPEED = 60
+
 
 class DriveBoard:
     """
@@ -30,18 +32,8 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -core.DRIVE_POWER, core.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -core.DRIVE_POWER, core.DRIVE_POWER))
-
-        if self._targetSpdLeft < MIN_SPEED and self._targetSpdLeft > 0:
-            self._targetSpdLeft = MIN_SPEED
-        elif self._targetSpdLeft > -MIN_SPEED and self._targetSpdLeft < 0:
-            self._targetSpdLeft = -MIN_SPEED
-        elif self._targetSpdRight < MIN_SPEED and self._targetSpdRight > 0:
-            self._targetSpdRight = MIN_SPEED
-        elif self._targetSpdRight > -MIN_SPEED and self._targetSpdRight < 0:
-            self._targetSpdRight = -MIN_SPEED
-
+        self._targetSpdLeft = int(clamp(speed_left, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
+        self._targetSpdRight = int(clamp(speed_right, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
 
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
