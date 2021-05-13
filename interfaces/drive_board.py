@@ -16,9 +16,6 @@ def clamp(n, min_n, max_n):
     return max(min(max_n, n), min_n)
 
 
-MIN_SPEED = 60
-
-
 class DriveBoard:
     """
     The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the drive board on the rover,
