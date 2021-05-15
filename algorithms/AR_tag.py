@@ -77,7 +77,7 @@ def track_ar_tag(center):
     # Grab the distance from the depth map, iterating over pixels if the distance is not finite
     index = 0
 
-    while not np.isfinite(distance):
+    while not np.isfinite(distance) and index < len(perm):
         if index < len(perm):
             distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
             index += 1
