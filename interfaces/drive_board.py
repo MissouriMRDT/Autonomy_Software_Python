@@ -4,9 +4,17 @@ import logging
 
 
 def clamp(n, min_n, max_n):
+    """
+    Clamps value n between min_n and max_n
+
+    Parameters:
+    -----------
+        n - the value to be clamped
+        min_n - the minimum value it can be
+        max_n - the maximum value it can be
+    """
     return max(min(max_n, n), min_n)
 
-MIN_SPEED = 60
 
 class DriveBoard:
     """
@@ -15,13 +23,19 @@ class DriveBoard:
     """
 
     def __init__(self):
-        self._targetSpdLeft = 0
-        self._targetSpdRight = 0
-        self.logger = logging.getLogger(__name__)
+        self._targetSpdLeft: int = 0
+        self._targetSpdRight: int = 0
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
-    def calculate_move(self, speed, angle) -> Tuple[int, int]:
-        """Speed: -1000 to 1000
-        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right"""
+    def calculate_move(self, speed: float, angle: float) -> Tuple[int, int]:
+        """
+        Calculates the drives speeds given the vector (speed, angle)
+
+        Parameters:
+        -----------
+            Speed: -1000 to 1000
+            Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right
+        """
 
         speed_left = speed_right = speed
 
@@ -30,31 +44,23 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -core.DRIVE_POWER, core.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -core.DRIVE_POWER, core.DRIVE_POWER))
-
-        if self._targetSpdLeft < MIN_SPEED and self._targetSpdLeft > 0:
-            self._targetSpdLeft = MIN_SPEED
-        elif self._targetSpdLeft > -MIN_SPEED and self._targetSpdLeft < 0:
-            self._targetSpdLeft = -MIN_SPEED
-        elif self._targetSpdRight < MIN_SPEED and self._targetSpdRight > 0:
-            self._targetSpdRight = MIN_SPEED
-        elif self._targetSpdRight > -MIN_SPEED and self._targetSpdRight < 0:
-            self._targetSpdRight = -MIN_SPEED
-
+        self._targetSpdLeft: int = int(clamp(speed_left, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
+        self._targetSpdRight: int = int(clamp(speed_right, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
 
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
         return self._targetSpdLeft, self._targetSpdRight
 
-    def send_drive(self, target_left, target_right):
+    def send_drive(self, target_left: int, target_right: int) -> None:
         """
         Sends a rovecomm packet with the specified drive speed
 
         Parameters:
+        -----------
             target_left (int16) - the speed to drive left motors
             target_right (int16) - the speed to drive right motors
         """
+
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
@@ -67,10 +73,11 @@ class DriveBoard:
             False,
         )
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Sends a rovecomm packet with a 0, 0 to indicate full stop
         """
+
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
             core.RoveCommPacket(
