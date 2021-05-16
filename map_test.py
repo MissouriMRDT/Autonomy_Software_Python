@@ -31,22 +31,26 @@ def main():
     angle2, dist2 = algorithms.geomath.haversine(
         interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], 37.951729, -91.778077
     )
-    distance = int((dist1 + dist2) / 2 * 1000)
-    print(distance)
-    angle = int((angle1 + angle2) / 2)
+
+    # Calculate bearing and distance for the midpoint between the two tags
+    # use law of cosines to get the distance between the tags, midpoint will be halfway between them
+    gateWidth = math.sqrt((dist1 ** 2) + (dist2 ** 2) - 2 * dist1 * dist2 * math.cos(angle1 + angle2))
+
+    # use law of sines to get the angle across from tag[0]'s distance and deduce the last angle
+    angleAcrossD1 = math.asin((math.sin(angle1) * dist1) / (gateWidth * 0.5))
+    angleAcrossDm = 180 - angleAcrossD1 - angle1
+    distToMidpoint = (dist1 * math.sin(angleAcrossDm)) / math.sin(angle1)
+    angleToMidpoint = (((angle1 + angle2) / 2) + interfaces.nav_board.heading) % 360
 
     start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
     # Get a GPS coordinate using our distance and bearing
-    target = algorithms.obstacle_avoider.coords_obstacle(distance, start[0], start[1], angle)
-    print(start)
-    print(target)
+    target = algorithms.obstacle_avoider.coords_obstacle(distToMidpoint, start[0], start[1], angleToMidpoint)
 
     # Also calculate second point (to run through the gate)
-    halfGateDist = math.sqrt((5.05 ** 2) + (distance ** 2) - 2 * 5.05 * distance * math.cos(angle))
-    rightTriSide = math.sin(angle) * 5.05
-    complementAngle = math.asin(rightTriSide / halfGateDist)
-    targetPastGateHeading = -90 + complementAngle
+    # rightTriSide = math.sin(angleToMidpoint) * dist1
+    # complementAngle = math.asin(rightTriSide / (gateWidth*.5))
+    targetPastGateHeading = ((angleAcrossD1 - 90.0) + interfaces.nav_board.heading) % 360
     targetPastGate = algorithms.obstacle_avoider.coords_obstacle(2, target[0], target[1], targetPastGateHeading)
     print(targetPastGate)
     path_lats, path_lngs = zip(*[(target[0], target[1]), (targetPastGate[0], targetPastGate[1])])
