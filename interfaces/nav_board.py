@@ -14,7 +14,7 @@ class NavBoard:
         self._pitch = 0
         self._roll = 0
         self._heading = 0
-        self._location = core.Coordinate(0, 0)
+        self._location = core.Coordinate(37.951755, -91.778007)
         self._distToGround = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()

@@ -5,6 +5,7 @@ import interfaces
 import algorithms
 from core.states import RoverState
 import time
+import math
 
 
 class ApproachingMarker(RoverState):
@@ -15,6 +16,7 @@ class ApproachingMarker(RoverState):
     def start(self):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
+        self.gate_detection_attempts = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -47,7 +49,6 @@ class ApproachingMarker(RoverState):
             self.exit()
 
         # Return the state appropriate for the event
-        return state
 
     async def run(self) -> RoverState:
 
@@ -55,6 +56,55 @@ class ApproachingMarker(RoverState):
         if core.vision.ar_tag_detector.is_ar_tag():
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
+
+            # If we've seen at least 5 frames of 2 tags, assume it's a gate
+            if len(tags) == 2 and self.gate_detection_attempts >= 5:
+                # Calculate bearing and distance for the midpoint between the two tags
+                distance = (tags[0].distance + tags[1].distance) / 2
+                angle = (tags[0].angle + tags[1].angle) / 2
+
+                start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+
+                # Get a GPS coordinate using our distance and bearing
+                target = algorithms.obstacle_avoider.coords_obstacle(distance, start[0], start[1], angle)
+
+                # Also calculate second point (to run through the gate)
+                halfGateDist = math.sqrt(
+                    (tags[0].distance ** 2) + (distance ** 2) - 2 * tags[0].distance * distance * math.cos(angle)
+                )
+                rightTriSide = math.sin(angle) * tags[0].distance
+                complementAngle = math.asin(rightTriSide / halfGateDist)
+                targetPastGateHeading = -90 + complementAngle
+                targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
+                    2, target[0], target[1], targetPastGateHeading
+                )
+
+                points = [target, targetPastGate]
+
+                # Approach the gate using GPS drive
+                for point in points:
+                    while (
+                        algorithms.gps_navigate.get_approach_status(
+                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                        )
+                        == core.ApproachState.APPROACHING
+                    ):
+                        left, right = algorithms.gps_navigate.calculate_move(
+                            core.Coordinate(point[0], point[1]),
+                            interfaces.nav_board.location(),
+                            start,
+                            250,
+                        )
+
+                        # self.logger.debug(f"Navigating: Driving at ({left}, {right})")
+                        interfaces.drive_board.send_drive(left, right)
+                        time.sleep(0.01)
+                    interfaces.drive_board.stop()
+            # If we grabbed more than one, see if it's a gate
+            elif len(tags) > 1:
+                self.gate_detection_attempts += 1
+            elif len(tags) == 1:
+                self.gate_detection_attempts = 0
 
             # Currently only orienting based on one AR Tag-
             distance = tags[0].distance
@@ -88,6 +138,7 @@ class ApproachingMarker(RoverState):
                 interfaces.drive_board.send_drive(left, right)
         else:
             self.num_detection_attempts += 1
+            self.gate_detection_attempts = 0
 
             # If we have attempted to track an AR Tag unsuccesfully
             # MAX_DETECTION_ATTEMPTS times, we will return to search pattern

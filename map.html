@@ -1,0 +1,75 @@
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Google Maps - gmplot</title>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=visualization&key=AIzaSyBcdzPM-dICBYxG9D5eqEHnXYDRiqoGHvc"></script>
+<script type="text/javascript">
+    function initialize() {
+        var map = new google.maps.Map(document.getElementById("map_canvas"), {
+            zoom: 14,
+            center: new google.maps.LatLng(37.951755, -91.778007)
+        });
+
+        var marker_icon_6495ED = {
+            url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAiCAYAAACwaJKDAAAABmJLR0QA/wD/AP+gvaeTAAADFUlEQVRIia2VW0gUYRiGn91lrGwj0qCsbS9qpZN5UaFlUQmF1IUURN0FkVFeSEQgdBcZBN10hEqipLoxjKjoXG5ZFh6y8tBKanmazLRd0t1Wx935u3AG121tx9X35me+/32f4eP//hkT/9dyYD0wHzADKiADb4CGKNl/tBmoBIQ1wSbsKVnCkbZL2FOyhDXBJgCh7W+OFDZFeD6JyZS/aOUOU+qWPBJtK8A02varo5baZ+dpqbkjEOIUcFR70T9QE3Bammo9lLm3EHtKVtR22use4yw6wNCA9yxwWAdbQjyHLNKUY1vzbjN/8caoQICZcxwkJWfQUl2yRqhBD1ARCp0H3E3bfkxauGqHIaAu6ywbUlw8na7SDUAR0G/W9nKtCQvil2/aPy6grmUbc5iRaI8HcmF4TACyk9N3Y7ZIMUHNFglH+m6AbB1qAZYkJa+LCagryZEBsASwmAEJiJs+yzYhqJaPAyTzSFmMYTeqkbwZUADF6+6YEFLLK4Ci32dXV1P5hKBa3gWoevv3miqKUQNKTEA1OERTRTHAPRgZqYs+j+ytd16KCdrgvIzPI3uBizByo7xAf1fzu21zHWuZkWg3DPzR/JayG3kINXgEKA2FAlQKNZjQ+vF+um1pJvEz50YF9nbU8ujCTgLKn3PAcb1uCfM9UQNKcnv90xWLVu9EmmodEzjoc/PgTDYD3t5bQE7onjnMK4CcP79/1JXdzAMx9uyWF+fj88hfgH2EDXk4FMAP7On8/CLQXF0SESg3vuLr+zsA+xk+j1GKBAX4CFyqultAMDAY1oug+v4JgBKgLFJ4LChAgc8j+5srb40qdjWV09NaIwg5mPFAfwLXG15eGVV0vb4Gw6NTFwsUoNAt1+OWh//Gir+PtrpHAFf/F4oGrQG+tH16CECnq5Tg0KAf7TrGCgV4IDe+BEB2OQGcRDjx8UKdPW0fUAOK/iV6Hi1gBFoVDAzS/a2Kvt5WgHcGMobUk5J5UAABYNpkQatmL0gVQIsRs5H2AXq11tsmE+pW/H0A/ZMJ7dbW75MJ7dLWViPmv887IG8sMF4/AAAAAElFTkSuQmCC",
+            labelOrigin: new google.maps.Point(10, 11)
+        };
+
+        new google.maps.Marker({
+            position: new google.maps.LatLng(37.951755, -91.778007),
+            icon: marker_icon_6495ED,
+            map: map
+        });
+
+        new google.maps.Circle({
+            strokeColor: '#3B0B39',
+            strokeOpacity: 1.0,
+            strokeWeight: 1,
+            fillColor: '#3B0B39',
+            fillOpacity: 0.3,
+            map: map,
+            center: new google.maps.LatLng(37.951753, -91.778077),
+            radius: 2
+        });
+
+        new google.maps.Circle({
+            strokeColor: '#3B0B39',
+            strokeOpacity: 1.0,
+            strokeWeight: 1,
+            fillColor: '#3B0B39',
+            fillOpacity: 0.3,
+            map: map,
+            center: new google.maps.LatLng(37.951729, -91.778077),
+            radius: 2
+        });
+
+        new google.maps.Circle({
+            strokeColor: '#FF00FF',
+            strokeOpacity: 1.0,
+            strokeWeight: 1,
+            fillColor: '#FF00FF',
+            fillOpacity: 0.3,
+            map: map,
+            center: new google.maps.LatLng(37.95174192259948, -91.7780732393359),
+            radius: 0.5
+        });
+
+        new google.maps.Circle({
+            strokeColor: '#FF00FF',
+            strokeOpacity: 1.0,
+            strokeWeight: 1,
+            fillColor: '#FF00FF',
+            fillOpacity: 0.3,
+            map: map,
+            center: new google.maps.LatLng(37.951741707787036, -91.77809599343952),
+            radius: 0.5
+        });
+
+    }
+</script>
+</head>
+<body style="margin:0px; padding:0px;" onload="initialize()">
+    <div id="map_canvas" style="width: 100%; height: 100%;" />
+</body>
+</html>

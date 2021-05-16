@@ -14,6 +14,7 @@ numpy = "==1.19.3"
 snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
+gmplot = "*"
 
 [dev-packages]
 opencv-contrib-python = "*"
@@ -22,4 +23,3 @@ flake8 = "*"
 pytest-cov = "*"
 mypy = "*"
 pandas = "*"
-
