@@ -11,11 +11,11 @@ class NavBoard:
     """
 
     def __init__(self):
-        self._pitch = 0
-        self._roll = 0
-        self._heading = 0
-        self._location = core.Coordinate(37.951755, -91.778007)
-        self._distToGround = 0
+        self._pitch: float = 0
+        self._roll: float = 0
+        self._heading: float = 0
+        self._location: core.Coordinate = core.Coordinate(0, 0)
+        self._distToGround: int = 0
         self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
 
@@ -35,7 +35,7 @@ class NavBoard:
         self._pitch, self._heading, self._roll = packet.data
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
-    def process_gps_data(self, packet):
+    def process_gps_data(self, packet) -> None:
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
@@ -48,30 +48,14 @@ class NavBoard:
             self._lidarQuality,
         ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
-    def pitch(self):
+    def pitch(self) -> float:
         return self._pitch
 
-    def roll(self):
+    def roll(self) -> float:
         return self._roll
 
-    def heading(self):
+    def heading(self) -> float:
         return self._heading
 
-    def location(self):
+    def location(self) -> core.Coordinate:
         return self._location
-
-
-def main() -> None:
-    nav = NavBoard()
-    while True:
-        print(nav.location())
-        print(nav.heading())
-        print(nav.pitch())
-        print(nav.roll())
-        print("...")
-        time.sleep(1)
-
-
-if __name__ == "__main__":
-    # Run main
-    main()

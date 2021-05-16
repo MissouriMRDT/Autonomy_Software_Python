@@ -60,21 +60,30 @@ class ApproachingMarker(RoverState):
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5:
                 # Calculate bearing and distance for the midpoint between the two tags
-                distance = (tags[0].distance + tags[1].distance) / 2
-                angle = (tags[0].angle + tags[1].angle) / 2
+                # use law of cosines to get the distance between the tags, midpoint will be halfway between them
+                gateWidth = math.sqrt(
+                    (tags[0].distance ** 2)
+                    + (tags[1].distance ** 2)
+                    - 2 * tags[0].distance * tags[1].distance * math.cos(tags[0].angle + tags[1].angle)
+                )
+
+                # use law of sines to get the angle across from tag[0]'s distance and deduce the last angle
+                angleAcrossD1 = math.asin((math.sin(tags[0].angle) * tags[0].distance) / (gateWidth * 0.5))
+                angleAcrossDm = 180 - angleAcrossD1 - tags[0].angle
+                distToMidpoint = (tags[0].distance * math.sin(angleAcrossDm)) / math.sin(tags[0].angle)
+                angleToMidpoint = (((tags[0].angle + tags[1].angle) / 2) + interfaces.nav_board.heading) % 360
 
                 start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
                 # Get a GPS coordinate using our distance and bearing
-                target = algorithms.obstacle_avoider.coords_obstacle(distance, start[0], start[1], angle)
+                target = algorithms.obstacle_avoider.coords_obstacle(
+                    distToMidpoint, start[0], start[1], angleToMidpoint
+                )
 
                 # Also calculate second point (to run through the gate)
-                halfGateDist = math.sqrt(
-                    (tags[0].distance ** 2) + (distance ** 2) - 2 * tags[0].distance * distance * math.cos(angle)
-                )
-                rightTriSide = math.sin(angle) * tags[0].distance
-                complementAngle = math.asin(rightTriSide / halfGateDist)
-                targetPastGateHeading = -90 + complementAngle
+                # rightTriSide = math.sin(angleToMidpoint) * tags[0].distance
+                # complementAngle = math.asin(rightTriSide / (gateWidth*.5))
+                targetPastGateHeading = ((angleAcrossD1 - 90.0) + interfaces.nav_board.heading) % 360
                 targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
                     2, target[0], target[1], targetPastGateHeading
                 )
@@ -107,15 +116,15 @@ class ApproachingMarker(RoverState):
                 self.gate_detection_attempts = 0
 
             # Currently only orienting based on one AR Tag-
-            distance = tags[0].distance
-            angle = tags[0].angle
+            distToMidpoint = tags[0].distance
+            angleToMidpoint = tags[0].angle
 
-            left, right = algorithms.follow_marker.drive_to_marker(100, angle)
+            left, right = algorithms.follow_marker.drive_to_marker(100, angleToMidpoint)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0
 
-            if distance < 1.25:
+            if distToMidpoint < 1.25:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
