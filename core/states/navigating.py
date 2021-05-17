@@ -32,6 +32,9 @@ class Navigating(RoverState):
         if event == core.AutonomyEvents.NO_WAYPOINT:
             state = core.states.Idle()
 
+        elif event == core.AutonomyEvents.REACHED_MARKER:
+            state = core.states.Idle()
+
         elif event == core.AutonomyEvents.REACHED_GPS_COORDINATE:
             state = core.states.SearchPattern()
 
@@ -100,7 +103,7 @@ class Navigating(RoverState):
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
-            # Otherwise Trigger Search Pattern
+            # Otherwise Trigger Next State
             else:
                 # Stop all movement
                 interfaces.drive_board.stop()
@@ -109,7 +112,24 @@ class Navigating(RoverState):
                 core.waypoint_handler.set_goal(interfaces.nav_board.location())
                 core.waypoint_handler.set_start(interfaces.nav_board.location())
 
-                return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
+                if leg_type == "POSITION":
+                    self.logger.info("Reached Marker")
+
+                    # Transmit that we have reached the marker
+                    core.rovecomm_node.write(
+                        core.RoveCommPacket(
+                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                            "B",
+                            (1,),
+                        ),
+                        False,
+                    )
+
+                    # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+                else:
+                    return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(
             goal, interfaces.nav_board.location(), start, core.MAX_DRIVE_POWER

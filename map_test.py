@@ -53,7 +53,6 @@ def main():
     else:
         print("IN BETWEEN")
         combinedAngle = abs(angle1) + abs(angle2)
-    # print("larger:", larger)
     print("combined angle:", combinedAngle)
 
     # for calculations, our starting side , "D1", should be the shorter distance
@@ -72,11 +71,8 @@ def main():
         sinVal = -1 - sinDiff
     angleAcrossD1 = math.asin(sinVal)
     print("angle across from D1:", math.degrees(angleAcrossD1))
-    # print(math.sin(math.radians(angle1)))
-    # print(angleAcrossD1print(angl))
     angleAcrossDm = math.pi - angleAcrossD1 - math.radians(combinedAngle / 2)
     print("angle across from Dm:", math.degrees(angleAcrossDm))
-    # print(angleAcrossDm)
     distToMidpoint = ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
     print("distance to midpoint", distToMidpoint)
 
@@ -93,7 +89,6 @@ def main():
     else:
         angleToMidpoint = (interfaces.nav_board.heading() - (combinedAngle / 2)) % 360
 
-    # print(angleToMidpoint)
     start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
     print("angle to midpoint: ", angleToMidpoint)
     # Get a GPS coordinate using our distance and bearing
@@ -109,7 +104,6 @@ def main():
         *[(target[0], target[1]), (targetPastGate[0], targetPastGate[1]), (targetBeforeGate[0], targetBeforeGate[1])]
     )
     print(path_lats[0], path_lngs[0])
-    # print(path_lats[1], path_lngs[1])
     gmap.scatter(path_lats, path_lngs, color="#FF00FF", size=0.5, marker=False)
 
     # Draw the map to an HTML file:

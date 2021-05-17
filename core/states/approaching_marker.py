@@ -49,6 +49,7 @@ class ApproachingMarker(RoverState):
             self.exit()
 
         # Return the state appropriate for the event
+        return state
 
     async def run(self) -> RoverState:
 
@@ -56,9 +57,11 @@ class ApproachingMarker(RoverState):
         if core.vision.ar_tag_detector.is_ar_tag():
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
+            gps_data = core.waypoint_handler.get_waypoint()
+            orig_goal, orig_start, leg_type = gps_data.data()
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
-            if len(tags) == 2 and self.gate_detection_attempts >= 5:
+            if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
                 # depending where the rover is facing, this is computed differently
@@ -72,14 +75,15 @@ class ApproachingMarker(RoverState):
                     combinedAngle = larger - smaller
                 else:  # one tag on left, one on right
                     combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
-
                 # Calculate bearing and distance for the midpoint between the two tags
                 # use law of cosines to get the dfistance between the tags, midpoint will be halfway between them
                 gateWidth = math.sqrt(
                     (tags[0].distance ** 2)
                     + (tags[1].distance ** 2)
-                    - 2 * tags[0].distance * tags[1].distance * math.cos(tags[0].angle + tags[1].angle)
+                    - 2 * tags[0].distance * tags[1].distance * math.cos(math.radians(combinedAngle))
                 )
+                self.logger.info(f"Gate width {gateWidth}")
+
 
                 # we want to use the smaller side for our midpoint triangle
                 D1 = min(tags[0].distance, tags[1].distance)
@@ -98,14 +102,11 @@ class ApproachingMarker(RoverState):
                 angleAcrossD1 = math.asin(sinVal)
 
                 # deduce the last angle from 180 (pi)
-                angleAcrossDm = math.pi - angleAcrossD1 - tags[0].angle
+                angleAcrossDm = math.pi - angleAcrossD1 - math.radians(combinedAngle/2)
 
                 # law of sines to get the last side of our triangle
-                distToMidpoint = ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
-<<<<<<< HEAD
-                self.logger.debug("Calculated Distance to gate:", distToMidpoint)
-=======
->>>>>>> 9c70b5f98b7cc5d1710b28e2360abc8c5c9eb9cb
+                distToMidpoint = abs(((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2)))
+                self.logger.info(f"Calculated Distance to gate: {distToMidpoint}")
 
                 # Last step to get angle to the midpoint, depending on where tags are relative to rover
                 if tags[0].angle < 0 and tags[1].angle < 0:
@@ -113,12 +114,9 @@ class ApproachingMarker(RoverState):
                 elif tags[0].angle >= 0 and tags[1].angle >= 0:
                     angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
                 else:
-                    angleToMidpoint = (interfaces.nav_board.heading() - (combinedAngle / 2)) % 360
-<<<<<<< HEAD
+                    angleToMidpoint = (interfaces.nav_board.heading() + ((tags[0].angle + tags[1].angle) / 2)) % 360
 
-                self.logger.debug("Calculated Angle to gate:", angleToMidpoint)
-=======
->>>>>>> 9c70b5f98b7cc5d1710b28e2360abc8c5c9eb9cb
+                self.logger.info(f"Calculated Angle to gate: {angleToMidpoint}")
 
                 start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
@@ -128,8 +126,6 @@ class ApproachingMarker(RoverState):
                 )
 
                 # Also calculate second point (to run through the gate)
-                # rightTriSide = math.sin(angleToMidpoint) * tags[0].distance
-                # complementAngle = math.asin(rightTriSide / (gateWidth*.5))
                 targetPastGateHeading = ((angleAcrossD1 - (math.pi / 2)) + interfaces.nav_board.heading()) % 360
                 targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(
                     -3, target[0], target[1], targetPastGateHeading
@@ -161,43 +157,44 @@ class ApproachingMarker(RoverState):
                         interfaces.drive_board.send_drive(left, right)
                         time.sleep(0.01)
                     interfaces.drive_board.stop()
+                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             # If we grabbed more than one, see if it's a gate
             elif len(tags) > 1:
                 self.gate_detection_attempts += 1
                 self.logger.info(f"2 Markers in frame, count:{self.gate_detection_attempts}")
-            elif len(tags) == 1:
+            elif len(tags) == 1 or (len(tags) > 0 and leg_type == "MARKER"):
                 self.gate_detection_attempts = 0
 
-            # Currently only orienting based on one AR Tag-
-            distToMidpoint = tags[0].distance
-            angleToMidpoint = tags[0].angle
+                # Currently only orienting based on one AR Tag
+                distToMidpoint = tags[0].distance
+                angleToMidpoint = tags[0].angle
 
-            left, right = algorithms.follow_marker.drive_to_marker(100, angleToMidpoint)
+                left, right = algorithms.follow_marker.drive_to_marker(100, angleToMidpoint)
 
-            self.logger.info("Marker in frame")
-            self.num_detection_attempts = 0
+                self.logger.info("Marker in frame")
+                self.num_detection_attempts = 0
 
-            if distToMidpoint < 1.25:
-                interfaces.drive_board.stop()
+                if distToMidpoint < 1.25:
+                    interfaces.drive_board.stop()
 
-                self.logger.info("Reached Marker")
+                    self.logger.info("Reached Marker")
 
-                # Transmit that we have reached the marker
-                core.rovecomm_node.write(
-                    core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                        "B",
-                        (1,),
-                    ),
-                    False,
-                )
+                    # Transmit that we have reached the marker
+                    core.rovecomm_node.write(
+                        core.RoveCommPacket(
+                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                            "B",
+                            (1,),
+                        ),
+                        False,
+                    )
 
-                # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-            else:
-                self.logger.info(f"Driving to target with speeds: ({left}, {right})")
-                interfaces.drive_board.send_drive(left, right)
+                    # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+                else:
+                    self.logger.info(f"Driving to target with speeds: ({left}, {right})")
+                    interfaces.drive_board.send_drive(left, right)
         else:
             self.num_detection_attempts += 1
             self.gate_detection_attempts = 0

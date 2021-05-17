@@ -42,6 +42,16 @@ class WaypointHandler:
         self.waypoints.append(("GATE", waypoint))
         self.logger.info(f"Added Gate Waypoint: lat ({latitude}), lon({longitude})")
 
+    def add_position_waypoint(self, packet) -> None:
+        """
+        Adds the data from the packet (expects lat, lon) to the waypoints deque
+        as a gate
+        """
+        latitude, longitude = packet.data
+        waypoint = core.Coordinate(latitude, longitude)
+        self.waypoints.append(("POSITION", waypoint))
+        self.logger.info(f"Added Position Waypoint: lat ({latitude}), lon({longitude})")
+
     def clear_waypoints(self, packet) -> None:
         """
         Clears the deque of waypoints
@@ -91,7 +101,7 @@ class WaypointHandler:
         self.gps_data.start = interfaces.nav_board.location()
 
         try:
-            current_goal, leg_type = self.waypoints.popleft()
+            leg_type, current_goal = self.waypoints.popleft()
         except IndexError:
             self.logger.error("Tried popping waypoint from empty deque")
             self.gps_data = None
