@@ -1,4 +1,5 @@
 import time
+
 from core import constants
 from interfaces import drive_board, nav_board
 import algorithms.gps_navigate as gps_nav
@@ -69,7 +70,7 @@ def test_calculate_move_right():
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the right
-    assert right <= 0
+    assert right == constants.MIN_DRIVE_POWER
     assert left > 0
 
 
@@ -83,7 +84,7 @@ def test_calculate_move_left():
 
     # should be turning to the left
     assert right > 0
-    assert left <= 0
+    assert left == constants.MIN_DRIVE_POWER
 
 
 def test_calculate_move_straight():

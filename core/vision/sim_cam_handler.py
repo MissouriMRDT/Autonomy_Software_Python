@@ -22,6 +22,7 @@ class SimCamHandler(Camera):
 
         self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
+        self.r_lock = threading.RLock()
 
         # Define the camera resolutions
         self.depth_res_x = 640
@@ -98,6 +99,7 @@ class SimCamHandler(Camera):
 
             # For regular images or depth data we have different decompression techniques
             # this is due to the type of data we are sending
+            self.r_lock.acquire()
             if msg_type == b"r":
                 self.encoded_img = pickle.loads(frame_data)
                 self.reg_img = cv2.imdecode(self.encoded_img, 1)
@@ -105,6 +107,7 @@ class SimCamHandler(Camera):
                 self.encoded_img = gzip.decompress(frame_data)
                 self.encoded_img = pickle.loads(self.encoded_img)
                 self.depth_data = struct.unpack(str(int(len(self.encoded_img) / 4)) + "f", self.encoded_img)
+            self.r_lock.release()
 
             # Now let the feed_handler stream/save the frames
             self.feed_handler.handle_frame("regular", self.reg_img)
@@ -113,7 +116,10 @@ class SimCamHandler(Camera):
         """
         Returns the latest regular frame captured from the simulator
         """
-        return self.reg_img
+        self.r_lock.acquire()
+        reg = self.reg_img.copy()
+        self.r_lock.release()
+        return reg
 
     def grab_depth(self):
         """
@@ -126,11 +132,14 @@ class SimCamHandler(Camera):
         """
         Returns the depth matrix (in meters) ahead of the current rover
         """
+        self.r_lock.acquire()
         # Convert depth data to numpy array
         self.depth_data = np.asarray(self.depth_data)
         # Resize current data (in list form) to matrix with expected dimensions
         self.depth_data = self.depth_data.reshape((self.depth_res_y, self.depth_res_x, 1))
-        return self.depth_data
+        depth_data = self.depth_data.copy()
+        self.r_lock.release()
+        return depth_data
 
     def start(self):
         """

@@ -11,7 +11,10 @@ class WaypointHandler:
         self.gps_data: core.GPSData = None
 
         core.rovecomm_node.set_callback(
-            core.manifest["Autonomy"]["Commands"]["AddWaypoints"]["dataId"], self.add_waypoint
+            core.manifest["Autonomy"]["Commands"]["AddMarkerLeg"]["dataId"], self.add_marker_waypoint
+        )
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["AddGateLeg"]["dataId"], self.add_gate_waypoint
         )
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
@@ -19,14 +22,25 @@ class WaypointHandler:
 
         self.logger = logging.getLogger(__name__)
 
-    def add_waypoint(self, packet) -> None:
+    def add_marker_waypoint(self, packet) -> None:
         """
         Adds the data from the packet (expects lat, lon) to the waypoints deque
+        as a marker
         """
         latitude, longitude = packet.data
         waypoint = core.Coordinate(latitude, longitude)
-        self.waypoints.append(waypoint)
-        self.logger.info(f"Added Waypoint: lat ({latitude}), lon({longitude})")
+        self.waypoints.append(("MARKER", waypoint))
+        self.logger.info(f"Added Marker Waypoint: lat ({latitude}), lon({longitude})")
+
+    def add_gate_waypoint(self, packet) -> None:
+        """
+        Adds the data from the packet (expects lat, lon) to the waypoints deque
+        as a gate
+        """
+        latitude, longitude = packet.data
+        waypoint = core.Coordinate(latitude, longitude)
+        self.waypoints.append(("GATE", waypoint))
+        self.logger.info(f"Added Gate Waypoint: lat ({latitude}), lon({longitude})")
 
     def clear_waypoints(self, packet) -> None:
         """
@@ -77,13 +91,14 @@ class WaypointHandler:
         self.gps_data.start = interfaces.nav_board.location()
 
         try:
-            current_goal = self.waypoints.popleft()
+            current_goal, leg_type = self.waypoints.popleft()
         except IndexError:
             self.logger.error("Tried popping waypoint from empty deque")
             self.gps_data = None
             return None
 
         self.gps_data.goal = current_goal
+        self.gps_data.leg_type = leg_type
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data
