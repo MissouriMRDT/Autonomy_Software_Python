@@ -71,7 +71,7 @@ class Navigating(RoverState):
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
             return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
 
-        goal, start = gps_data.data()
+        goal, start, leg_type = gps_data.data()
         current = interfaces.nav_board.location()
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"

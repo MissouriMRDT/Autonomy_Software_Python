@@ -53,7 +53,7 @@ class SearchPattern(RoverState):
         """
         gps_data = core.waypoint_handler.get_waypoint()
 
-        goal, start = gps_data.data()
+        goal, start, leg_type = gps_data.data()
         current = interfaces.nav_board.location()
 
         self.logger.debug(
