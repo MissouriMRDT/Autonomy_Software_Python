@@ -69,7 +69,7 @@ class ApproachingMarker(RoverState):
                 elif tags[0].angle >= 0 and tags[1].angle >= 0:  # both tags on the left
                     larger = max(tags[0].angle, tags[1].angle)
                     smaller = min(tags[0].angle, tags[1].angle)
-                    combinedAngle = larger - smalfler
+                    combinedAngle = larger - smaller
                 else:  # one tag on left, one on right
                     combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
 
@@ -102,7 +102,10 @@ class ApproachingMarker(RoverState):
 
                 # law of sines to get the last side of our triangle
                 distToMidpoint = ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
+<<<<<<< HEAD
                 self.logger.debug("Calculated Distance to gate:", distToMidpoint)
+=======
+>>>>>>> 9c70b5f98b7cc5d1710b28e2360abc8c5c9eb9cb
 
                 # Last step to get angle to the midpoint, depending on where tags are relative to rover
                 if tags[0].angle < 0 and tags[1].angle < 0:
@@ -111,8 +114,11 @@ class ApproachingMarker(RoverState):
                     angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
                 else:
                     angleToMidpoint = (interfaces.nav_board.heading() - (combinedAngle / 2)) % 360
+<<<<<<< HEAD
 
                 self.logger.debug("Calculated Angle to gate:", angleToMidpoint)
+=======
+>>>>>>> 9c70b5f98b7cc5d1710b28e2360abc8c5c9eb9cb
 
                 start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
