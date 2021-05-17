@@ -59,6 +59,19 @@ class ApproachingMarker(RoverState):
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5:
+                # compute the angle across from the gate
+                # depending where the rover is facing, this is computed differently
+                if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
+                    larger = min(tags[0].angle, tags[1].angle)
+                    smaller = max(tags[0].angle, tags[1].angle)
+                    combinedAngle = abs(larger) - abs(smaller)
+                elif tags[0].angle >= 0 and tags[1].angle >= 0:  # both tags on the left
+                    larger = max(tags[0].angle, tags[1].angle)
+                    smaller = min(tags[0].angle, tags[1].angle)
+                    combinedAngle = larger - smaller
+                else:  # one tag on left, one on right
+                    combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
+
                 # Calculate bearing and distance for the midpoint between the two tags
                 # use law of cosines to get the distance between the tags, midpoint will be halfway between them
                 gateWidth = math.sqrt(
@@ -67,11 +80,35 @@ class ApproachingMarker(RoverState):
                     - 2 * tags[0].distance * tags[1].distance * math.cos(tags[0].angle + tags[1].angle)
                 )
 
-                # use law of sines to get the angle across from tag[0]'s distance and deduce the last angle
-                angleAcrossD1 = math.asin((math.sin(tags[0].angle) * tags[0].distance) / (gateWidth * 0.5))
-                angleAcrossDm = 180 - angleAcrossD1 - tags[0].angle
-                distToMidpoint = (tags[0].distance * math.sin(angleAcrossDm)) / math.sin(tags[0].angle)
-                angleToMidpoint = (((tags[0].angle + tags[1].angle) / 2) + interfaces.nav_board.heading) % 360
+                # we want to use the smaller side for our midpoint triangle
+                D1 = min(tags[0].distance, tags[1].distance)
+
+                # use law of sines to get the angle across from D1
+                sinVal = (math.sin(math.radians(combinedAngle / 2)) * D1) / (gateWidth * 0.5)
+
+                # arcsin is limited between -1 and 1, not sure why reflecting these values
+                # across the y axis works, but it does. No proof it works in all cases
+                if sinVal > 1:
+                    sinDiff = sinVal - 1
+                    sinVal = 1 - sinDiff
+                elif sinVal < -1:
+                    sinDiff = sinVal + 1
+                    sinVal = -1 - sinDiff
+                angleAcrossD1 = math.asin(sinVal)
+
+                # deduce the last angle from 180 (pi)
+                angleAcrossDm = math.pi - angleAcrossD1 - tags[0].angle
+
+                # law of sines to get the last side of our triangle
+                distToMidpoint = ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
+
+                # Last step to get angle to the midpoint, depending on where tags are relative to rover
+                if tags[0].angle < 0 and tags[1].angle < 0:
+                    angleToMidpoint = (interfaces.nav_board.heading() - (abs(larger) - (combinedAngle / 2))) % 360
+                elif tags[0].angle >= 0 and tags[1].angle >= 0:
+                    angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
+                else:
+                    angleToMidpoint = (interfaces.nav_board.heading() - (combinedAngle / 2)) % 360
 
                 start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
@@ -83,12 +120,15 @@ class ApproachingMarker(RoverState):
                 # Also calculate second point (to run through the gate)
                 # rightTriSide = math.sin(angleToMidpoint) * tags[0].distance
                 # complementAngle = math.asin(rightTriSide / (gateWidth*.5))
-                targetPastGateHeading = ((angleAcrossD1 - 90.0) + interfaces.nav_board.heading) % 360
+                targetPastGateHeading = ((angleAcrossD1 - (math.pi / 2)) + interfaces.nav_board.heading()) % 360
+                targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(
+                    -3, target[0], target[1], targetPastGateHeading
+                )
                 targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
                     2, target[0], target[1], targetPastGateHeading
                 )
 
-                points = [target, targetPastGate]
+                points = [targetBeforeGate, target, targetPastGate]
 
                 # Approach the gate using GPS drive
                 for point in points:
