@@ -92,7 +92,12 @@ class Navigating(RoverState):
             return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
 
         # Check if we are still approaching the goal
-        if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
+        if (
+            algorithms.gps_navigate.get_approach_status(
+                goal, current, start, 0.75 if (leg_type == "POSITION") else core.WAYPOINT_DISTANCE_THRESHOLD
+            )
+            != core.ApproachState.APPROACHING
+        ):
             self.logger.info(
                 f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
             )

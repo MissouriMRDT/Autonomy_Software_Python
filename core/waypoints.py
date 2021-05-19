@@ -11,6 +11,9 @@ class WaypointHandler:
         self.gps_data: core.GPSData = None
 
         core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["AddPositionLeg"]["dataId"], self.add_position_waypoint
+        )
+        core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddMarkerLeg"]["dataId"], self.add_marker_waypoint
         )
         core.rovecomm_node.set_callback(
