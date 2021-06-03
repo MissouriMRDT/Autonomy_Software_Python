@@ -112,7 +112,7 @@ class Navigating(RoverState):
                 return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
 
         left, right = algorithms.gps_navigate.calculate_move(
-            goal, interfaces.nav_board.location(), start, core.DRIVE_POWER
+            goal, interfaces.nav_board.location(), start, core.MAX_DRIVE_POWER
         )
 
         self.logger.debug(f"Navigating: Driving at ({left}, {right})")

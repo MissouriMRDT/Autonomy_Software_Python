@@ -77,24 +77,24 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
         # Calculates the number of elements at each depth and scales their value by closeness
         max_li.append(
             len(
-                depth_matrix[(depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth)]
+                depth_matrix[(depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000)]
                 * (1 / ((depth - min_depth) + 1))
             )
         )
 
     max_li = heapq.nlargest(core.NUM_DEPTH_SEGMENTS, zip(max_li, li))
-
     # Sort starting closest (distance wise) first
     max_li.sort(reverse=False, key=lambda x: x[1])
 
     # For each step selected, run contour detection looking for blobs at that depth
     for (score, depth) in max_li:
         # 1 for all entries at depth, 0 for those not. Needed for findContours()
-        maskDepth = np.where((depth_matrix < depth + core.DEPTH_STEP_SIZE) & (depth_matrix > depth), 1, 0)
+        maskDepth = np.where(
+            (depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000), 1, 0
+        )
 
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
-
         # Check if there are contours to be detected at this depth
         if contours != []:
             # choose the largest blob at this depth
@@ -156,7 +156,7 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
             cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
         cv2.putText(
             reg_img,
-            f"Obstacle Detected at {angle, round(depth_data[cY][cX], 2)}",
+            f"Obstacle Detected at {angle, round(depth_data[cY][cX], 2)/1000}",
             (cX - 100, cY - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,

@@ -90,7 +90,7 @@ class SearchPattern(RoverState):
 
             self.logger.info(f"Search Pattern: Adding New Waypoint ({goal[0]}, {goal[1]}")
 
-        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.DRIVE_POWER)
+        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
 
         self.logger.debug(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)

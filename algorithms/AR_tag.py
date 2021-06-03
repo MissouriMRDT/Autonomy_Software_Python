@@ -36,7 +36,6 @@ def detect_ar_tag(reg_img):
         # Calculate the center points of the AR Tag
         cX = x + (w / 2)
         cY = y + (h / 2)
-
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
         tags.append(Tag(cX, cY, distance, angle))
@@ -72,23 +71,19 @@ def track_ar_tag(center):
     distance = NaN
 
     # Find some permutations we can use in case of noisy data
-    coordinates = [0, 1, -1, 2, -2]
+    coordinates = [0, 1, -1, 2, -2, 3, -3, 4, -4]
     perm = list(itertools.permutations(coordinates, 2))
 
     # Grab the distance from the depth map, iterating over pixels if the distance is not finite
     index = 0
 
-    while not np.isfinite(distance):
+    while not np.isfinite(distance) and index < len(perm):
         if index < len(perm):
             distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
             index += 1
-        else:
-            index = 0
 
-    # Grab the distance from the depth map
-    if type(core.vision.camera_handler).__name__ == "ZedHandler":
-        # ZED units are currently in millimeters
-        distance /= 1000
+    # Vision system reports depth in mm, we want in meters
+    distance /= 1000
 
     # Grab the camera parameters
     img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
@@ -99,6 +94,6 @@ def track_ar_tag(center):
     pixel_offset = cX - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
 
-    logger.info(f"Distance to marker: {distance}")
+    logger.info(f"Distance to marker: {distance} at pixel ({cX}, {cY})")
     logger.info(f"Angle to marker: {angle}")
     return distance, angle
