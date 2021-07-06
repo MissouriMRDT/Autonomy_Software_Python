@@ -8,7 +8,7 @@ import gmplot
 def main():
     print("***")
     # Create the map plotter:
-    apikey = "AIzaSyBcdzPM-dICBYxG9D5eqEHnXYDRiqoGHvc"  # (your API key here)
+    apikey = ""  # (your API key here)
     gmap = gmplot.GoogleMapPlotter(37.951755, -91.778007, 14, apikey=apikey)
 
     # Mark a hidden gem:

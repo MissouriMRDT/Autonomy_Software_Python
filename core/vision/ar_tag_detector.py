@@ -34,7 +34,7 @@ async def async_ar_tag_detector():
 
 def is_marker():
     """
-    Returns whether there is an AR tag.
+    Returns whether there is a visible marker.
 
     Returns:
     -------------
@@ -45,7 +45,9 @@ def is_marker():
 
 def is_gate():
     """
-    Returns whether there is an AR tag.
+    Returns whether there are multiple visible AR tags. We don't look for
+    2 specfically because we don't want a false positive to cause this bool
+    to fail and abort immediately.
 
     Returns:
     -------------

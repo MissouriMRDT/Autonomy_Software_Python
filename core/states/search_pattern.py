@@ -64,6 +64,7 @@ class SearchPattern(RoverState):
         )
 
         # Check to see if gate or marker was detected
+        # If so, immediately stop all movement to ensure that we don't lose sight of the AR tag(s)
         if core.vision.ar_tag_detector.is_gate() and leg_type == "GATE":
             interfaces.drive_board.stop()
 
