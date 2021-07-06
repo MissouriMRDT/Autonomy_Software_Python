@@ -26,3 +26,6 @@ resources/tests/output/*
 
 #Coverage files
 *.coverage
+
+# Map test output
+map.html

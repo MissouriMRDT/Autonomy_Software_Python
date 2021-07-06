@@ -10,7 +10,7 @@ import math
 
 class ApproachingGate(RoverState):
     """
-    Within approaching marker, the rover explicitly follows the spotted marker until it reaches an acceptable distance from the rover, or loses sight of it.
+    Within approaching gate, 3 waypoints are calculated in front of, between, and throught the viewed gate, allowing the rover to traverse through the gate fully.
     """
 
     def start(self):
@@ -55,13 +55,13 @@ class ApproachingGate(RoverState):
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_gate():
-            # Grab the AR tags
+            # Use get_tags to create an array of the 2 gate posts 
+            # (named tuples containing the distance and relative angle from the camera)
             tags = core.vision.ar_tag_detector.get_tags()
             gps_data = core.waypoint_handler.get_waypoint()
             orig_goal, orig_start, leg_type = gps_data.data()
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
-            print(leg_type, self.gate_detection_attempts)
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
@@ -77,7 +77,7 @@ class ApproachingGate(RoverState):
                 else:  # one tag on left, one on right
                     combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
                 # Calculate bearing and distance for the midpoint between the two tags
-                # use law of cosines to get the dfistance between the tags, midpoint will be halfway between them
+                # use law of cosines to get the distance between the tags, midpoint will be halfway between them
                 gateWidth = math.sqrt(
                     (tags[0].distance ** 2)
                     + (tags[1].distance ** 2)
