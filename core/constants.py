@@ -61,7 +61,7 @@ class OperationState(IntEnum):
 
 
 class GPSData:
-    def __int__(self, goal, start, leg="MARKER"):
+    def __int__(self, goal, start, leg="POSITION"):
         self.goal = goal
         self.start = start
         self.leg_type = leg

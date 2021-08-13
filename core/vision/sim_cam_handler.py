@@ -15,7 +15,7 @@ class SimCamHandler(Camera):
 
         # Create socket to receive incoming frames streamed from Simulator
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host_ip = "127.0.0.1" 
+        self.host_ip = "127.0.0.1"
         self.port = 9999
         self.client_socket.connect((self.host_ip, self.port))
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
