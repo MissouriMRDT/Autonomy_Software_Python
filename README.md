@@ -86,7 +86,7 @@ The architecture is broken up into four categories:
 
 ## Contributing
 
-Dev serves as the development branch throughout the school year. So if you want to start developing a feature or improvement create a banch based off of dev:
+Dev serves as the development branch throughout the school year. So if you want to start developing a feature or improvement create a branch based off of dev:
 
 ```
 git pull
