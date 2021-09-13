@@ -96,7 +96,7 @@ git branch -b feature/<your feature name>
 
 Every branch should contain the naming pattern feature/<feature name>. Once the feature has been developed and tested, create a Pull Request to merge your branches changes into dev. You can use the Github web interface for this.
 
-Pull requests will not be accepted if they cause unit tests to break or have syntatical errors. If you are adding a new algorithm, make sure to add a corresponding unit test, or it will most likely not be accepted.
+Pull requests will not be accepted if they cause unit tests to break or have syntactical errors. If you are adding a new algorithm, make sure to add a corresponding unit test, or it will most likely not be accepted.
 
 ## Known Issues
 
