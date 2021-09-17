@@ -1,10 +1,11 @@
 import asyncio
-from core.vision.ar_tag_detector import is_ar_tag
+from core.vision.ar_tag_detector import is_marker
 import core
 import interfaces
 import algorithms
 from core.states import RoverState
 import time
+import math
 
 
 class ApproachingMarker(RoverState):
@@ -15,6 +16,7 @@ class ApproachingMarker(RoverState):
     def start(self):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
+        self.gate_detection_attempts = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -52,11 +54,13 @@ class ApproachingMarker(RoverState):
     async def run(self) -> RoverState:
 
         # Call AR Tag tracking code to find position and size of AR Tag
-        if core.vision.ar_tag_detector.is_ar_tag():
+        if core.vision.ar_tag_detector.is_marker():
             # Grab the AR tags
             tags = core.vision.ar_tag_detector.get_tags()
+            gps_data = core.waypoint_handler.get_waypoint()
+            orig_goal, orig_start, leg_type = gps_data.data()
 
-            # Currently only orienting based on one AR Tag-
+            # Currently only orienting based on one AR Tag
             distance = tags[0].distance
             angle = tags[0].angle
 
@@ -88,6 +92,7 @@ class ApproachingMarker(RoverState):
                 interfaces.drive_board.send_drive(left, right)
         else:
             self.num_detection_attempts += 1
+            self.gate_detection_attempts = 0
 
             # If we have attempted to track an AR Tag unsuccesfully
             # MAX_DETECTION_ATTEMPTS times, we will return to search pattern

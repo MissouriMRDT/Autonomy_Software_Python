@@ -27,6 +27,9 @@ class SearchPattern(RoverState):
         if event == core.AutonomyEvents.MARKER_SEEN:
             state = core.states.ApproachingMarker()
 
+        elif event == core.AutonomyEvents.GATE_SEEN:
+            state = core.states.ApproachingGate()
+
         elif event == core.AutonomyEvents.START:
             state = self
 
@@ -53,15 +56,25 @@ class SearchPattern(RoverState):
         """
         gps_data = core.waypoint_handler.get_waypoint()
 
-        goal, start = gps_data.data()
+        goal, start, leg_type = gps_data.data()
         current = interfaces.nav_board.location()
 
         self.logger.debug(
             f"Searching: Location ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]}) to Goal ({goal[0]}, {goal[1]})"
         )
 
-        # Check to see if AR Tag was detected
-        if core.vision.ar_tag_detector.is_ar_tag():
+        # Check to see if gate or marker was detected
+        # If so, immediately stop all movement to ensure that we don't lose sight of the AR tag(s)
+        if core.vision.ar_tag_detector.is_gate() and leg_type == "GATE":
+            interfaces.drive_board.stop()
+
+            # Sleep for a brief second
+            await asyncio.sleep(0.1)
+
+            self.logger.info("Search Pattern: Gate seen")
+            return self.on_event(core.AutonomyEvents.GATE_SEEN)
+
+        elif core.vision.ar_tag_detector.is_marker() and leg_type == "MARKER":
             interfaces.drive_board.stop()
 
             # Sleep for a brief second

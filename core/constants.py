@@ -22,7 +22,7 @@ SEARCH_DISTANCE = 0.008
 DELTA_THETA = math.pi / 4
 
 # Vision Parameters
-MAX_DETECTION_ATTEMPTS = 5
+MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
 
 # LiDAR maximum distance before we decide we would yeet off a cliff.
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
@@ -61,9 +61,10 @@ class OperationState(IntEnum):
 
 
 class GPSData:
-    def __int__(self, goal, start):
+    def __int__(self, goal, start, leg="POSITION"):
         self.goal = goal
         self.start = start
+        self.leg_type = leg
 
     def data(self):
-        return self.goal, self.start
+        return self.goal, self.start, self.leg_type

@@ -4,6 +4,7 @@ from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
 from core.states.approaching_marker import ApproachingMarker
+from core.states.approaching_gate import ApproachingGate
 from core.states.avoidance import Avoidance
 from enum import Enum
 
@@ -15,16 +16,17 @@ class AutonomyEvents(Enum):
     START = 1
     REACHED_GPS_COORDINATE = 2
     MARKER_SEEN = 3
-    MARKER_UNSEEN = 4
-    SEARCH_FAILED = 5
-    REACHED_MARKER = 6
-    ALL_MARKERS_REACHED = 7
-    ABORT = 8
-    RESTART = 9
-    OBSTACLE_AVOIDANCE = 10
-    END_OBSTACLE_AVOIDANCE = 11
-    NO_WAYPOINT = 12
-    NEW_WAYPOINT = 13
+    GATE_SEEN = 4
+    MARKER_UNSEEN = 5
+    SEARCH_FAILED = 6
+    REACHED_MARKER = 7
+    ALL_MARKERS_REACHED = 8
+    ABORT = 9
+    RESTART = 10
+    OBSTACLE_AVOIDANCE = 11
+    END_OBSTACLE_AVOIDANCE = 12
+    NO_WAYPOINT = 13
+    NEW_WAYPOINT = 14
 
 
 StateMapping = {
@@ -32,5 +34,6 @@ StateMapping = {
     "Navigating": 1,
     "SearchPattern": 2,
     "ApproachingMarker": 3,
-    "Avoidance": 4,
+    "ApproachingGate": 4,
+    "Avoidance": 5,
 }

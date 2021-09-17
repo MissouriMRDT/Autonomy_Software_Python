@@ -35,7 +35,7 @@ class SimCamHandler(Camera):
         self.fps = 30
 
         # Add the desired feeds
-        self.feed_handler.add_feed(10, "regular")
+        self.feed_handler.add_feed(10, "regular", save_video=False, stream_video=False)
 
         # Create initial frames
         self.reg_img = None

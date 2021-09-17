@@ -32,15 +32,28 @@ async def async_ar_tag_detector():
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 
-def is_ar_tag():
+def is_marker():
     """
-    Returns whether there is an obstacle.
+    Returns whether there is a visible marker.
 
     Returns:
     -------------
         detect (bool) - whether or not something was detected
     """
     return len(ar_tags) > 0
+
+
+def is_gate():
+    """
+    Returns whether there are multiple visible AR tags. We don't look for
+    2 specfically because we don't want a false positive to cause this bool
+    to fail and abort immediately.
+
+    Returns:
+    -------------
+        detect (bool) - whether or not something was detected
+    """
+    return len(ar_tags) > 1
 
 
 def get_tags() -> List[Tag]:
