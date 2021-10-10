@@ -65,6 +65,7 @@ class Navigating(RoverState):
         """
         Defines regular rover operation when under this state
         """
+        last_leg_type = core.waypoint_handler.gps_data.leg_type
 
         gps_data = core.waypoint_handler.get_waypoint()
 
@@ -79,6 +80,9 @@ class Navigating(RoverState):
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
+
+        # Based on last leg type, give rover room to begin driving
+        #if(last_leg_type... )
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()

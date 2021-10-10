@@ -115,3 +115,4 @@ class WaypointHandler:
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data
+        
