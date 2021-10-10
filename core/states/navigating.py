@@ -69,6 +69,9 @@ class Navigating(RoverState):
 
         gps_data = core.waypoint_handler.get_waypoint()
 
+        # Based on last leg type, give rover room to begin driving
+        #if(last_leg_type... )
+
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
@@ -80,9 +83,6 @@ class Navigating(RoverState):
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
-
-        # Based on last leg type, give rover room to begin driving
-        #if(last_leg_type... )
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()
