@@ -1,0 +1,44 @@
+version: 1
+formatters:
+  simple:
+    format: '%(name)s, %(funcName)s, %(levelname)s, %(message)s'
+  csv:
+    format: '%(asctime)s.%(msecs)03d,%(module)s,%(funcName)s,%(levelname)s,"%(message)s"'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+handlers:
+  console:
+    class: rich.logging.RichHandler
+    level: 0
+    formatter: simple
+    rich_tracebacks: True
+  csv:
+    class: core.logging_handlers.CsvHandler
+    level: 0
+    formatter: csv
+    header: TIMESTAMP,MODULE,FUNCTION,LEVEL,MESSAGE
+    filename: logs/log.csv
+    new_file: True
+    delay: False
+  RoveComm:
+    class: core.logging_handlers.RoveCommHandler
+    level: 0
+    formatter: simple
+    level: INFO
+    data_id: 4241
+    reliable: False
+loggers:
+  Logging_Test:
+    level: DEBUG
+    handlers: [console, csv, RoveComm]
+    propagate: False
+  core.telemetry_handler:
+    level: DEBUG
+    handlers: [console, csv]
+    propagate: False
+  matplotlib:
+    level: INFO
+    handlers: [console, csv]
+    propagate: False
+root:
+  level: DEBUG
+  handlers: [csv, console, RoveComm]

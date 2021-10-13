@@ -1,12 +1,18 @@
-import core.constants as constants
-from core.rovecomm import RoveCommPacket
-
-DRIVE_BOARD_IP = "134"
-DRIVE_DATA_ID = 1000
-# left/right between -1000,1000
+from typing import Tuple
+import core
+import logging
 
 
 def clamp(n, min_n, max_n):
+    """
+    Clamps value n between min_n and max_n
+
+    Parameters:
+    -----------
+        n - the value to be clamped
+        min_n - the minimum value it can be
+        max_n - the maximum value it can be
+    """
     return max(min(max_n, n), min_n)
 
 
@@ -17,46 +23,69 @@ class DriveBoard:
     """
 
     def __init__(self):
+        self._targetSpdLeft: int = 0
+        self._targetSpdRight: int = 0
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
-        self._targetSpdLeft = 0
-        self._targetSpdRight = 0
-        self.enabled = False
+    def calculate_move(self, speed: float, angle: float) -> Tuple[int, int]:
+        """
+        Calculates the drives speeds given the vector (speed, angle)
 
-    def __del__(self):
-        self.disable()
-
-    def calculate_move(self, speed, angle):
-        """ Speed: -1000 to 1000
-        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right """
+        Parameters:
+        -----------
+            Speed: -1000 to 1000
+            Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right
+        """
 
         speed_left = speed_right = speed
 
-        if(angle > 0):
+        if angle > 0:
             speed_right = speed_right * (1 - (angle / 180.0))
-        elif(angle < 0):
+        elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -constants.DRIVE_POWER, constants.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -constants.DRIVE_POWER, constants.DRIVE_POWER))
+        self._targetSpdLeft: int = int(clamp(speed_left, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
+        self._targetSpdRight: int = int(clamp(speed_right, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
 
-        if self.enabled:
-            return self._targetSpdLeft, self._targetSpdRight
-        return 0, 0
+        self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
-    def send_drive(self, target_left, target_right):
-        return RoveCommPacket(DRIVE_DATA_ID, 'h', (target_left, target_right), ip_octet_4=DRIVE_BOARD_IP)
+        return self._targetSpdLeft, self._targetSpdRight
 
-    def disable(self):
-        self.enabled = False
+    def send_drive(self, target_left: int, target_right: int) -> None:
+        """
+        Sends a rovecomm packet with the specified drive speed
 
-    def enable(self):
-        self.enabled = True
+        Parameters:
+        -----------
+            target_left (int16) - the speed to drive left motors
+            target_right (int16) - the speed to drive right motors
+        """
 
+        # Write a drive packet (UDP)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
+                "h",
+                (target_left, target_right),
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
+            ),
+            False,
+        )
 
-if __name__ == '__main__':
-    motors = DriveBoard("testytest.txt")
-    motors.enable()
-    for i in range(-180, 181):
-        left, right = motors.calculate_move(100, i)
-        motors.send_drive(left, right)
-        print(left, right)
+    def stop(self) -> None:
+        """
+        Sends a rovecomm packet with a 0, 0 to indicate full stop
+        """
+
+        # Write a drive packet of 0s (to stop)
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
+                "h",
+                (0, 0),
+                core.manifest["Drive"]["Ip"],
+                core.UDP_OUTGOING_PORT,
+            ),
+            False,
+        )
