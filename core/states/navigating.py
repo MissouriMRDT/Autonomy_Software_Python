@@ -68,9 +68,15 @@ class Navigating(RoverState):
         last_leg_type = core.waypoint_handler.gps_data.leg_type
 
         gps_data = core.waypoint_handler.get_waypoint()
+        backwardSpeed = -2
 
         # Based on last leg type, give rover room to begin driving
-        #if(last_leg_type... )
+        # if(last_leg_type... )
+        if last_leg_type == "POSITION" or last_leg_type == "MARKER":
+            interfaces.drive_board.send_drive(backwardSpeed, backwardSpeed)
+
+        elif last_leg_type == "MARKER":
+            interfaces.drive_board.send_drive(2, 2)
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
