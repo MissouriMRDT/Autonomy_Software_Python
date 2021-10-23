@@ -1,10 +1,12 @@
 import asyncio
+from algorithms import geomath
 from core.vision import obstacle_avoidance
 from core.waypoints import WaypointHandler
 import core
 import interfaces
 import algorithms
 from core.states import RoverState
+from interfaces import nav_board
 
 
 class Navigating(RoverState):
@@ -68,15 +70,21 @@ class Navigating(RoverState):
         last_leg_type = core.waypoint_handler.gps_data.leg_type
 
         gps_data = core.waypoint_handler.get_waypoint()
-        backwardSpeed = -2
 
         # Based on last leg type, give rover room to begin driving
-        # if(last_leg_type... )
         if last_leg_type == "POSITION" or last_leg_type == "MARKER":
-            interfaces.drive_board.send_drive(backwardSpeed, backwardSpeed)
+            backup_distance = 2 # meters
+            interfaces.drive_board.backup(backup_distance)
 
         elif last_leg_type == "MARKER":
-            interfaces.drive_board.send_drive(2, 2)
+            # create new position leg type 2 meters in front of rover and insert in from of queue
+            forward_distance = 2
+            heading = interfaces.nav_board.heading()
+            latitude, longitude = nav_board.location()
+            latitude, longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
+            waypoint = core.Coordinate(latitude, longitude)
+            core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
+            self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({latitude}), lon ({longitude})")
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
