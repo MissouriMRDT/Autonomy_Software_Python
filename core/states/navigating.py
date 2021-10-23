@@ -78,7 +78,7 @@ class Navigating(RoverState):
             interfaces.drive_board.backup(backup_distance)
 
         # create new position leg type 2 meters in front of rover and insert in from of queue
-        elif last_leg_type == "MARKER":
+        elif last_leg_type == "GATE":
             forward_distance = 2
             heading = interfaces.nav_board.heading()
             latitude, longitude = nav_board.location()
