@@ -73,7 +73,7 @@ class Navigating(RoverState):
 
         # Based on last leg type, give rover room to begin driving
         # Back up 2 meters
-        if last_leg_type == "POSITION" or last_leg_type == "MARKER":
+        if last_leg_type == "POST" or last_leg_type == "MARKER":
             backup_distance = 2 # meters
             interfaces.drive_board.backup(backup_distance)
 
