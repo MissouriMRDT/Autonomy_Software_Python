@@ -72,17 +72,18 @@ class Navigating(RoverState):
         gps_data = core.waypoint_handler.get_waypoint()
 
         # Based on last leg type, give rover room to begin driving
+        # Back up 2 meters
         if last_leg_type == "POSITION" or last_leg_type == "MARKER":
             backup_distance = 2 # meters
             interfaces.drive_board.backup(backup_distance)
 
+        # create new position leg type 2 meters in front of rover and insert in from of queue
         elif last_leg_type == "MARKER":
-            # create new position leg type 2 meters in front of rover and insert in from of queue
             forward_distance = 2
             heading = interfaces.nav_board.heading()
             latitude, longitude = nav_board.location()
-            latitude, longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
-            waypoint = core.Coordinate(latitude, longitude)
+            goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
+            waypoint = core.Coordinate(goal_latitude, goal_longitude)
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
             self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({latitude}), lon ({longitude})")
 
