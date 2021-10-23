@@ -3,7 +3,6 @@ from algorithms import geomath
 import core
 import logging
 import time
-
 from interfaces import nav_board
 
 
@@ -94,32 +93,33 @@ class DriveBoard:
             False,
         )
 
-def backup(self, target_distance, speed = -150):
-    """
-    Backs rover up for a specified distance at specified speed
+    def backup(self, target_distance, speed = -150):
+        """
+        Backs rover up for a specified distance at specified speed
 
-    Parameters:
-    -----------
-        target_distance (int16) - distance to travel backwards
-        speed (int16) - the speed to drive right and left motors
-    """
+        Parameters:
+        -----------
+            target_distance (float) - distance to travel backwards
+            speed (int16) - the speed to drive right and left motors
+        """
 
-    # Force distance to be positive and speed to be negative
-    target_distance = abs(target_distance)
-    speed = -abs(speed)
+        # Force distance to be positive and speed to be negative
+        target_distance = abs(target_distance)
+        speed = -abs(speed)
 
-    # Initialize
-    distance_traveled = 0
-    start_latitude, start_longitude = nav_board.location()
-    self.send_drive(speed, speed)
+        # Initialize
+        distance_traveled = 0
+        start_latitude, start_longitude = nav_board.location()
+        self.send_drive(speed, speed)
 
-    # Check distance traveled until target distance is reached
-    while(distance_traveled < target_distance):
-        current_latitude, current_longitude = nav_board.location()
-        bearing, distance_traveled = geomath.haversine(start_latitude, start_longitude, current_latitude, current_longitude)
-        self.logger.debug(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
-        time.sleep(core.EVENT_LOOP_DELAY)
+        # Check distance traveled until target distance is reached
+        while(distance_traveled < target_distance):
+            current_latitude, current_longitude = nav_board.location()
+            bearing, distance_traveled = geomath.haversine(start_latitude, start_longitude, current_latitude, current_longitude)
+            distance_traveled = distance_traveled / 1000 # convert km to m
+            self.logger.debug(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
+            time.sleep(core.EVENT_LOOP_DELAY)
 
-    # Stop rover
-    self.logger.debug(f"Backing Up: COMPLETED")
-    self.stop()
+        # Stop rover
+        self.logger.debug(f"Backing Up: COMPLETED")
+        self.stop()
