@@ -85,7 +85,7 @@ class Navigating(RoverState):
             goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
             waypoint = core.Coordinate(goal_latitude, goal_longitude)
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
-            self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({latitude}), lon ({longitude})")
+            self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
