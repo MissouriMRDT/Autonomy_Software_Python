@@ -69,8 +69,6 @@ class Navigating(RoverState):
         """
         last_leg_type = core.waypoint_handler.gps_data.leg_type
 
-        gps_data = core.waypoint_handler.get_waypoint()
-
         # Based on last leg type, give rover room to begin driving
         # Back up 2 meters
         if last_leg_type == "POST" or last_leg_type == "MARKER":
@@ -87,8 +85,10 @@ class Navigating(RoverState):
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
             self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
 
+        gps_data = core.waypoint_handler.get_waypoint()
+
         # If the gps_data is none, there were no waypoints to be grabbed,
-        # so log that and return
+        # so log that and returnfg
         if gps_data is None:
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
             return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
