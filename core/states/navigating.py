@@ -136,7 +136,7 @@ class Navigating(RoverState):
                 core.waypoint_handler.set_goal(interfaces.nav_board.location())
                 core.waypoint_handler.set_start(interfaces.nav_board.location())
 
-                if leg_type == "POSITION":
+                if leg_type == "POST":
                     self.logger.info("Reached Marker")
 
                     # Transmit that we have reached the marker
@@ -151,6 +151,9 @@ class Navigating(RoverState):
 
                     # Tell multimedia board to flash our LED matrix green to indicate reached marker
                     interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+                elif leg_type == "POSITION":
+                    self.logger.info("Reached position waypoint")
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 else:
                     return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
