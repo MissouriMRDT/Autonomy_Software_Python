@@ -20,6 +20,9 @@ class WaypointHandler:
             core.manifest["Autonomy"]["Commands"]["AddGateLeg"]["dataId"], self.add_gate_waypoint
         )
         core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["AddPostLeg"]["dataId"], self.add_post_waypoint
+        )
+        core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
         )
 
@@ -54,6 +57,16 @@ class WaypointHandler:
         waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(("POSITION", waypoint))
         self.logger.info(f"Added Position Waypoint: lat ({latitude}), lon({longitude})")
+
+    def add_post_waypoint(self, packet) -> None:
+        """
+        Adds the data from the packet (expects lat, lon) to the waypoints deque
+        as a post
+        """
+        latitude, longitude = packet.data
+        waypoint = core.Coordinate(latitude, longitude)
+        self.waypoints.append(("POST", waypoint))
+        self.logger.info(f"Added Post Waypoint: lat ({latitude}), lon({longitude})")
 
     def clear_waypoints(self, packet) -> None:
         """
@@ -115,4 +128,3 @@ class WaypointHandler:
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data
-        
