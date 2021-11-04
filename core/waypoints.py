@@ -9,6 +9,7 @@ class WaypointHandler:
         # Class variables
         self.waypoints: deque = deque()
         self.gps_data: core.GPSData = None
+        self.last_leg_type: str = None
 
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddPositionLeg"]["dataId"], self.add_position_waypoint
@@ -113,6 +114,9 @@ class WaypointHandler:
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
         """
+        if self.gps_data != None:
+            self.last_leg_type = self.gps_data.leg_type
+
         self.gps_data = core.GPSData()
         self.gps_data.start = interfaces.nav_board.location()
 

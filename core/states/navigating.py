@@ -67,7 +67,7 @@ class Navigating(RoverState):
         """
         Defines regular rover operation when under this state
         """
-        last_leg_type = core.waypoint_handler.gps_data.leg_type
+        last_leg_type = core.waypoint_handler.last_leg_type
 
         # Based on last leg type, give rover room to begin driving
         # Back up 2 meters
