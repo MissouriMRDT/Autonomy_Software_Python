@@ -3,6 +3,7 @@ from algorithms import geomath
 import core
 import logging
 import time
+import interfaces
 from interfaces import nav_board
 
 
@@ -109,17 +110,17 @@ class DriveBoard:
 
         # Initialize
         distance_traveled = 0
-        start_latitude, start_longitude = nav_board.location()
-        self.send_drive(speed, speed)
+        start_latitude, start_longitude = interfaces.nav_board.location()
 
         # Check distance traveled until target distance is reached
         while(distance_traveled < target_distance):
-            current_latitude, current_longitude = nav_board.location()
+            self.send_drive(speed, speed)
+            current_latitude, current_longitude = interfaces.nav_board.location()
             bearing, distance_traveled = geomath.haversine(start_latitude, start_longitude, current_latitude, current_longitude)
-            distance_traveled /= 1000 # convert km to m
-            self.logger.debug(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
+            distance_traveled *= 1000 # convert km to m
+            self.logger.info(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
             time.sleep(core.EVENT_LOOP_DELAY)
 
         # Stop rover
-        self.logger.debug(f"Backing Up: COMPLETED")
+        self.logger.info(f"Backing Up: COMPLETED")
         self.stop()
