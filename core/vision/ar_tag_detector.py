@@ -8,7 +8,6 @@ import logging
 # Dict to hold the obstacle info
 ar_tags = []
 
-
 async def async_ar_tag_detector():
     """
     Async function to find obstacles.
