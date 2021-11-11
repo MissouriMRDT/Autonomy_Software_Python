@@ -132,3 +132,10 @@ class WaypointHandler:
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data
+
+    def reset_last_leg_type(self):
+        """
+        Resets the last_leg_type member variable to prevent running 
+        navigation setup fuctions multiple times
+        """
+        self.last_leg_type = ""

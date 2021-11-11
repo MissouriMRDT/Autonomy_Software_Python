@@ -74,6 +74,7 @@ class Navigating(RoverState):
         if last_leg_type == "POST" or last_leg_type == "MARKER":
             backup_distance = 2 # meters
             interfaces.drive_board.backup(backup_distance)
+            core.waypoint_handler.reset_last_leg_type()
 
         # create new position leg type 2 meters in front of rover and insert in from of queue
         elif last_leg_type == "GATE":
@@ -84,6 +85,7 @@ class Navigating(RoverState):
             waypoint = core.Coordinate(goal_latitude, goal_longitude)
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
             self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
+            core.waypoint_handler.reset_last_leg_type()
 
         gps_data = core.waypoint_handler.get_waypoint()
 
