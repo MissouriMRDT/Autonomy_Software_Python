@@ -2,7 +2,7 @@ from collections import namedtuple
 from math import dist
 import cv2
 import logging
-import numpy.core.numeric as NaN
+from numpy.core.numeric import NaN
 import itertools
 import core
 import numpy as np
@@ -10,7 +10,6 @@ from cv2 import aruco
 
 tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
 
-cap = cv2.VideoCapture(0)
 Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])  
 
 def detect_ar_tag(reg_img):
@@ -28,8 +27,7 @@ def detect_ar_tag(reg_img):
     """
 
     tags = []
-    # Capture frame-by-frame
-    ret, reg_img = cap.read()
+    
     #print(frame.shape) #480x640
     # Our operations on the frame come here
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
@@ -44,6 +42,7 @@ def detect_ar_tag(reg_img):
         '''
         #lists of ids and the corners beloning to each id
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    
     # print(corners)
 
     #It's working.
@@ -52,24 +51,26 @@ def detect_ar_tag(reg_img):
 
     reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
+    '''
     if ids is not None:
         tags.clear()
         for array in ids:
             tags.append(array[0])
-
+    '''
     #print(rejectedImgPoints)
     # Display the resulting frame
     # cv2.imshow('frame',reg_img)
  
     if len(corners) != 0:
-        x = corners[0][0][0][0]
-        y = corners[0][0][0][1]
-        w = corners[0][0][1][0] - corners[0][0][0][0]
-        h = corners[0][0][3][1] - corners[0][0][0][1]
+        x1 = corners[0][0][0][0] #top left x coord
+        y1 = corners[0][0][0][1] # top left y coord
+        x2 = corners[0][0][1][0] # top right x coord
+        y2 = corners[0][0][3][1] # bottom left y coord
+
 
         # Calculate the center points of the AR Tag
-        cX = x + (w / 2)
-        cY = y + (h / 2)
+        cX = (x1 + x2) / 2
+        cY = (y1 + y2) / 2
 
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
