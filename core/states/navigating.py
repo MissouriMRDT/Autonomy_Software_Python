@@ -80,7 +80,7 @@ class Navigating(RoverState):
         elif last_leg_type == "GATE":
             forward_distance = 2
             heading = interfaces.nav_board.heading()
-            latitude, longitude = nav_board.location()
+            latitude, longitude = interfaces.nav_board.location()
             goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
             waypoint = core.Coordinate(goal_latitude, goal_longitude)
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
