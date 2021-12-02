@@ -42,8 +42,6 @@ def detect_ar_tag(reg_img):
         '''
         #lists of ids and the corners beloning to each id
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-    
-    # print(corners)
 
     #It's working.
     # my problem was that the cellphone put black all around it. The algorithm
@@ -57,16 +55,17 @@ def detect_ar_tag(reg_img):
         for array in ids:
             tags.append(array[0])
     '''
+    
     #print(rejectedImgPoints)
     # Display the resulting frame
     # cv2.imshow('frame',reg_img)
  
-    if len(corners) != 0:
+    # tag 1
+    if ids is not None and len(ids) > 0:
         x1 = corners[0][0][0][0] #top left x coord
         y1 = corners[0][0][0][1] # top left y coord
         x2 = corners[0][0][1][0] # top right x coord
         y2 = corners[0][0][3][1] # bottom left y coord
-
 
         # Calculate the center points of the AR Tag
         cX = (x1 + x2) / 2
@@ -75,8 +74,28 @@ def detect_ar_tag(reg_img):
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
         tags.append(Tag(cX, cY, distance, angle))
+        
+
+    # tag 2
+    if ids is not None and len(ids) > 1:
+        x1b = corners[1][0][0][0] # top left x coord
+        y1b = corners[1][0][0][1] # top left y coord
+        x2b = corners[1][0][1][0] # top right x coord
+        y2b = corners[1][0][3][1] # bottom left y coord
+
+        cXb = (x1b + x2b) / 2
+        cYb = (y1b + y2b) / 2
+
+        distance, angle = track_ar_tag((cXb, cYb))
+        tags.append(Tag(cXb, cYb, distance, angle))
 
     return tags, reg_img
+
+
+
+        
+
+   
 
 
 def track_ar_tag(center):
