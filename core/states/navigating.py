@@ -6,7 +6,6 @@ import core
 import interfaces
 import algorithms
 from core.states import RoverState
-from interfaces import nav_board
 
 
 class Navigating(RoverState):
@@ -72,15 +71,15 @@ class Navigating(RoverState):
         # Based on last leg type, give rover room to begin driving
         # Back up 2 meters
         if last_leg_type == "POST" or last_leg_type == "MARKER":
-            backup_distance = 2 # meters
+            backup_distance = core.BACKUP_DISTANCE
             interfaces.drive_board.backup(backup_distance)
             core.waypoint_handler.reset_last_leg_type()
 
         # create new position leg type 2 meters in front of rover and insert in from of queue
         elif last_leg_type == "GATE":
-            forward_distance = 2
+            forward_distance = core.FORWARD_DISTANCE
             heading = interfaces.nav_board.heading()
-            latitude, longitude = nav_board.location()
+            latitude, longitude = interfaces.nav_board.location()
             goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
             waypoint = core.Coordinate(goal_latitude, goal_longitude)
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
