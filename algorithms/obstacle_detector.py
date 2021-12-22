@@ -96,7 +96,7 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
         # Find any contours
         contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
         # Check if there are contours to be detected at this depth
-        if contours != []:
+        if len(contours) > 0:
             # choose the largest blob at this depth
             blob = max(contours, key=cv2.contourArea)
 

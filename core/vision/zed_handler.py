@@ -20,14 +20,14 @@ class ZedHandler(Camera):
         self.logger = logging.getLogger(__name__)
 
         # Define the camera resolutions
-        self.depth_res_x = 640
-        self.depth_res_y = 360
+        self.depth_res_x = 720
+        self.depth_res_y = 404
         self.reg_res_x = 1280
         self.reg_res_y = 720
         self.hfov = 85
 
         # Define the desired runtime FPS
-        self.fps = 30
+        self.fps = 15
 
         # Set configuration parameters
         self.input_type = sl.InputType()
@@ -36,7 +36,8 @@ class ZedHandler(Camera):
         self.init.depth_mode = sl.DEPTH_MODE.ULTRA
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = self.fps
-        self.init.depth_minimum_distance = 1
+        self.init.depth_minimum_distance = 50.0
+        self.init.depth_maximum_distance = 40000.0
 
         # Open the camera
         err = self.zed.open(self.init)
@@ -71,6 +72,11 @@ class ZedHandler(Camera):
         self.depth_size = self.zed.get_camera_information().camera_resolution
         self.depth_size.width = self.depth_size.width / 2
         self.depth_size.height = self.depth_size.height / 2
+
+        # Resolution of point cloud.
+        res = sl.Resolution()
+        res.width = 720
+        res.height = 404
 
         # Declare your sl.Mat matrices
         image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
