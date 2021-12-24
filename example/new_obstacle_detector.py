@@ -32,6 +32,9 @@ def main():
     # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
     vis = o3d.visualization.Visualizer()
     vis.create_window("point cloud objects")
+    # Create visualizer for masking the object and floor onto the reg_img.
+    vis2 = o3d.visualization.Visualizer()
+    vis2.create_window("annotation mask", width=1386, height=752)
 
     # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
     if DISPLAY:
@@ -58,7 +61,7 @@ def main():
 
         # Track a specific obstacle. (closest one)
         angle, distance, closest_box = ObstacleIgnorance.track_obstacle(
-            object_bounding_boxes, reg_img, annotate=True, remove_floor=True
+            object_bounding_boxes, reg_img, vis2, annotate_object=True, remove_floor=True
         )
 
         # Print console info.

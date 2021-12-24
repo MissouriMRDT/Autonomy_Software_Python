@@ -583,7 +583,9 @@ class ObstacleDetector:
 
         return self.processed_pcd, self.inlier_clouds, self.object_bounding_boxes
 
-    def track_obstacle(self, object_bounding_boxes, reg_img=None, annotate=True, remove_floor=False):
+    def track_obstacle(
+        self, object_bounding_boxes, reg_img=None, visualizer=None, annotate_object=False, remove_floor=False
+    ):
         """
         Determine the object of interest from a list of objects.
 
@@ -591,8 +593,10 @@ class ObstacleDetector:
         -----------
             object_bounding_boxes - The list of Open3D bounding box objects from the detection method.
             reg_img - The normal colored image from the zed cam.
-            annotate - Whether or not to display object bounding box and info on the image.
-            remove_floor - Whether or not the detected floor plane should be removed from the image.
+            visualizer - The Open3D Visualizer object to be used for image mask construction. This has to
+                            be create outside this method because you can't create the visualizer object periodically.
+            annotate_object - Whether or not to display object bounding box.
+            remove_floor - Whether or not the detected floor plane should be overlayed onto the image.
 
         Returns:
         --------
@@ -608,5 +612,40 @@ class ObstacleDetector:
         # Calculate the angle of the closest object.
         if closest_box is not None:
             angle = find_angle_from_camera_center(closest_box.get_center())
+
+        # Check of the point clouds are empty.
+        if visualizer is not None and reg_img is not None and self.processed_pcd.has_points():
+            # Add visualizer floor geometry.
+            if remove_floor:
+                visualizer.add_geometry(self.inlier_clouds[0])
+            # Add geometry to the visualizer for masking over reg_img.
+            if annotate_object and closest_box is not None:
+                visualizer.add_geometry(closest_box)
+
+            # Check if we actually need to do this part.
+            if remove_floor or (annotate_object and closest_box is not None):
+                # Set view to kinda match reg_img camera view. (Its the best I could come up with.)
+                visualizer.get_view_control().convert_from_pinhole_camera_parameters(
+                    o3d.io.read_pinhole_camera_parameters("campos.json")
+                )
+                # Update visualizer window.
+                visualizer.update_renderer()
+                visualizer.poll_events()
+                # Capture 2d image of the window into memory.
+                mask = np.array(visualizer.capture_depth_float_buffer())
+                # Resize image to same size as reg_img.
+                mask = cv2.resize(mask, (reg_img.shape[:-1][::-1]), interpolation=cv2.INTER_AREA)
+                # Set any value greater than 0 to 255.
+                mask[mask > 0] = 255
+                # Convert array values to 8-bit int so OpenCV can work with it.
+                mask = np.asarray(mask).astype(np.uint8)
+                # Apply mask to reg_img.
+                reg_img = cv2.bitwise_not(reg_img, reg_img, mask=mask)
+
+            # Remove geometry.
+            if remove_floor:
+                visualizer.remove_geometry(self.inlier_clouds[0])
+            if annotate_object and closest_box is not None:
+                visualizer.remove_geometry(closest_box)
 
         return angle, object_distance, closest_box
