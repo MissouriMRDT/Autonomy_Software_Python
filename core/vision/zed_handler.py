@@ -125,7 +125,7 @@ class ZedHandler(Camera):
         Returns 3D point cloud data captured with ZED
         """
         point_cloud = sl.Mat()
-        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZ, sl.MEM.CPU, self.depth_size)
+        self.zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, self.depth_size)
         return point_cloud
 
     def get_floor(self):

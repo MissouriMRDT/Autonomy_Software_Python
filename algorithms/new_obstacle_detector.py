@@ -1,9 +1,6 @@
 import numpy as np
 import cv2
-import core
 import math
-import heapq
-import time
 import open3d as o3d
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
@@ -93,6 +90,10 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
     # Converting everything to float64 has a HUGE FREAKING performance improvement. I guess silicon just likes 64-bit numbers.
     pts = pts.astype(np.float64)
 
+    # Get color values from the zed point cloud.
+    # colors = np.ravel(pts[:, :, 3]).view("uint8").reshape((-1, 4))
+    # colors = colors[:, :-1]
+
     # Cut off color value from each point.
     pts = pts[:, :, :-1]
     # Cut off 2 dimensions from the array (x pixel, y pixel)
@@ -102,6 +103,7 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
 
     # Assign the restructured and filtered pts array to the PointCloud.
     pcd.points = o3d.utility.Vector3dVector(pts)
+    # pcd.colors = o3d.utility.Vector3dVector(colors)
     # Remove nans and infs using built in open3d function.
     pcd.remove_non_finite_points()
 
@@ -244,16 +246,18 @@ def find_cluster_bounding_boxes(objects):
 
     # Find the bounding box of each object.
     for key, object_points in objects.items():
-        # Calculate bounding box.
-        points = o3d.utility.Vector3dVector(object_points)
-        bounding_box = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
-        # Add to array.
-        bounding_boxes.append(bounding_box)
+        # Don't find bounding box of outlier points.
+        if key != -1:
+            # Calculate bounding box.
+            points = o3d.utility.Vector3dVector(object_points)
+            bounding_box = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
+            # Add to array.
+            bounding_boxes.append(bounding_box)
 
     return bounding_boxes
 
 
-def find_closest_bounding_box(bounding_boxes):
+def find_closest_bounding_box(bounding_boxes, min_box_volume=-1):
     """
     Using the array of bounding box objects calculate the x,y,z center point of each box, and then
     find the one closest to the origin.
@@ -261,6 +265,8 @@ def find_closest_bounding_box(bounding_boxes):
     Parameters:
     -----------
         bounding_boxes[] - The list of open3d.geometry.AxisAlignedBoundingBox objects.
+        min_box_volume - The minimum required volume of the bounding box to consider it an object.
+                        This parameter is given in meters cubed.
 
     Returns:
     --------
@@ -271,18 +277,20 @@ def find_closest_bounding_box(bounding_boxes):
     min_distance = math.inf
     bounding_box = None
     for object in bounding_boxes:
-        # Get bounding boxes center point.
-        object_location = object.get_center()
-        # Find distance from origin.
-        distance = math.sqrt(
-            object_location[0] * object_location[0]
-            + object_location[1] * object_location[1]
-            + object_location[2] * object_location[2]
-        )
-        # Determine if this is the closer object.
-        if distance < min_distance:
-            min_distance = distance
-            bounding_box = object
+        # Check if volume of box meets requirements.
+        if (object.volume() / 1e9) > min_box_volume:
+            # Get bounding boxes center point.
+            object_location = object.get_center()
+            # Find distance from origin.
+            distance = math.sqrt(
+                object_location[0] * object_location[0]
+                + object_location[1] * object_location[1]
+                + object_location[2] * object_location[2]
+            )
+            # Determine if this is the closer object.
+            if distance < min_distance:
+                min_distance = distance
+                bounding_box = object
 
     return bounding_box, min_distance
 
@@ -391,7 +399,7 @@ def convert_cloud_proc(data_queue, point_cloud):
         # Convert point cloud.
         pcd = convert_zed_cloud_to_o3d_cloud(point_cloud)
         # Downsample the point cloud to improve processing speed.
-        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=4)
+        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=2)
         # Make pcd object picklable. (I really hate python, this is awful.)
         pcd = pickle_serialize(pcd)
 
@@ -421,7 +429,7 @@ def detect_object_clusters_proc(data_queue, point_cloud):
         point_cloud = pickle_deserialize(point_cloud)
         # Use the point cloud to detect and remove the floor plane.
         outlier_cloud, inliers = RANSAC_plane_detection(
-            point_cloud, num_of_planes=1, distance_threshold=80, ransac_n=3, num_iterations=300
+            point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=300
         )
         # Make the data picklable.
         inlier_clouds = []
@@ -430,7 +438,7 @@ def detect_object_clusters_proc(data_queue, point_cloud):
 
         # Use the outlier points to detect objects.
         pcd, objects = DBSCAN_euclidean_clustering(
-            outlier_cloud, growing_radius=120, min_points=80, print_progress=False
+            outlier_cloud, growing_radius=140, min_points=230, print_progress=False
         )
         # Make the data picklable.
         pcd = pickle_serialize(pcd)
@@ -584,7 +592,7 @@ class ObstacleDetector:
         return self.processed_pcd, self.inlier_clouds, self.object_bounding_boxes
 
     def track_obstacle(
-        self, object_bounding_boxes, reg_img=None, visualizer=None, annotate_object=False, remove_floor=False
+        self, object_bounding_boxes, reg_img=None, visualizer=None, annotate_object=False, annotate_floor=False
     ):
         """
         Determine the object of interest from a list of objects.
@@ -596,7 +604,7 @@ class ObstacleDetector:
             visualizer - The Open3D Visualizer object to be used for image mask construction. This has to
                             be create outside this method because you can't create the visualizer object periodically.
             annotate_object - Whether or not to display object bounding box.
-            remove_floor - Whether or not the detected floor plane should be overlayed onto the image.
+            annotate_floor - Whether or not the detected floor plane should be overlayed onto the image.
 
         Returns:
         --------
@@ -608,7 +616,7 @@ class ObstacleDetector:
         angle = 0
 
         # Find the distance of the closest object.
-        closest_box, object_distance = find_closest_bounding_box(object_bounding_boxes)
+        closest_box, object_distance = find_closest_bounding_box(object_bounding_boxes, min_box_volume=0.32)
         # Calculate the angle of the closest object.
         if closest_box is not None:
             angle = find_angle_from_camera_center(closest_box.get_center())
@@ -616,17 +624,17 @@ class ObstacleDetector:
         # Check of the point clouds are empty.
         if visualizer is not None and reg_img is not None and self.processed_pcd.has_points():
             # Add visualizer floor geometry.
-            if remove_floor:
+            if annotate_floor:
                 visualizer.add_geometry(self.inlier_clouds[0])
             # Add geometry to the visualizer for masking over reg_img.
             if annotate_object and closest_box is not None:
                 visualizer.add_geometry(closest_box)
 
             # Check if we actually need to do this part.
-            if remove_floor or (annotate_object and closest_box is not None):
+            if annotate_floor or (annotate_object and closest_box is not None):
                 # Set view to kinda match reg_img camera view. (Its the best I could come up with.)
                 visualizer.get_view_control().convert_from_pinhole_camera_parameters(
-                    o3d.io.read_pinhole_camera_parameters("campos.json")
+                    o3d.io.read_pinhole_camera_parameters("algorithms/camera_views/maskcampos.json")
                 )
                 # Update visualizer window.
                 visualizer.update_renderer()
@@ -643,7 +651,7 @@ class ObstacleDetector:
                 reg_img = cv2.bitwise_not(reg_img, reg_img, mask=mask)
 
             # Remove geometry.
-            if remove_floor:
+            if annotate_floor:
                 visualizer.remove_geometry(self.inlier_clouds[0])
             if annotate_object and closest_box is not None:
                 visualizer.remove_geometry(closest_box)
