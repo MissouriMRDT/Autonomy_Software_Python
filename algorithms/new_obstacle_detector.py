@@ -319,7 +319,7 @@ def find_angle_from_camera_center(center_point):
         center_point[0] * center_point[0] + center_point[1] * center_point[1] + center_point[2] * center_point[2]
     )
     # Find the angle of object from camera center line.
-    angle = math.degrees(math.acos(center_point[2] / distance))
+    angle = math.copysign(math.degrees(math.acos(center_point[2] / distance)), center_point[0])
 
     return angle
 
@@ -532,7 +532,7 @@ class ObstacleDetector:
                         # Increment conversion exception counter.
                         self.detection_exceptions += 1
                         # Kill the first next up process in queue if it hangs.
-                        if self.detection_exceptions > 2000:
+                        if self.detection_exceptions > 500:
                             # Remove and kill process.
                             for i in range(len(self.detection_process_queue)):
                                 process = self.detection_process_queue.popleft()
@@ -564,7 +564,7 @@ class ObstacleDetector:
                 # Increment conversion exception counter.
                 self.conversion_exceptions += 1
                 # Kill the first next up process in queue if it hangs.
-                if self.conversion_exceptions > 2000:
+                if self.conversion_exceptions > 500:
                     # Remove and kill process.
                     for i in range(len(self.conversion_process_queue)):
                         process = self.conversion_process_queue.popleft()
@@ -622,7 +622,7 @@ class ObstacleDetector:
         angle = 0
 
         # Find the distance of the closest object.
-        closest_box, object_distance = find_closest_bounding_box(object_bounding_boxes, min_box_volume=0.32)
+        closest_box, object_distance = find_closest_bounding_box(object_bounding_boxes, min_box_volume=0.20)
         # Calculate the angle of the closest object.
         if closest_box is not None:
             angle = find_angle_from_camera_center(closest_box.get_center())
