@@ -10,8 +10,8 @@ import open3d as o3d
 obstacle_dict = {"detected": False, "angle": None, "distance": None}
 
 # Define the number of cores to use for each task.
-CONVERSION_CORES = 5
-DETECTION_CORES = 5
+CONVERSION_CORES = 2
+DETECTION_CORES = 3
 # Define multiprocessing toggle.
 MULTIPROC_MODE = True
 # Define a constant for toggling between the different methods of obstacle detection.
