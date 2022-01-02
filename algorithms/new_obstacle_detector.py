@@ -528,11 +528,13 @@ class ObstacleDetector:
                         self.inlier_clouds = []
                         for cloud in inliers:
                             self.inlier_clouds.append(pickle_deserialize(cloud))
+                        # Reset exception counter.
+                        self.detection_exceptions = 0
                     except Exception as e:
                         # Increment conversion exception counter.
                         self.detection_exceptions += 1
                         # Kill the first next up process in queue if it hangs.
-                        if self.detection_exceptions > 500:
+                        if self.detection_exceptions > 150:
                             # Remove and kill process.
                             for i in range(len(self.detection_process_queue)):
                                 process = self.detection_process_queue.popleft()
@@ -540,6 +542,7 @@ class ObstacleDetector:
                             self.detection_process_queue.clear()
                             # Print info.
                             print("Detection process has hung...killing...", e)
+                            # Reset exception counter.
                             self.detection_exceptions = 0
                 # If the queue is not full, continue pulling new point clouds and starting new processes.
                 if len(self.detection_process_queue) < detection_procs:
@@ -560,11 +563,13 @@ class ObstacleDetector:
                             detect_object_clusters_proc(self.detection_data_queue, pickle_serialize(point_cloud))
                         )
                     self.detection_process_queue.append(task)
+                # Reset exception counter.
+                self.conversion_exceptions = 0
             except Exception as e:
                 # Increment conversion exception counter.
                 self.conversion_exceptions += 1
                 # Kill the first next up process in queue if it hangs.
-                if self.conversion_exceptions > 500:
+                if self.conversion_exceptions > 150:
                     # Remove and kill process.
                     for i in range(len(self.conversion_process_queue)):
                         process = self.conversion_process_queue.popleft()
@@ -572,6 +577,7 @@ class ObstacleDetector:
                     self.conversion_process_queue.clear()
                     # Print info.
                     print("Conversion process has hung...killing...", e)
+                    # Reset exception counter.
                     self.conversion_exceptions = 0
         # If the queue is not full, continue pulling new point clouds and starting new processes.
         if len(self.conversion_process_queue) < conversion_procs:

@@ -64,8 +64,8 @@ def main():
         )
 
         # Print console info.
-        print("Object angle", angle)
-        print("Object distance", distance)
+        # print("Object angle", angle)
+        # print("Object distance", distance)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:
