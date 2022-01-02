@@ -3,15 +3,14 @@ import core
 import numpy as np
 import algorithms
 import time
-from core.vision import close
 import open3d as o3d
 
 
 # Define depth img/data so we can use them for OpenCV window callbacks
 depth_matrix = None
 # Define the number of cores to use for each task.
-CONVERSION_CORES = 5
-DETECTION_CORES = 5
+CONVERSION_CORES = 2
+DETECTION_CORES = 3
 # Define multiprocessing and display toggles.
 MULTIPROC_MODE = True
 DISPLAY = True
@@ -65,8 +64,8 @@ def main():
         )
 
         # Print console info.
-        # print("Object angle", angle)
-        # print("Object distance", distance)
+        print("Object angle", angle)
+        print("Object distance", distance)
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:

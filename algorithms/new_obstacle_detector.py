@@ -1,4 +1,3 @@
-from geopy import point
 import numpy as np
 import cv2
 import math
@@ -7,7 +6,6 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from multiprocessing import Queue, Process
 from collections import deque
-import time
 
 
 class DummyTask:
@@ -404,7 +402,6 @@ def convert_cloud_proc(data_queue, o3d_point_cloud):
     """
     # Catch any potential errors.
     try:
-        s = time.time()
         # Convert point cloud.
         pcd = convert_zed_cloud_to_o3d_cloud(o3d_point_cloud)
         # Downsample the point cloud to improve processing speed.
@@ -414,7 +411,6 @@ def convert_cloud_proc(data_queue, o3d_point_cloud):
 
         # Store data in queue.
         data_queue.put(pcd)
-        print("convert time:", time.time() - s)
     except Exception as e:
         print("Convert Process Exception:", e)
 
@@ -435,7 +431,6 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
     """
     # Catch any potential errors.
     try:
-        s = time.time()
         # Deserialize data.
         point_cloud = pickle_deserialize(o3d_point_cloud)
         # Use the point cloud to detect and remove the floor plane.
@@ -463,7 +458,6 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
 
         # Store data in queue.
         data_queue.put([pcd, bounding_boxes, inlier_clouds])
-        print("detect time:", time.time() - s)
     except Exception as e:
         print("Detect Process Exception:", e)
 
