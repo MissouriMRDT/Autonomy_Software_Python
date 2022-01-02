@@ -1,3 +1,4 @@
+from geopy import point
 import numpy as np
 import cv2
 import math
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from multiprocessing import Queue, Process
 from collections import deque
+import time
 
 
 class DummyTask:
@@ -87,12 +89,17 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
     # Create instance variables.
     pcd = o3d.geometry.PointCloud()
     pts = zed_point_cloud
-    # Converting everything to float64 has a HUGE FREAKING performance improvement. I guess silicon just likes 64-bit numbers.
-    pts = pts.astype(np.float64)
 
     # Get color values from the zed point cloud.
-    # colors = np.ravel(pts[:, :, 3]).view("uint8").reshape((-1, 4))
-    # colors = colors[:, :-1]
+    colors = np.ravel(pts[:, :, 3]).view("uint8")
+    # Reshape array and cutoff useless values.
+    colors = colors.reshape(-1, 4)[:, :-1]
+    # Convert color values from 0-255 to 0-1 for Open3d.
+    colors = colors / 255
+
+    # Converting everything to float64 has a HUGE FREAKING performance improvement. I guess silicon just likes 64-bit numbers.
+    pts = pts.astype(np.float64)
+    colors = colors.astype(np.float64)
 
     # Cut off color value from each point.
     pts = pts[:, :, :-1]
@@ -103,7 +110,7 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
 
     # Assign the restructured and filtered pts array to the PointCloud.
     pcd.points = o3d.utility.Vector3dVector(pts)
-    # pcd.colors = o3d.utility.Vector3dVector(colors)
+    pcd.colors = o3d.utility.Vector3dVector(colors)
     # Remove nans and infs using built in open3d function.
     pcd.remove_non_finite_points()
 
@@ -158,12 +165,9 @@ def RANSAC_plane_detection(o3d_point_cloud, num_of_planes=1, distance_threshold=
             outlier_cloud = o3d_point_cloud.select_by_index(inliers, invert=True)
             # Color the different planes gray (RGB range from 0 to 1)
             inlier_cloud.paint_uniform_color([0.6, 0.6, 0.6])
-            # outlier_cloud.paint_uniform_color([0.6, 0.6, 0.6])
 
             # Store current detected plane.
             inlier_clouds.append(inlier_cloud)
-            # Set outlier cloud (cloud without plane) to normal point cloud.
-            o3d_point_cloud = outlier_cloud
 
     return outlier_cloud, inlier_clouds
 
@@ -196,8 +200,8 @@ def DBSCAN_euclidean_clustering(o3d_point_cloud, growing_radius=0.05, min_points
     # Check if the point cloud is empty.
     if not (o3d_point_cloud.is_empty()) and o3d_point_cloud.has_points():
         # Use DBSCAN method to estimate and seperate objects in the scene.
-        test = np.asarray(o3d_point_cloud.points)
-        dbscan = DBSCAN(eps=growing_radius, min_samples=min_points).fit(test)
+        points = np.asarray(o3d_point_cloud.points)
+        dbscan = DBSCAN(eps=growing_radius, min_samples=min_points).fit(points)
         labels = dbscan.labels_
         # labels = np.array(o3d_point_cloud.cluster_dbscan(growing_radius, min_points, print_progress))
         # Check if labels is empty.
@@ -207,12 +211,16 @@ def DBSCAN_euclidean_clustering(o3d_point_cloud, growing_radius=0.05, min_points
             if print_progress:
                 print(f"point cloud has {max_label + 1} clusters")
 
-            # Create a new array with colors values at the same index as its point in pcd array. (This array store only colors)
+            # Create a new array with colors values at the same index as its point in pcd array. (This array stores only colors)
             clusters = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
-            # Points at index values that the algorithm thinks are not important are marked -1.
+            # Points at index values that the algorithm thinks are not important are marked -1. Set their color to black.
             clusters[labels < 0] = 0
-            # Set the point clouds colors.
-            o3d_point_cloud.colors = o3d.utility.Vector3dVector(clusters[:, :-1])
+            # Merge cluster colors into normal point cloud colors.
+            clusters = clusters[:, :-1]
+            pcd_colors = np.asarray(o3d_point_cloud.colors)
+            clusters[clusters == 0] = pcd_colors[clusters == 0]
+            # Set the point clouds colors and cutoff identifier.
+            o3d_point_cloud.colors = o3d.utility.Vector3dVector(clusters)
 
         # Seperate each of the objects based on their labels value.
         for i, identifier in enumerate(labels):
@@ -379,7 +387,7 @@ def open_point_cloud_visualizer(o3d_point_cloud, *args):
     o3d.visualization.draw_geometries([o3d_point_cloud, *args])
 
 
-def convert_cloud_proc(data_queue, point_cloud):
+def convert_cloud_proc(data_queue, o3d_point_cloud):
     """
     This method is ran in parallel in a different process.
     It converts and then downsamples the zed point cloud.
@@ -388,7 +396,7 @@ def convert_cloud_proc(data_queue, point_cloud):
     -----------
         data_queue - The queue object used to store and pass converted point
                     cloud data back to the main thread.
-        point_cloud - The zed point cloud to be converted.
+        o3d_point_cloud - The zed point cloud to be converted.
 
     Returns:
     --------
@@ -396,8 +404,9 @@ def convert_cloud_proc(data_queue, point_cloud):
     """
     # Catch any potential errors.
     try:
+        s = time.time()
         # Convert point cloud.
-        pcd = convert_zed_cloud_to_o3d_cloud(point_cloud)
+        pcd = convert_zed_cloud_to_o3d_cloud(o3d_point_cloud)
         # Downsample the point cloud to improve processing speed.
         pcd = down_sample_o3d_cloud(pcd, down_sample_factor=2)
         # Make pcd object picklable. (I really hate python, this is awful.)
@@ -405,11 +414,12 @@ def convert_cloud_proc(data_queue, point_cloud):
 
         # Store data in queue.
         data_queue.put(pcd)
+        print("convert time:", time.time() - s)
     except Exception as e:
         print("Convert Process Exception:", e)
 
 
-def detect_object_clusters_proc(data_queue, point_cloud):
+def detect_object_clusters_proc(data_queue, o3d_point_cloud):
     """
     This method is ran in parallel in a different process.
     It detects the floor plane, finds objects clusters, and then calculates bounding boxes.
@@ -418,15 +428,16 @@ def detect_object_clusters_proc(data_queue, point_cloud):
     -----------
         data_queue - The queue object used to store and pass converted point
                     cloud data back to the main thread.
-        point_cloud - The o3d point cloud to be processed.
+        o3d_point_cloud - The o3d point cloud to be processed.
     Returns:
     --------
         Nothing - (Puts result into the shared queue accessable by main thread.)
     """
     # Catch any potential errors.
     try:
+        s = time.time()
         # Deserialize data.
-        point_cloud = pickle_deserialize(point_cloud)
+        point_cloud = pickle_deserialize(o3d_point_cloud)
         # Use the point cloud to detect and remove the floor plane.
         outlier_cloud, inliers = RANSAC_plane_detection(
             point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=300
@@ -452,6 +463,7 @@ def detect_object_clusters_proc(data_queue, point_cloud):
 
         # Store data in queue.
         data_queue.put([pcd, bounding_boxes, inlier_clouds])
+        print("detect time:", time.time() - s)
     except Exception as e:
         print("Detect Process Exception:", e)
 
