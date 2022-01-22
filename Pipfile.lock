@@ -272,7 +272,7 @@
                 "sha256:feb5db446e96bfecfec078b943cc07744cc759893cef045aa8b8b6d6aaa8274e"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==8.3.2"
+            "version": "=>9.0.0"
         },
         "pyfakewebcam": {
             "hashes": [
