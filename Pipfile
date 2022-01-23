@@ -15,9 +15,10 @@ snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
-pcl = "*"
 opencv-python = "*"
 open3d = "*"
+sklearn = "*"
+cython = "*"
 
 [dev-packages]
 opencv-contrib-python = "*"
