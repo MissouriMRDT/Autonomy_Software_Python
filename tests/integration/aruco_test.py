@@ -32,9 +32,18 @@ while(True):
     reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
     if ids is not None:
-        tags.clear()
-        for array in ids:
-            tags.append(array[0])
+        for i in range(0, len(ids) - 1):
+            x1 = corners[i][0][0][0] #top left x coord
+            y1 = corners[i][0][0][1] # top left y coord
+            x2 = corners[i][0][1][0] # top right x coord
+            y2 = corners[i][0][3][1] # bottom left y coord
+
+            # Calculate the center points of the AR Tag
+            cX = (x1 + x2) / 2
+            cY = (y1 + y2) / 2
+
+            # Find the distance/angle of said center pixels
+            print("(" + cX + "," + cY + ")")
 
     if len(corners) != 0:
         x = corners[0][0][0][0]
