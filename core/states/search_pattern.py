@@ -54,6 +54,13 @@ class SearchPattern(RoverState):
         """
         Defines regular rover operation when under this state
         """
+        
+        if (
+            core.vision.obstacle_avoidance.is_obstacle()
+            and core.vision.obstacle_avoidance.get_distance() < 1.5):
+            self.logger.info("Detected obstacle, now avoiding")
+            return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
+        
         gps_data = core.waypoint_handler.get_waypoint()
 
         goal, start, leg_type = gps_data.data()
