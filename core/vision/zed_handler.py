@@ -27,7 +27,7 @@ class ZedHandler(Camera):
         self.hfov = 85
 
         # Define the desired runtime FPS
-        self.fps = 15
+        self.fps = 60
 
         # Set configuration parameters
         self.input_type = sl.InputType()
@@ -37,7 +37,7 @@ class ZedHandler(Camera):
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = self.fps
         self.init.depth_minimum_distance = 50.0
-        self.init.depth_maximum_distance = 40000.0
+        self.init.depth_maximum_distance = 5000.0
 
         # Open the camera
         err = self.zed.open(self.init)

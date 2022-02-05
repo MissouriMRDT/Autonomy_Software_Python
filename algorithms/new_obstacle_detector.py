@@ -405,7 +405,7 @@ def convert_cloud_proc(data_queue, o3d_point_cloud):
         # Convert point cloud.
         pcd = convert_zed_cloud_to_o3d_cloud(o3d_point_cloud)
         # Downsample the point cloud to improve processing speed.
-        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=2)
+        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=16)
         # Make pcd object picklable. (I really hate python, this is awful.)
         pcd = pickle_serialize(pcd)
 
@@ -444,7 +444,7 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
 
         # Use the outlier points to detect objects.
         pcd, objects = DBSCAN_euclidean_clustering(
-            outlier_cloud, growing_radius=140, min_points=230, print_progress=False
+            outlier_cloud, growing_radius=350, min_points=180, print_progress=False
         )
         # Make the data picklable.
         pcd = pickle_serialize(pcd)
