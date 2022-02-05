@@ -14,6 +14,12 @@ from core.states import RoverState
 
 class GateSearch(RoverState):
 
+    def start():
+        pass
+
+    def exit(self):
+        # Cancel all state specific coroutines
+        pass
 
     def on_event(self, event) -> RoverState:
         """
@@ -63,46 +69,78 @@ class GateSearch(RoverState):
         tag_approach_lat, tag_approach_long = geomath.reverse_haversine(bearing, distance - 0.004, current[0], current[1])    
         waypoint = core.Coordinate(tag_approach_lat, tag_approach_long)
         core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint)) #This needs to be modified a bit MAYBE
-        self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({tag_approach_latitude}), lon ({tag_approach_longitude})") # Consider updating goal coordinate
+        self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({tag_approach_lat}), lon ({tag_approach_long})") # Consider updating goal coordinate
 
 
+        circle_points = [waypoint]
         # Compute waypoints that approximate circle
-        circle_points = self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8) #2nd and third parameters are radius (in m) and increments (number of waypoints)
+        circle_points.append(self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8)) #2nd and third parameters are radius (in m) and increments (number of waypoints)
 
         # This needs testing/work
-        for point in circle_points.reversed():
-
-            core.waypoint_handler.waypoints.appendleft(("POSITION", point))
+        #for point in circle_points.reversed():
+        #
+        #    core.waypoint_handler.waypoints.appendleft(("POSITION", point))
         
         self.logger.info(f"Added position waypoints that go in circle around AR tag: lat ({tag_latitude}), lon ({tag_longitude})")
 
+        ## ------ CODE ABOVE SHOULD ONLY RUN ONCE ------ #
+        start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
-        # Turn 90 degrees right ---- ***** THIS IS PROBABLY UNNECCESSARY ***** #
-        # The rover should turn when its navigating to the provided waypoints around the tag
-        speed = 50 #Maybe change this?
-        speed1, speed2 = interfaces.driveboard.calculate_move(speed, 90)
-        drive_board.send_drive(speed1, speed2)
+        for point in circle_points:
+            while (
+                algorithms.gps_navigate.get_approach_status(
+                    core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                )
+                == core.ApproachState.APPROACHING
+            ):
+                if core.vision.ar_tag_detector.is_gate():
+                    return core.states.ApproachingGate()
 
+                self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
+                left, right = algorithms.gps_navigate.calculate_move(
+                    core.Coordinate(point[0], point[1]),
+                    interfaces.nav_board.location(),
+                    start,
+                    250,
+                )
 
+                self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
 
-
-        # On second tag detection
-        if core.vision.ar_tag_detector.is_gate():
-            
+                interfaces.drive_board.send_drive(left, right)
+                await asyncio.sleep(core.EVENT_LOOP_DELAY)
             interfaces.drive_board.stop()
 
-            # Sleep for a brief second
-            await asyncio.sleep(0.1)
+        #turn 90 left
+        speed = 50 #Maybe change this?
+        speed1, speed2 = interfaces.drive_board.calculate_move(speed, -90)
+        interfaces.drive_board.send_drive(speed1, speed2)
 
-            self.logger.info("Gate Search: Gate seen")
+        return core.states.ApproachingMarker()
 
-            return self.on_event(core.AutonomyEvents.GATE_SEEN)
+        # On second tag detection
+        #if core.vision.ar_tag_detector.is_gate():
+        #    
+        #    interfaces.drive_board.stop()
+        #
+        #    # Sleep for a brief second
+        #    await asyncio.sleep(0.1)
+
+        #    self.logger.info("Gate Search: Gate seen")
+
+        #    return self.on_event(core.AutonomyEvents.GATE_SEEN)
         
 
         # We need to somehow enter the approaching marker state if the rover does not find another tag.
 
 
-        return self
+        # --- MAY NEED THIS LATER --- #
+        # Turn 90 degrees right ---- ***** THIS IS PROBABLY UNNECCESSARY ***** #
+        # The rover should turn when its navigating to the provided waypoints around the tag
+        # speed = 50 #Maybe change this?
+        # speed1, speed2 = interfaces.driveboard.calculate_move(speed, 90)
+        # drive_board.send_drive(speed1, speed2)
+
+        return core.states.Navigating()
 
 
 
@@ -155,7 +193,7 @@ class GateSearch(RoverState):
 # 1. The way that the is_gate() detection works is that it looks to see if TWO AR tags are on the screen at once.
 # 2. How does the state loop?
 # 3. Set waypoint goal to ar tag location? (Maybe done already)
-# 4. 
-#
+# 4. Figure out where to stow run code that should only execute once.
+# 5. Angle given by camera may not reflect haversine angle
 #
 #
