@@ -1,4 +1,4 @@
-# AUTHORS: Donovan Bale, Aaron Dobsch, and Duncan Truitt
+# AUTHORS: Donovan Bale, Aaron Dobsch, Duncan Truitt, Jacob Vandorin
 
 #Organize and Cleanup imports
 import asyncio
@@ -62,30 +62,24 @@ class GateSearch(RoverState):
         # Get current GPS location of rover and ar_tag
         current = interfaces.nav_board.location()
         bearing, distance = ar_tag_detector.get_tags()[0].angle, ar_tag_detector.get_tags()[0].distance
-        tag_latitude, tag_longitude = geomath.reverse_haversine(bearing, distance, current[0], current[1]) # *** Reverse haversince is in km - Yuck
+        tag_latitude, tag_longitude = geomath.reverse_haversine(bearing, distance, current[0], current[1]) # *** Reverse haversince is in km ***
 
 
-        # Compute lat and long to approach exactly 4m from tag, then append to waypoint deque
+        # Compute lat and long to approach exactly 4m from tag, then append to waypoint deque *** THIS NEEDS TO BE DEGRADATED
         tag_approach_lat, tag_approach_long = geomath.reverse_haversine(bearing, distance - 0.004, current[0], current[1])    
         waypoint = core.Coordinate(tag_approach_lat, tag_approach_long)
         core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint)) #This needs to be modified a bit MAYBE
         self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({tag_approach_lat}), lon ({tag_approach_long})") # Consider updating goal coordinate
 
 
+        # Compute waypoints that approximate circle and append to list
         circle_points = [waypoint]
-        # Compute waypoints that approximate circle
         circle_points.append(self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8)) #2nd and third parameters are radius (in m) and increments (number of waypoints)
-
-        # This needs testing/work
-        #for point in circle_points.reversed():
-        #
-        #    core.waypoint_handler.waypoints.appendleft(("POSITION", point))
-        
         self.logger.info(f"Added position waypoints that go in circle around AR tag: lat ({tag_latitude}), lon ({tag_longitude})")
-
-        ## ------ CODE ABOVE SHOULD ONLY RUN ONCE ------ #
         start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
+
+        # Iterate through circle_points and check for gate while moving
         for point in circle_points:
             while (
                 algorithms.gps_navigate.get_approach_status(
@@ -93,12 +87,14 @@ class GateSearch(RoverState):
                 )
                 == core.ApproachState.APPROACHING
             ):
+                # Potential Issue Here -- The rever MUST see both tags in the same image for this function to return true
+                # Also note that no obstacle detection occurs here
                 if core.vision.ar_tag_detector.is_gate():
                     return core.states.ApproachingGate()
 
                 self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                 left, right = algorithms.gps_navigate.calculate_move(
-                    core.Coordinate(point[0], point[1]),
+                    point,
                     interfaces.nav_board.location(),
                     start,
                     250,
@@ -116,31 +112,6 @@ class GateSearch(RoverState):
         interfaces.drive_board.send_drive(speed1, speed2)
 
         return core.states.ApproachingMarker()
-
-        # On second tag detection
-        #if core.vision.ar_tag_detector.is_gate():
-        #    
-        #    interfaces.drive_board.stop()
-        #
-        #    # Sleep for a brief second
-        #    await asyncio.sleep(0.1)
-
-        #    self.logger.info("Gate Search: Gate seen")
-
-        #    return self.on_event(core.AutonomyEvents.GATE_SEEN)
-        
-
-        # We need to somehow enter the approaching marker state if the rover does not find another tag.
-
-
-        # --- MAY NEED THIS LATER --- #
-        # Turn 90 degrees right ---- ***** THIS IS PROBABLY UNNECCESSARY ***** #
-        # The rover should turn when its navigating to the provided waypoints around the tag
-        # speed = 50 #Maybe change this?
-        # speed1, speed2 = interfaces.driveboard.calculate_move(speed, 90)
-        # drive_board.send_drive(speed1, speed2)
-
-        return core.states.Navigating()
 
 
 
