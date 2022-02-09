@@ -6,39 +6,86 @@ from numpy.core.numeric import NaN
 import itertools
 import core
 import numpy as np
+from cv2 import aruco
 
 tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
 
-Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
-
+Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])  
 
 def detect_ar_tag(reg_img):
     """
     Detects an AR Tag in the provided color image.
-
     Parameters:
     -----------
         reg_img - the provided image we are looking at to find an ar tag
-
     Returns:
     --------
         tags - a list of Tags (named tuple) that contain the (cX, cY, distance, angle) of the detected AR tags
         reg_img - the image with detected AR Tags drawn on top of it
     """
 
-    gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
-    tags_coords = tag_cascade.detectMultiScale(gray, 1.3, 5)
-
     tags = []
-    for (x, y, w, h) in tags_coords:
-        reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    
+    #print(frame.shape) #480x640
+    # Our operations on the frame come here
+    gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+    parameters = aruco.DetectorParameters_create()
+
+    #print(parameters)
+
+    '''    detectMarkers(...)
+        detectMarkers(image, dictionary[, corners[, ids[, parameters[, rejectedI
+        mgPoints]]]]) -> corners, ids, rejectedImgPoints
+        '''
+        #lists of ids and the corners beloning to each id
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+    #It's working.
+    # my problem was that the cellphone put black all around it. The algorithm
+    # depends very much upon finding rectangular black blobs
+
+    reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+
+    '''
+    if ids is not None:
+        tags.clear()
+        for array in ids:
+            tags.append(array[0])
+    '''
+    
+    #print(rejectedImgPoints)
+    # Display the resulting frame
+    # cv2.imshow('frame',reg_img)
+ 
+    # tag 1
+    if ids is not None and len(ids) > 0:
+        x1 = corners[0][0][0][0] #top left x coord
+        y1 = corners[0][0][0][1] # top left y coord
+        x2 = corners[0][0][1][0] # top right x coord
+        y2 = corners[0][0][3][1] # bottom left y coord
 
         # Calculate the center points of the AR Tag
-        cX = x + (w / 2)
-        cY = y + (h / 2)
+        cX = (x1 + x2) / 2
+        cY = (y1 + y2) / 2
+
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
         tags.append(Tag(cX, cY, distance, angle))
+        
+
+    # tag 2
+    if ids is not None and len(ids) > 1:
+        x1b = corners[1][0][0][0] # top left x coord
+        y1b = corners[1][0][0][1] # top left y coord
+        x2b = corners[1][0][1][0] # top right x coord
+        y2b = corners[1][0][3][1] # bottom left y coord
+
+        cXb = (x1b + x2b) / 2
+        cYb = (y1b + y2b) / 2
+
+        distance, angle = track_ar_tag((cXb, cYb))
+        tags.append(Tag(cXb, cYb, distance, angle))
 
     return tags, reg_img
 
@@ -46,11 +93,9 @@ def detect_ar_tag(reg_img):
 def track_ar_tag(center):
     """
     Track the distance and angle of the AR Tag from the perspective of the Rover.
-
     Parameters:
     -----------
         center - the X, Y of the center pixels of the AR Tag
-
     Returns:
     --------
         distance - the distance in meters to the AR Tag
