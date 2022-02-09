@@ -5,6 +5,7 @@ from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
 from core.states.approaching_marker import ApproachingMarker
 from core.states.approaching_gate import ApproachingGate
+from core.states.gate_search import GateSearch
 from core.states.avoidance import Avoidance
 from enum import Enum
 
@@ -36,4 +37,5 @@ StateMapping = {
     "ApproachingMarker": 3,
     "ApproachingGate": 4,
     "Avoidance": 5,
+    "GateSearch": 6
 }

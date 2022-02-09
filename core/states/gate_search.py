@@ -8,13 +8,13 @@ from core.waypoints import WaypointHandler
 import core
 import interfaces
 import algorithms
-from vision import ar_tag_detector
+from core.vision import ar_tag_detector
 from core.states import RoverState
 
 
 class GateSearch(RoverState):
 
-    def start():
+    def start(self):
         pass
 
     def exit(self):
@@ -61,6 +61,8 @@ class GateSearch(RoverState):
         
         # Get current GPS location of rover and ar_tag
         current = interfaces.nav_board.location()
+        while(not core.vision.ar_tag_detector.is_gate() and not core.vision.ar_tag_detector.is_marker()):
+            await asyncio.sleep(core.EVENT_LOOP_DELAY)
         bearing, distance = ar_tag_detector.get_tags()[0].angle, ar_tag_detector.get_tags()[0].distance
         tag_latitude, tag_longitude = geomath.reverse_haversine(bearing, distance, current[0], current[1]) # *** Reverse haversince is in km ***
 
@@ -74,7 +76,7 @@ class GateSearch(RoverState):
 
         # Compute waypoints that approximate circle and append to list
         circle_points = [waypoint]
-        circle_points.append(self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8)) #2nd and third parameters are radius (in m) and increments (number of waypoints)
+        circle_points += self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8) #2nd and third parameters are radius (in m) and increments (number of waypoints)
         self.logger.info(f"Added position waypoints that go in circle around AR tag: lat ({tag_latitude}), lon ({tag_longitude})")
         start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
@@ -107,7 +109,7 @@ class GateSearch(RoverState):
             interfaces.drive_board.stop()
 
         #turn 90 left
-        speed = 50 #Maybe change this?
+        speed = 100 #Maybe change this?
         speed1, speed2 = interfaces.drive_board.calculate_move(speed, -90)
         interfaces.drive_board.send_drive(speed1, speed2)
 

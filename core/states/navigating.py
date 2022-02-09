@@ -68,12 +68,13 @@ class Navigating(RoverState):
         """
 
         current = interfaces.nav_board.location()
+        gps_data = core.waypoint_handler.get_waypoint()
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         
         # move to approaching marker if 1 ar tag is spotted during marker leg type
         if core.waypoint_handler.gps_data.leg_type == "MARKER" and core.vision.ar_tag_detector.is_marker() and distance<10:
-             return core.states.ApproachingMarker()
+             return core.states.GateSearch()
 
         
         if core.waypoint_handler.gps_data.leg_type == "GATE" and core.vision.ar_tag_detector.is_gate():
@@ -98,8 +99,6 @@ class Navigating(RoverState):
             core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
             self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
             core.waypoint_handler.reset_last_leg_type()
-
-        gps_data = core.waypoint_handler.get_waypoint()
 
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and returnfg

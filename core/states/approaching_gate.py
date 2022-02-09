@@ -62,7 +62,7 @@ class ApproachingGate(RoverState):
             orig_goal, orig_start, leg_type = gps_data.data()
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
-            if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
+            if len(tags) == 2 and self.gate_detection_attempts >= 5:
                 self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
                 # depending where the rover is facing, this is computed differently
