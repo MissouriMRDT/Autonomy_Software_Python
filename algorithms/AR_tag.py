@@ -60,22 +60,37 @@ def detect_ar_tag(reg_img):
     # Display the resulting frame
     # cv2.imshow('frame',reg_img)
  
-    if ids is not None:
-        for i in range(0, len(ids) - 1):
-            x1 = corners[i][0][0][0] #top left x coord
-            y1 = corners[i][0][0][1] # top left y coord
-            x2 = corners[i][0][1][0] # top right x coord
-            y2 = corners[i][0][3][1] # bottom left y coord
+    # tag 1
+    if ids is not None and len(ids) > 0:
+        x1 = corners[0][0][0][0] #top left x coord
+        y1 = corners[0][0][0][1] # top left y coord
+        x2 = corners[0][0][1][0] # top right x coord
+        y2 = corners[0][0][3][1] # bottom left y coord
 
-            # Calculate the center points of the AR Tag
-            cX = (x1 + x2) / 2
-            cY = (y1 + y2) / 2
+        # Calculate the center points of the AR Tag
+        cX = (x1 + x2) / 2
+        cY = (y1 + y2) / 2
 
-            # Find the distance/angle of said center pixels
-            distance, angle = track_ar_tag((cX, cY))
-            tags.append(Tag(cX, cY, distance, angle))
+        # Find the distance/angle of said center pixels
+        distance, angle = track_ar_tag((cX, cY))
+        tags.append(Tag(cX, cY, distance, angle))
+        
+
+    # tag 2
+    if ids is not None and len(ids) > 1:
+        x1b = corners[1][0][0][0] # top left x coord
+        y1b = corners[1][0][0][1] # top left y coord
+        x2b = corners[1][0][1][0] # top right x coord
+        y2b = corners[1][0][3][1] # bottom left y coord
+
+        cXb = (x1b + x2b) / 2
+        cYb = (y1b + y2b) / 2
+
+        distance, angle = track_ar_tag((cXb, cYb))
+        tags.append(Tag(cXb, cYb, distance, angle))
 
     return tags, reg_img
+
 
 def track_ar_tag(center):
     """
