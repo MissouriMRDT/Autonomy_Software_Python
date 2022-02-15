@@ -14,7 +14,7 @@ DETECTION_CORES = 1
 # Define multiprocessing and display toggles.
 MULTIPROC_MODE = True
 DEBUG = False
-DISPLAY = True
+DISPLAY = False
 
 
 def main():
@@ -28,19 +28,20 @@ def main():
     camera_position = None
     camera_position_set = False
 
-    # Setup Open3d and visualization.
-    # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
-    vis = o3d.visualization.Visualizer()
-    vis.create_window("point cloud objects", width=1386, height=752)
-    # Create visualizer for masking the object and floor onto the reg_img.
-    vis2 = o3d.visualization.Visualizer()
-    vis2.create_window("annotation mask", width=1386, height=752, visible=False)
-
     # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
     if DISPLAY:
+        # Create regular camera image window.
         cv2.namedWindow("reg")
+        # Setup Open3d and visualization.
+        # o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Debug)
+        vis = o3d.visualization.Visualizer()
+        vis.create_window("point cloud objects", width=1386, height=752)
+        # Create visualizer for masking the object and floor onto the reg_img.
+        vis2 = o3d.visualization.Visualizer()
+        vis2.create_window("annotation mask", width=1386, height=752, visible=False)
     else:
         core.vision.feed_handler.add_feed(2, "regular", stream_video=core.vision.STREAM_FLAG)
+        vis, vis2 = None, None
 
     while True:
         # Get other info and image stream from ZED camera.

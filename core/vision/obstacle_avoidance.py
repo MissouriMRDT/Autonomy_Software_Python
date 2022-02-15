@@ -16,6 +16,7 @@ DETECTION_CORES = 3
 MULTIPROC_MODE = True
 # Define a constant for toggling between the different methods of obstacle detection.
 USE_NEW_METHOD = True
+DISPLAY = False
 
 
 async def async_obstacle_detector():
@@ -27,8 +28,11 @@ async def async_obstacle_detector():
     ObstacleIgnorance = algorithms.new_obstacle_detector.ObstacleDetector()
 
     # Create visualizer for masking the object and floor onto the reg_img.
-    vis2 = o3d.visualization.Visualizer()
-    vis2.create_window("annotation mask", width=1386, height=752, visible=False)
+    if DISPLAY:
+        vis2 = o3d.visualization.Visualizer()
+        vis2.create_window("annotation mask", width=1386, height=752, visible=False)
+    else:
+        vis2 = None
 
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
