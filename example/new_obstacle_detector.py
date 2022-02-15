@@ -70,8 +70,9 @@ def main():
         # print("track time: ", time.time() - s)
 
         # Print console info.
-        # print("Object angle", angle)
-        # print("Object distance", distance)
+        logger.info(
+            f"Object detected at a distance of {distance / 1000} meters and {angle} degrees from camera center!"
+        )
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:
