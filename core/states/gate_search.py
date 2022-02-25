@@ -10,6 +10,8 @@ import interfaces
 import algorithms
 from core.vision import ar_tag_detector
 from core.states import RoverState
+import math
+
 
 
 class GateSearch(RoverState):
@@ -70,31 +72,36 @@ class GateSearch(RoverState):
         # Compute lat and long to approach exactly 4m from tag, then append to waypoint deque *** THIS NEEDS TO BE DEGRADATED
         tag_approach_lat, tag_approach_long = geomath.reverse_haversine(bearing, distance - 0.004, current[0], current[1])    
         waypoint = core.Coordinate(tag_approach_lat, tag_approach_long)
-        core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint)) #This needs to be modified a bit MAYBE
-        self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({tag_approach_lat}), lon ({tag_approach_long})") # Consider updating goal coordinate
-
+        if(distance > 4):
+            core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint)) #This needs to be modified a bit MAYBE
+            self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({tag_approach_lat}), lon ({tag_approach_long})") # Consider updating goal coordinate
 
         # Compute waypoints that approximate circle and append to list
+        radius = (distance + 1) / 2
         circle_points = [waypoint]
-        circle_points += self.compute_circle_waypoints(tag_latitude, tag_longitude, 4, 8) #2nd and third parameters are radius (in m) and increments (number of waypoints)
+        circle_points = self.compute_circle_waypoints(tag_latitude, tag_longitude, radius, 8) #2nd and third parameters are radius (in m) and increments (number of waypoints)
         self.logger.info(f"Added position waypoints that go in circle around AR tag: lat ({tag_latitude}), lon ({tag_longitude})")
         start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
 
         # Iterate through circle_points and check for gate while moving
         for point in circle_points:
+            print(f"---------------------------------{point}")
             while (
                 algorithms.gps_navigate.get_approach_status(
                     core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
                 )
                 == core.ApproachState.APPROACHING
             ):
+                print("2222222222222")
+                print(algorithms.gps_navigate.get_approach_status(core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5))
                 # Potential Issue Here -- The rever MUST see both tags in the same image for this function to return true
                 # Also note that no obstacle detection occurs here
                 if core.vision.ar_tag_detector.is_gate():
+                    core.waypoint_handler.gps_data.leg_type = "GATE"
                     return core.states.ApproachingGate()
 
-                self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
+                # self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                 left, right = algorithms.gps_navigate.calculate_move(
                     point,
                     interfaces.nav_board.location(),
@@ -102,7 +109,8 @@ class GateSearch(RoverState):
                     250,
                 )
 
-                self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
+                # self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
+                self.logger.info("driving in search circle")
 
                 interfaces.drive_board.send_drive(left, right)
                 await asyncio.sleep(core.EVENT_LOOP_DELAY)
@@ -139,25 +147,90 @@ class GateSearch(RoverState):
 
         '''
 
-        circle_radius /= 1000 # Convert circle radius to km
+        # circle_radius /= 1000 # Convert circle radius to km
 
 
-        #compute bearing and distance to tag
-        current = interfaces.nav_board.location()
-        bearing, distance = geomath.haversine(tag_lat, tag_long, current[0], current[1])
+        # #compute bearing and distance to tag
+        # current = interfaces.nav_board.location()
+        # bearing, distance = geomath.haversine(tag_lat, tag_long, current[0], current[1])
 
-        # compute angle differentials
-        angle_diff = 360 / increments
-        circle_waypoints = []
+        # # compute angle differentials
+        # angle_diff = 360 / increments
+        # circle_waypoints = []
 
-        #compute waypoints to make rover go in a circle around the tag
-        for i in range(increments):
+        # #compute waypoints to make rover go in a circle around the tag
+        # for i in range(increments):
             
-            new_angle = bearing + angle_diff * (i+1) # *** Need to verify whether reverse_haversine can handle angles outside 0-360 range ***
-            point_lat, point_long = geomath.reverse_haversine(new_angle, circle_radius, tag_lat, tag_long)
-            circle_waypoints.append(core.Coordinate(point_lat, point_long))
+        #     new_angle = bearing + angle_diff * (i+1) # *** Need to verify whether reverse_haversine can handle angles outside 0-360 range ***
+        #     point_lat, point_long = geomath.reverse_haversine(new_angle, circle_radius, tag_lat, tag_long)
+        #     circle_waypoints.append(core.Coordinate(point_lat, point_long))
+
+        # print(circle_waypoints)
+        # return circle_waypoints
+
+        current = interfaces.nav_board.location()
+        bearing, distance = ar_tag_detector.get_tags()[0].angle, ar_tag_detector.get_tags()[0].distance
+        goal_latitude, goal_longitude = geomath.reverse_haversine(bearing, distance+1, current[0], current[1])
+        start_latitude = current[0]
+        start_longitude = current[1]
+        print(f"distance: {distance}, current")
+
+        # # inputs
+        radius = (distance + 1) / 2 # m - the following code is an approximation that stays reasonably accurate for distances < 100km
+        centerLat = (goal_latitude + start_latitude) / 2 # latitude of circle center, decimal degrees
+        centerLon = (goal_longitude + start_longitude) / 2 # Longitude of circle center, decimal degrees
+        # centerLat = current[0]
+        # centerLon = current[1]
+
+        # parameters
+        N = 10 # number of discrete sample points to be generated along the circle
+
+        # generate points
+        circlePoints = []
+        for k in range(N):
+            # compute
+            angle = math.pi*2*k/N
+            dx = radius*math.cos(angle)
+            dy = radius*math.sin(angle)
+            # point = {}
+            lat = centerLat + (180/math.pi)*(dy/6378137)
+            lon = centerLon + (180/math.pi)*(dx/6378137)/math.cos(centerLat*math.pi/180)
+            # add to list
+            print(core.Coordinate(lat, lon))
+            circlePoints.append(core.Coordinate(lat, lon))
+
+        print(circlePoints)
+        return circlePoints
+
+
+
+
+
+
+        #####
+        bearing, radius = geomath.haversine(
+            interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], tag_lat, tag_long
+        )
+        # Convert to meters
+        radius *= 1000
+        # Add in an additional .5 meters to compensate for regular GPS inaccuracy
+        radius += 0.5
+        radius = 2
+        points = []
+        angle = 0
+
+        increments = 4
+        angle_increments = 90 / (increments - 1)
+        point_angle = (angle - 90) % 360 + angle_increments
+
+        for i in range(increments):
+            points.append(algorithms.obstacle_avoider.coords_obstacle(radius, tag_lat, tag_long, point_angle))
+            point_angle += angle_increments
+
+        # return the GPS coordinates on our route
+        return points
         
-        return circle_waypoints
+        return circlePoints
 
 
 
