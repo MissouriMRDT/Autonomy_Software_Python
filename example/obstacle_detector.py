@@ -29,7 +29,7 @@ def main():
     while True:
         # Get point cloud from ZED camera.
         reg_img = core.vision.camera_handler.grab_regular()
-        depth_img = core.vision.camera_handler.grab_depth()
+        # depth_img = core.vision.camera_handler.grab_depth()
         depth_matrix = core.vision.camera_handler.grab_depth_data()
         mask, lower = algorithms.obstacle_detector.get_floor_mask(
             reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
@@ -52,7 +52,6 @@ def main():
         if DISPLAY:
             cv2.imshow("reg", reg_img)
             cv2.imshow("mask", mask)
-            cv2.imshow("depth", depth_img)
             cv2.imshow("lower", lower)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

@@ -1,10 +1,12 @@
 import numpy as np
 import cv2
 import math
+import time
 import open3d as o3d
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from multiprocessing import Queue, Process
+import multiprocessing as mp
 from collections import deque
 
 
@@ -90,13 +92,13 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
 
     # Get color values from the zed point cloud.
     colors = np.ravel(pts[:, :, 3]).view("uint8")
+
     # Reshape array and cutoff useless values.
     colors = colors.reshape(-1, 4)[:, :-1]
     # Convert color values from 0-255 to 0-1 for Open3d.
     colors = colors / 255
 
     # Converting everything to float64 has a HUGE FREAKING performance improvement. I guess silicon just likes 64-bit numbers.
-    pts = pts.astype(np.float64)
     colors = colors.astype(np.float64)
 
     # Cut off color value from each point.
@@ -106,12 +108,14 @@ def convert_zed_cloud_to_o3d_cloud(zed_point_cloud):
     # Remove nans and infs.
     # pts = pts[np.isfinite(pts[:, 0])]
 
+    # Converting everything to float64 has a HUGE FREAKING performance improvement. I guess silicon just likes 64-bit numbers.
+    pts = pts.astype(np.float64)
+
     # Assign the restructured and filtered pts array to the PointCloud.
     pcd.points = o3d.utility.Vector3dVector(pts)
     pcd.colors = o3d.utility.Vector3dVector(colors)
     # Remove nans and infs using built in open3d function.
     pcd.remove_non_finite_points()
-
     return pcd
 
 
@@ -435,7 +439,7 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
         point_cloud = pickle_deserialize(o3d_point_cloud)
         # Use the point cloud to detect and remove the floor plane.
         outlier_cloud, inliers = RANSAC_plane_detection(
-            point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=300
+            point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=900
         )
         # Make the data picklable.
         inlier_clouds = []
@@ -447,7 +451,7 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
             outlier_cloud, growing_radius=350, min_points=180, print_progress=False
         )
         # Make the data picklable.
-        pcd = pickle_serialize(pcd)
+        pcd = pickle_serialize(point_cloud)
 
         # Find the bounding boxes of each object.
         boxes = find_cluster_bounding_boxes(objects)
@@ -473,8 +477,9 @@ class ObstacleDetector:
         self.conversion_process_queue = deque()
         self.detection_process_queue = deque()
         # Create queues for results.
-        self.conversion_data_queue = Queue()
-        self.detection_data_queue = Queue()
+        self.ctx = mp.get_context("fork")
+        self.conversion_data_queue = self.ctx.Queue()
+        self.detection_data_queue = self.ctx.Queue()
 
         # Declare other instance variables.
         self.conversion_exceptions = 0
@@ -549,7 +554,7 @@ class ObstacleDetector:
                     # To multiprocess or not to multiprocess.
                     if multiproc_mode:
                         # Create new process.
-                        task = Process(
+                        task = self.ctx.Process(
                             target=detect_object_clusters_proc,
                             args=(
                                 self.detection_data_queue,
@@ -581,14 +586,18 @@ class ObstacleDetector:
                     self.conversion_exceptions = 0
         # If the queue is not full, continue pulling new point clouds and starting new processes.
         if len(self.conversion_process_queue) < conversion_procs:
+            # Check object type. ()
             # Get point cloud numpy array. (Must do it this way because zed objects are not picklable)
             self.zed_point_cloud = zed_point_cloud.get_data()
+            # self.zed_point_cloud = zed_point_cloud
+            # self.zed_point_cloud = np.random.randn(720, 1280, 4).astype(np.float64)
+            # self.zed_point_cloud = []
             # Check if zed points are empty.
             if len(self.zed_point_cloud) > 0:
                 # To multiprocess or not to multiprocess.
                 if multiproc_mode:
                     # Create new process.
-                    task = Process(
+                    task = self.ctx.Process(
                         target=convert_cloud_proc,
                         args=(
                             self.conversion_data_queue,

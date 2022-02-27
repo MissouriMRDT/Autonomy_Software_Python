@@ -81,7 +81,7 @@ async def async_obstacle_detector():
             if len(obstacle) > 0:
                 # Track the obstacle in the depth matrix
                 angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
-                    depth_matrix, obstacle, True, reg_img, False
+                    depth_matrix, obstacle, True, reg_img, True
                 )
                 # Update the current obstacle info
                 obstacle_dict["detected"] = True
@@ -94,7 +94,9 @@ async def async_obstacle_detector():
                 obstacle_dict["distance"] = None
 
         if obstacle_dict["detected"]:
-            logger.info(f'Obstacle detected at distance: {obstacle_dict["distance"]}')
+            logger.info(
+                f"Object detected at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!"
+            )
         core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

@@ -2,24 +2,27 @@ import cv2
 import core
 import numpy as np
 import algorithms
+import logging
 import time
+import math
 import open3d as o3d
 
 
 # Define depth img/data so we can use them for OpenCV window callbacks
 depth_matrix = None
 # Define the number of cores to use for each task.
-CONVERSION_CORES = 1
-DETECTION_CORES = 1
+CONVERSION_CORES = 2
+DETECTION_CORES = 2
 # Define multiprocessing and display toggles.
 MULTIPROC_MODE = True
-DEBUG = False
-DISPLAY = False
+DEBUG = True
+DISPLAY = True
 
 
 def main():
     # Declare objects
     ObstacleIgnorance = algorithms.new_obstacle_detector.ObstacleDetector()
+    logger = logging.getLogger(__name__)
     # Declare point clouds.
     processed_pcd = o3d.geometry.PointCloud()
     object_bounding_boxes = []
@@ -53,26 +56,27 @@ def main():
         reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
 
         # Detect obstacles.
-        # s = time.time()
+        s = time.time()
         (processed_pcd, inlier_clouds, object_bounding_boxes,) = ObstacleIgnorance.detect_obstacle(
             zed_point_cloud,
             conversion_procs=CONVERSION_CORES,
             detection_procs=DETECTION_CORES,
             multiproc_mode=MULTIPROC_MODE,
         )
-        # print("detection time: ", time.time() - s)
+        print("detection time: ", time.time() - s)
 
         # Track a specific obstacle. (closest one)
-        # s = time.time()
+        s = time.time()
         angle, distance, closest_box = ObstacleIgnorance.track_obstacle(
             object_bounding_boxes, reg_img, vis2, annotate_object=True, annotate_floor=True
         )
-        # print("track time: ", time.time() - s)
+        print("track time: ", time.time() - s)
 
         # Print console info.
-        logger.info(
-            f"Object detected at a distance of {distance / 1000} meters and {angle} degrees from camera center!"
-        )
+        if distance != math.inf:
+            logger.info(
+                f"Object detected at a distance of {distance / 1000} meters and {angle} degrees from camera center!"
+            )
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:
@@ -97,6 +101,7 @@ def main():
                             camera_position_set = True
                         else:
                             vis.get_view_control().convert_from_pinhole_camera_parameters(camera_position)
+                            pass
                     # Update window.
                     vis.update_renderer()
                     vis.poll_events()

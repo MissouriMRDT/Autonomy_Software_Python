@@ -1,3 +1,4 @@
+from ctypes import pointer
 from core.vision.camera import Camera
 import logging
 from core.vision import feed_handler
@@ -25,6 +26,8 @@ class SimCamHandler(Camera):
         self.r_lock = threading.RLock()
 
         # Define the camera resolutions
+        self.point_cloud_res_x = 1280
+        self.point_cloud_res_y = 720
         self.depth_res_x = 640
         self.depth_res_y = 360
         self.reg_res_x = 1280
@@ -40,6 +43,11 @@ class SimCamHandler(Camera):
         # Create initial frames
         self.reg_img = None
         self.depth_img = None
+
+        # Create initial depth and point_cloud data arrays.
+        self.depth_data = []
+        self.point_cloud = []
+        self.scale_vals = [0, 0]
 
         # Create thread to constantly grab frames, and pass them to other processes to stream/save
         self._stop = threading.Event()
@@ -63,7 +71,8 @@ class SimCamHandler(Camera):
         # |     uint32t (Q)     |            char (C)            |  message (bytearray)   |
         # +---------------------+--------------------------------+------------------------+
         # | The number of bytes | The type of image frame:       | The bytes in the image |
-        # | in the image frame  | "r" for regular, "d" for depth | frame itself           |
+        # | in the image frame  | "r" for regular, "d" for depth,| frame itself           |
+        # |                     | "p" for point_cloud            |                        |
         # +---------------------+--------------------------------+------------------------+
 
         while not self._stop.is_set():
@@ -79,7 +88,7 @@ class SimCamHandler(Camera):
             data = data[data_length_size:]
 
             # The first element in data is the type of frame encoded as a single byte
-            # Either "r" or "d" for regular or depth
+            # Either "r" or "d" or "p" for regular or depth or point_cloud
             while len(data) < type_size:
                 data += self.client_socket.recv(4 * 1024)
             type = data[:type_size]
@@ -97,7 +106,7 @@ class SimCamHandler(Camera):
             frame_data = data[:msg_size]
             data = data[msg_size:]
 
-            # For regular images or depth data we have different decompression techniques
+            # For regular images or depth data or point_cloud we have different decompression techniques
             # this is due to the type of data we are sending
             self.r_lock.acquire()
             if msg_type == b"r":
@@ -107,6 +116,17 @@ class SimCamHandler(Camera):
                 self.encoded_img = gzip.decompress(frame_data)
                 self.encoded_img = pickle.loads(self.encoded_img)
                 self.depth_data = struct.unpack(str(int(len(self.encoded_img) / 4)) + "f", self.encoded_img)
+            elif msg_type == b"p":
+                self.encoded_img = pickle.loads(frame_data)
+                self.point_cloud = cv2.imdecode(self.encoded_img, -1)
+            elif msg_type == b"m":
+                minmax = struct.unpack(str(int(len(frame_data) / 4)) + "f", frame_data)
+                # Convert message to array.
+                minmax = np.asarray(minmax, dtype=np.float32)
+                # Store minmax vars in last color elements of point cloud.
+                if len(self.point_cloud) > 0:
+                    self.scale_vals[0] = minmax[0]
+                    self.scale_vals[1] = minmax[1]
             self.r_lock.release()
 
             # Now let the feed_handler stream/save the frames
@@ -133,10 +153,13 @@ class SimCamHandler(Camera):
         Returns the depth matrix (in meters) ahead of the current rover
         """
         self.r_lock.acquire()
-        # Convert depth data to numpy array
-        self.depth_data = np.asarray(self.depth_data)
-        # Resize current data (in list form) to matrix with expected dimensions
-        self.depth_data = self.depth_data.reshape((self.depth_res_y, self.depth_res_x, 1))
+        # Check if we have actually recieved data from the network.
+        if len(self.depth_data) > 0:
+            # Convert depth data to numpy array
+            self.depth_data = np.asarray(self.depth_data)
+            # Resize current data (in list form) to matrix with expected dimensions
+            self.depth_data = self.depth_data.reshape((self.depth_res_y, self.depth_res_x, 1))
+
         depth_data = self.depth_data.copy()
         self.r_lock.release()
         return depth_data
@@ -170,5 +193,24 @@ class SimCamHandler(Camera):
         """
         Returns 3D point cloud data captured with simulator
         """
-        self.logger.error("Tried calling grab_point_cloud() for simulator! Not supported currently")
-        return None
+        self.r_lock.acquire()
+        # Check if we have actually recieved data from the network.
+        if len(self.point_cloud) > 0:
+            # Convert depth data to numpy array
+            self.point_cloud = np.asarray(self.point_cloud, dtype=np.float32)
+            # Get the min and max of the orignal non-scaled point cloud from the end of the array so we can scale it back up.
+            # Remove the scale values from the array.
+            self.point_cloud = self.point_cloud[:-1, :, :]
+            self.point_cloud = np.interp(
+                self.point_cloud,
+                (self.point_cloud.min(), self.point_cloud.max()),
+                (self.scale_vals[0], self.scale_vals[1]),
+            ).astype(np.float32)
+
+            # Add defualt RGBA value to the color channel of the image.
+            self.point_cloud[:, :, 3] = 2
+
+            self.point_cloud *= 1000
+
+        self.r_lock.release()
+        return self.point_cloud.copy()
