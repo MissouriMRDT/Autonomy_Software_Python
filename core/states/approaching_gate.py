@@ -138,6 +138,9 @@ class ApproachingGate(RoverState):
 
                 points = [targetBeforeGate, target, targetPastGate]
 
+                #tmp 
+                # points = [target, targetPastGate]
+
                 # Approach the gate using GPS drive
                 for point in points:
                     while (

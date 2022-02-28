@@ -73,6 +73,8 @@ class Navigating(RoverState):
         gps_data = core.waypoint_handler.get_waypoint()
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
+
+        # self.logger.info(current)
         
         # move to approaching marker if 1 ar tag is spotted during marker leg type
         if core.waypoint_handler.gps_data.leg_type == "MARKER" and core.vision.ar_tag_detector.is_gate() and distance<10:
@@ -92,15 +94,15 @@ class Navigating(RoverState):
             core.waypoint_handler.reset_last_leg_type()
 
         # create new position leg type 2 meters in front of rover and insert in from of queue
-        elif last_leg_type == "GATE":
-            forward_distance = 2
-            heading = interfaces.nav_board.heading()
-            latitude, longitude = interfaces.nav_board.location()
-            goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
-            waypoint = core.Coordinate(goal_latitude, goal_longitude)
-            core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
-            self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
-            core.waypoint_handler.reset_last_leg_type()
+        # elif last_leg_type == "GATE":
+        #     forward_distance = 2
+        #     heading = interfaces.nav_board.heading()
+        #     latitude, longitude = interfaces.nav_board.location()
+        #     goal_latitude, goal_longitude = geomath.reverse_haversine(heading, forward_distance, latitude, longitude)
+        #     waypoint = core.Coordinate(goal_latitude, goal_longitude)
+        #     core.waypoint_handler.waypoints.appendleft(("POSITION", waypoint))
+        #     self.logger.info(f"Added Position Waypoint to Front of Queue: lat ({goal_latitude}), lon ({goal_longitude})")
+        #     core.waypoint_handler.reset_last_leg_type()
 
         gps_data = core.waypoint_handler.get_waypoint()
 

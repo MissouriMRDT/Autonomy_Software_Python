@@ -20,9 +20,9 @@ class WaypointHandler:
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddGateLeg"]["dataId"], self.add_gate_waypoint
         )
-        core.rovecomm_node.set_callback(
-            core.manifest["Autonomy"]["Commands"]["AddPostLeg"]["dataId"], self.add_post_waypoint
-        )
+        # core.rovecomm_node.set_callback(
+        #     core.manifest["Autonomy"]["Commands"]["AddPostLeg"]["dataId"], self.add_post_waypoint
+        # )
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
         )

@@ -1,6 +1,7 @@
 from typing import Tuple
 from algorithms import geomath
 import core
+from core import constants
 import logging
 import time
 import interfaces
@@ -94,7 +95,7 @@ class DriveBoard:
             False,
         )
 
-    def backup(self, target_distance, speed = -150):
+    def backup(self, target_distance, speed = -200):
         """
         Backs rover up for a specified distance at specified speed
 
