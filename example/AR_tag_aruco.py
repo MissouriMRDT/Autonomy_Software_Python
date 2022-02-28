@@ -1,4 +1,5 @@
 import logging
+from core.vision import feed_handler
 import cv2
 import numpy as np
 from cv2 import aruco
@@ -63,11 +64,9 @@ def main() -> None:
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # for ALVAR tags the border is actually 2 black bits wide
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
         parameters = aruco.DetectorParameters_create()
-        parameters.markerBorderBits = 2
-        # parameters.polygonalApproxAccuracyRate = 0.08
-        parameters.cornerRefinementMethod = 3
+
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         print(corners, ids)
@@ -76,6 +75,7 @@ def main() -> None:
         img = aruco.drawDetectedMarkers(gray, corners, ids)
 
         cv2.imshow("img", img)
+        feed_handler.handle_frame("ar", img)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
