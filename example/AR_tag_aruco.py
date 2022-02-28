@@ -73,9 +73,10 @@ def main() -> None:
         print(corners, ids)
 
         # draw bounding box and ID on the markers
-        img = aruco.drawDetectedMarkers(gray, corners, ids)
+        img = aruco.drawDetectedMarkers(img, corners, ids)
 
-        cv2.imshow("img", img)
+        # cv2.imshow("img", img)
+        core.vision.feed_handler.handle_frame("ar", img)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
