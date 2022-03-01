@@ -55,12 +55,12 @@ def main() -> None:
     logger.info("Executing function: main()")
 
     # Add feed
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     core.vision.camera_handler.feed_handler.add_feed(2, "ar")
 
     while True:
         # Test grabbing the latest camera frames
         img = core.vision.camera_handler.grab_regular()
-
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # for ALVAR tags the border is actually 2 black bits wide
@@ -73,10 +73,10 @@ def main() -> None:
         print(corners, ids)
 
         # draw bounding box and ID on the markers
-        img = aruco.drawDetectedMarkers(img, corners, ids)
+        img2 = aruco.drawDetectedMarkers(gray, corners, ids)
 
         # cv2.imshow("img", img)
-        core.vision.feed_handler.handle_frame("ar", img)
+        core.vision.feed_handler.handle_frame("ar", img2)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
