@@ -409,7 +409,7 @@ def convert_cloud_proc(data_queue, o3d_point_cloud):
         # Convert point cloud.
         pcd = convert_zed_cloud_to_o3d_cloud(o3d_point_cloud)
         # Downsample the point cloud to improve processing speed.
-        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=16)
+        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=8)
         # Make pcd object picklable. (I really hate python, this is awful.)
         pcd = pickle_serialize(pcd)
 
@@ -439,7 +439,7 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
         point_cloud = pickle_deserialize(o3d_point_cloud)
         # Use the point cloud to detect and remove the floor plane.
         outlier_cloud, inliers = RANSAC_plane_detection(
-            point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=900
+            point_cloud, num_of_planes=1, distance_threshold=120, ransac_n=3, num_iterations=900
         )
         # Make the data picklable.
         inlier_clouds = []

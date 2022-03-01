@@ -37,7 +37,7 @@ class ZedHandler(Camera):
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = self.fps
         self.init.depth_minimum_distance = 50.0
-        self.init.depth_maximum_distance = 5000.0
+        self.init.depth_maximum_distance = 10000.0
 
         # Open the camera
         err = self.zed.open(self.init)
