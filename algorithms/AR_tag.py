@@ -87,7 +87,7 @@ def detect_ar_tag(reg_img):
         distance, angle = track_ar_tag((cXb, cYb))
         tags.append(Tag(cXb, cYb, distance, angle))
 
-    return tags, reg_img
+    return tags, reg_img, ids
 
 
 def track_ar_tag(center):

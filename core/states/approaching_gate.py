@@ -138,6 +138,9 @@ class ApproachingGate(RoverState):
 
                 points = [targetBeforeGate, target, targetPastGate]
 
+                if D1 < 4:
+                    points = [target, targetPastGate]
+
                 #tmp 
                 # points = [target, targetPastGate]
 
