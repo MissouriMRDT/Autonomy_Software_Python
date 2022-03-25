@@ -56,26 +56,35 @@ def main() -> None:
 
     # Add feed
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-    core.vision.camera_handler.feed_handler.add_feed(2, "ar")
+    core.vision.feed_handler.add_feed(2, "ar")
 
     while True:
         # Test grabbing the latest camera frames
         img = core.vision.camera_handler.grab_regular()
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # gray = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+        gray = cv2.resize(gray, (1280, 720))
+        # gray = cv2.cvtColor(gray, cv2.COLOR_RGB2BGR)
+
+        # rgb = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
 
         # for ALVAR tags the border is actually 2 black bits wide
         parameters = aruco.DetectorParameters_create()
-        parameters.markerBorderBits = 2
-        # parameters.polygonalApproxAccuracyRate = 0.08
-        parameters.cornerRefinementMethod = 3
+        parameters.markerBorderBits = 1
+        # # parameters.polygonalApproxAccuracyRate = 0.08
+        # parameters.cornerRefinementMethod = 0
+        parameters.errorCorrectionRate = 1
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         print(corners, ids)
 
         # draw bounding box and ID on the markers
         img2 = aruco.drawDetectedMarkers(gray, corners, ids)
+        # img2 = aruco.drawAxis(
+        #     img2,
+        # )
 
-        # cv2.imshow("img", img)
+        cv2.imshow("img", img2)
         core.vision.feed_handler.handle_frame("ar", img2)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
