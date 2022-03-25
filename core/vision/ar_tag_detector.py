@@ -56,7 +56,8 @@ def is_marker():
     -------------
         detect (bool) - whether or not something was detected
     """
-    flag = len(ar_tags) > 0 and ar_ids[0] in [0, 1, 2, 3]
+    # flag = len(ar_tags) > 0 and ar_ids[0] in [0, 1, 2, 3]
+    flag = False
     return flag
 
 
@@ -70,7 +71,7 @@ def is_gate():
     -------------
         detect (bool) - whether or not something was detected
     """
-    flag = len(ar_tags) >= 2 and ar_ids[0] in [4, 5] and ar_ids[1] in [4, 5]
+    flag = len(ar_tags) >= 2 and ar_ids[0] in [0, 1] and ar_ids[1] in [0, 1]
     logger = logging.getLogger(__name__)
 
     logger.info(f"1111111111111111111111111111{flag}")
