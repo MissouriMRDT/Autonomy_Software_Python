@@ -32,6 +32,8 @@ def detect_ar_tag(reg_img):
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
+    parameters.markerBorderBits = 1
+    parameters.errorCorrectionRate = 1
 
     # print(parameters)
 
