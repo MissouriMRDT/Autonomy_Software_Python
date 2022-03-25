@@ -10,7 +10,8 @@ from cv2 import aruco
 
 tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
 
-Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])  
+Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
+
 
 def detect_ar_tag(reg_img):
     """
@@ -25,45 +26,45 @@ def detect_ar_tag(reg_img):
     """
 
     tags = []
-    
-    #print(frame.shape) #480x640
+
+    # print(frame.shape) #480x640
     # Our operations on the frame come here
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
 
-    #print(parameters)
+    # print(parameters)
 
-    '''    detectMarkers(...)
+    """    detectMarkers(...)
         detectMarkers(image, dictionary[, corners[, ids[, parameters[, rejectedI
         mgPoints]]]]) -> corners, ids, rejectedImgPoints
-        '''
-        #lists of ids and the corners beloning to each id
+        """
+    # lists of ids and the corners beloning to each id
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-    #It's working.
+    # It's working.
     # my problem was that the cellphone put black all around it. The algorithm
     # depends very much upon finding rectangular black blobs
 
-    reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+    # reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
-    '''
+    """
     if ids is not None:
         tags.clear()
         for array in ids:
             tags.append(array[0])
-    '''
-    
-    #print(rejectedImgPoints)
+    """
+
+    # print(rejectedImgPoints)
     # Display the resulting frame
     # cv2.imshow('frame',reg_img)
- 
+
     # tag 1
     if ids is not None and len(ids) > 0:
-        x1 = corners[0][0][0][0] #top left x coord
-        y1 = corners[0][0][0][1] # top left y coord
-        x2 = corners[0][0][1][0] # top right x coord
-        y2 = corners[0][0][3][1] # bottom left y coord
+        x1 = corners[0][0][0][0]  # top left x coord
+        y1 = corners[0][0][0][1]  # top left y coord
+        x2 = corners[0][0][1][0]  # top right x coord
+        y2 = corners[0][0][3][1]  # bottom left y coord
 
         # Calculate the center points of the AR Tag
         cX = (x1 + x2) / 2
@@ -72,14 +73,13 @@ def detect_ar_tag(reg_img):
         # Find the distance/angle of said center pixels
         distance, angle = track_ar_tag((cX, cY))
         tags.append(Tag(cX, cY, distance, angle))
-        
 
     # tag 2
     if ids is not None and len(ids) > 1:
-        x1b = corners[1][0][0][0] # top left x coord
-        y1b = corners[1][0][0][1] # top left y coord
-        x2b = corners[1][0][1][0] # top right x coord
-        y2b = corners[1][0][3][1] # bottom left y coord
+        x1b = corners[1][0][0][0]  # top left x coord
+        y1b = corners[1][0][0][1]  # top left y coord
+        x2b = corners[1][0][1][0]  # top right x coord
+        y2b = corners[1][0][3][1]  # bottom left y coord
 
         cXb = (x1b + x2b) / 2
         cYb = (y1b + y2b) / 2
