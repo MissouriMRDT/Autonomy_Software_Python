@@ -26,10 +26,10 @@ class SimCamHandler(Camera):
         self.r_lock = threading.RLock()
 
         # Define the camera resolutions
-        self.point_cloud_res_x = 1280
-        self.point_cloud_res_y = 720
-        self.depth_res_x = 640
-        self.depth_res_y = 360
+        self.point_cloud_res_x = 720
+        self.point_cloud_res_y = 404
+        self.depth_res_x = 720
+        self.depth_res_y = 404
         self.reg_res_x = 1280
         self.reg_res_y = 720
         self.hfov = 85
@@ -119,11 +119,28 @@ class SimCamHandler(Camera):
             elif msg_type == b"p":
                 self.encoded_img = pickle.loads(frame_data)
                 self.point_cloud = cv2.imdecode(self.encoded_img, -1)
+                # Check if we have actually recieved data from the network.
+                if len(self.point_cloud) > 0:
+                    # Convert depth data to numpy array
+                    self.point_cloud = np.asarray(self.point_cloud, dtype=np.float32)
+                    # Get the min and max of the orignal non-scaled point cloud from the end of the array so we can scale it back up.
+                    # Remove the scale values from the array.
+                    self.point_cloud = np.interp(
+                        self.point_cloud,
+                        (self.point_cloud.min(), self.point_cloud.max()),
+                        (self.scale_vals[0], self.scale_vals[1]),
+                    ).astype(np.float32)
+
+                    # Add defualt RGBA value to the color channel of the image.
+                    self.point_cloud[:, :, 3] = 2
+
+                    # Reorder the numbers to fit the zed's default coordinate system. (Webots is Z positive forward, X positive left, Y positive up) (Zed is X positive right, Y positive down, Z positive forward)
+                    self.point_cloud[:, :, [0, 1, 2]] = self.point_cloud[:, :, [1, 2, 0]]
             elif msg_type == b"m":
                 minmax = struct.unpack(str(int(len(frame_data) / 4)) + "f", frame_data)
                 # Convert message to array.
                 minmax = np.asarray(minmax, dtype=np.float32)
-                # Store minmax vars in last color elements of point cloud.
+                # Store minmax vars in seperate array.
                 if len(self.point_cloud) > 0:
                     self.scale_vals[0] = minmax[0]
                     self.scale_vals[1] = minmax[1]
@@ -194,23 +211,6 @@ class SimCamHandler(Camera):
         Returns 3D point cloud data captured with simulator
         """
         self.r_lock.acquire()
-        # Check if we have actually recieved data from the network.
-        if len(self.point_cloud) > 0:
-            # Convert depth data to numpy array
-            self.point_cloud = np.asarray(self.point_cloud, dtype=np.float32)
-            # Get the min and max of the orignal non-scaled point cloud from the end of the array so we can scale it back up.
-            # Remove the scale values from the array.
-            self.point_cloud = self.point_cloud[:-1, :, :]
-            self.point_cloud = np.interp(
-                self.point_cloud,
-                (self.point_cloud.min(), self.point_cloud.max()),
-                (self.scale_vals[0], self.scale_vals[1]),
-            ).astype(np.float32)
-
-            # Add defualt RGBA value to the color channel of the image.
-            self.point_cloud[:, :, 3] = 2
-
-            self.point_cloud *= 1000
-
+        point_cloud = self.point_cloud.copy()
         self.r_lock.release()
-        return self.point_cloud.copy()
+        return point_cloud

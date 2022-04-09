@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import math
 import time
+import logging
 import open3d as o3d
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
@@ -409,7 +410,7 @@ def convert_cloud_proc(data_queue, o3d_point_cloud):
         # Convert point cloud.
         pcd = convert_zed_cloud_to_o3d_cloud(o3d_point_cloud)
         # Downsample the point cloud to improve processing speed.
-        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=16)
+        pcd = down_sample_o3d_cloud(pcd, down_sample_factor=8)
         # Make pcd object picklable. (I really hate python, this is awful.)
         pcd = pickle_serialize(pcd)
 
@@ -439,7 +440,7 @@ def detect_object_clusters_proc(data_queue, o3d_point_cloud):
         point_cloud = pickle_deserialize(o3d_point_cloud)
         # Use the point cloud to detect and remove the floor plane.
         outlier_cloud, inliers = RANSAC_plane_detection(
-            point_cloud, num_of_planes=1, distance_threshold=90, ransac_n=3, num_iterations=900
+            point_cloud, num_of_planes=1, distance_threshold=120, ransac_n=3, num_iterations=900
         )
         # Make the data picklable.
         inlier_clouds = []
@@ -473,6 +474,7 @@ class ObstacleDetector:
         self.object_bounding_boxes = []
         self.inlier_clouds = []
         self.zed_point_cloud = None
+        self.logger = logging.getLogger(__name__)
         # Create queue for AsyncResult objects returned by process pool.
         self.conversion_process_queue = deque()
         self.detection_process_queue = deque()
@@ -586,12 +588,17 @@ class ObstacleDetector:
                     self.conversion_exceptions = 0
         # If the queue is not full, continue pulling new point clouds and starting new processes.
         if len(self.conversion_process_queue) < conversion_procs:
-            # Check object type. ()
-            # Get point cloud numpy array. (Must do it this way because zed objects are not picklable)
-            self.zed_point_cloud = zed_point_cloud.get_data()
-            # self.zed_point_cloud = zed_point_cloud
-            # self.zed_point_cloud = np.random.randn(720, 1280, 4).astype(np.float64)
-            # self.zed_point_cloud = []
+            # Try to use zed, if fails assume we are using the sim.
+            try:
+                # Get point cloud numpy array. (Must do it this way because zed objects are not picklable)
+                self.zed_point_cloud = zed_point_cloud.get_data()
+            except Exception:
+                # Just copy the point cloud since its already an array.
+                self.zed_point_cloud = zed_point_cloud
+                # Print debug info.
+                self.logger.info(
+                    "Unable to invoke zed specific methods. New Object Detection is assuming the SIM is active."
+                )
             # Check if zed points are empty.
             if len(self.zed_point_cloud) > 0:
                 # To multiprocess or not to multiprocess.

@@ -21,7 +21,7 @@ DISPLAY = True
 
 def main():
     # Declare objects
-    ObstacleIgnorance = algorithms.new_obstacle_detector.ObstacleDetector()
+    ObstacleIgnorance = algorithms.o3d_obstacle_detector.ObstacleDetector()
     logger = logging.getLogger(__name__)
     # Declare point clouds.
     processed_pcd = o3d.geometry.PointCloud()

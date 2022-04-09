@@ -32,7 +32,7 @@ def main():
         # depth_img = core.vision.camera_handler.grab_depth()
         depth_matrix = core.vision.camera_handler.grab_depth_data()
         mask, lower = algorithms.obstacle_detector.get_floor_mask(
-            reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
+            reg_img, int(depth_matrix.shape[1]), int(depth_matrix.shape[0])
         )
 
         depth_matrix = cv2.bitwise_and(depth_matrix, depth_matrix, mask=mask)
