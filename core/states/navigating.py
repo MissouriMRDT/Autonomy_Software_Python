@@ -31,7 +31,10 @@ class Navigating(RoverState):
         """
         state: RoverState = None
 
-        if event == core.AutonomyEvents.NO_WAYPOINT:
+        if core.vision.ar_tag_detector.is_gate():
+            state = core.states.ApproachingGate()
+
+        elif event == core.AutonomyEvents.NO_WAYPOINT:
             state = core.states.Idle()
 
         elif event == core.AutonomyEvents.REACHED_MARKER:

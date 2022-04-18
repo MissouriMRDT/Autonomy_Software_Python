@@ -1,17 +1,147 @@
+from asyncio.log import logger
 from collections import namedtuple
 from math import dist
 import cv2
+from cv2 import aruco
 import logging
 from numpy.core.numeric import NaN
 import itertools
 import core
 import numpy as np
+<<<<<<< HEAD
 from cv2 import aruco
+=======
+import interfaces
+from core.constants import FRAMES_DETECTED
 
-tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
+class Tag:
+    def __init__(self, id, gps, center):
+        """
+        Creates an object of Tag
+        Parameters:
+        -----------
+            id - the tag that was found
+            gps - the coordinates of the tag found
+            center - the center points of the tag
+        Returns:
+        --------
+            None
+        """
 
-Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
+        self.id = id
+        self.lat, self.long = gps
+        self.cX, self.cY = center
+        self.detected = 1
+        self.distance, self.angle = NaN
 
+    def checkTag(self, id, gps):
+        """
+        Checks to see if the tag that was spotted has already been added to the array.
+        Parameters:
+        -----------
+            id - the tag that is being checked
+            gps - the coordinates of the tag being checked
+        Returns:
+        --------
+            bool - True if detected, False if not detected
+        """
+        
+        if id == self.id:
+            self.tagSpotted(gps)
+            return True
+        else:
+            return False
+
+    def tagSpotted(self, gps):
+        """
+        Increments the detected variable and updates GPS, distance, and angle
+        Parameters:
+        -----------
+            gps - the coordinates of the tag
+        Returns:
+        --------
+            None
+        """
+
+        self.detected += 1
+        self.gps = gps
+
+        if self.detected >= FRAMES_DETECTED:
+            self.distance, self.angle = track_ar_tag((self.cX, self.cY))
+
+    def resetSpotted(self):
+        """
+        Resets the tags detected counter
+        Parameters:
+        -----------
+            None
+        Returns:
+        --------
+            None
+        """
+
+        self.detected = 0
+
+    def print(self):
+        """
+        Prints the id and the number of times it was detected
+        Parameters:
+        -----------
+            None
+        Returns:
+        --------
+            None
+        """
+
+        print(output.format(id = self.id, detected = self.detected))
+
+tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml") # What is this line used for? Can it be removed?
+detected_tags = []
+blank_frames = 0
+output = "Ids: {id:02d}   |   Detected: {detected:02d}"
+
+def getGPS():
+    """
+    Finds the GPS Cordinates for the Aruco Tag
+    Parameters:
+    -----------
+        None
+    Returns:
+    --------
+        latitude - the latitude of the tag
+        longitude - the longitude of the tag
+    """
+
+    latitude = interfaces.nav_board.location()[0]
+    longitude = interfaces.nav_board.location()[1]
+
+    return latitude, longitude
+
+def addTag(id, corners):
+    """
+    Creates a new Object of Tag in the detected_tags list
+    Parameters:
+    -----------
+        id - the id of the aruco tag
+        corners - the four corner points of the aruco tag for distance calculations
+    Returns:
+    --------
+        None
+    """
+>>>>>>> aruco_vision
+
+    latitude, longitude = getGPS()
+
+    x1 = corners[0][0][0][0]  # top left x coord
+    y1 = corners[0][0][0][1]  # top left y coord
+    x2 = corners[0][0][1][0]  # top right x coord
+    y2 = corners[0][0][3][1]  # bottom left y coord
+
+    # Calculate the center points of the AR Tag
+    cX = (x1 + x2) / 2
+    cY = (y1 + y2) / 2
+
+    detected_tags.append(Tag(id, (latitude, longitude), (cX, cY)))
 
 def detect_ar_tag(reg_img):
     """
@@ -21,10 +151,11 @@ def detect_ar_tag(reg_img):
         reg_img - the provided image we are looking at to find an ar tag
     Returns:
     --------
-        tags - a list of Tags (named tuple) that contain the (cX, cY, distance, angle) of the detected AR tags
+        tags - a list of Tags (class) that contain the (id, gps, cX and cY) of the detected AR tags
         reg_img - the image with detected AR Tags drawn on top of it
     """
 
+<<<<<<< HEAD
     tags = []
 
     # print(frame.shape) #480x640
@@ -91,6 +222,43 @@ def detect_ar_tag(reg_img):
 
     return tags, reg_img, ids
 
+=======
+    # Frame Adjustments
+    gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
+    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+    parameters = aruco.DetectorParameters_create()
+    parameters.markerBoarderBits = 1
+    parameters.errorCorrectionRate = 1
+
+    # Capture Tags
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+    # Add Tags to Tag Class Object
+    if ids is not None:
+        reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+
+        # Loops through ids found and checks adds them to the list accordingly.
+        for i in ids:
+            for j in i:
+                if len(detected_tags) == 0:
+                    addTag(j, corners)
+                else:
+                    found = False
+                    for t in detected_tags:
+                        if t.checkTag(j, getGPS()):
+                            found = True
+                    if not found:
+                        addTag(j, corners)
+    
+    # Checks for Blank Frames and resets counter if >= FRAMES_DETECTED
+    else:
+        blank_frames += 1
+        if blank_frames >= FRAMES_DETECTED:
+            for t in detected_tags:
+                t.resetSpotted()
+
+    return detected_tags, reg_img
+>>>>>>> aruco_vision
 
 def track_ar_tag(center):
     """

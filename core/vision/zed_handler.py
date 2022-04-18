@@ -27,7 +27,7 @@ class ZedHandler(Camera):
         self.hfov = 85
 
         # Define the desired runtime FPS
-        self.fps = 30
+        self.fps = 10
 
         # Set configuration parameters
         self.input_type = sl.InputType()
