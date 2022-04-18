@@ -24,9 +24,11 @@ async def async_ar_tag_detector():
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
         temp = []
+        ids = []
 
         for t in tags:
             if t.dectected >= FRAMES_DETECTED:
+                ids.append(t.id)
                 temp.append(Tag(t.cX, t.cY, t.distance, t.angle))
 
         if core.waypoint_handler.gps_data:
@@ -38,10 +40,9 @@ async def async_ar_tag_detector():
                 ar_tags.extend(temp)
         # else:
         #     ar_tags.clear()
-        #     ar_ids.clear()
 
         logger.debug("Running AR Tag async")
-        logger.info(f"Tags Spotted: {ar_ids}")
+        logger.info(f"Tags Spotted: {ids}")
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

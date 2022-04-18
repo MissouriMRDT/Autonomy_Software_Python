@@ -8,9 +8,6 @@ from numpy.core.numeric import NaN
 import itertools
 import core
 import numpy as np
-<<<<<<< HEAD
-from cv2 import aruco
-=======
 import interfaces
 from core.constants import FRAMES_DETECTED
 
@@ -117,25 +114,24 @@ def getGPS():
 
     return latitude, longitude
 
-def addTag(id, corners):
+def addTag(id_list, corner_list):
     """
     Creates a new Object of Tag in the detected_tags list
     Parameters:
     -----------
-        id - the id of the aruco tag
-        corners - the four corner points of the aruco tag for distance calculations
+        id_list - the id of the aruco tag
+        corner_list - the four corner points of the aruco tag for distance calculations
     Returns:
     --------
         None
     """
->>>>>>> aruco_vision
 
     latitude, longitude = getGPS()
 
-    x1 = corners[0][0][0][0]  # top left x coord
-    y1 = corners[0][0][0][1]  # top left y coord
-    x2 = corners[0][0][1][0]  # top right x coord
-    y2 = corners[0][0][3][1]  # bottom left y coord
+    x1 = corner_list[0][0][0][0]  # top left x coord
+    y1 = corner_list[0][0][0][1]  # top left y coord
+    x2 = corner_list[0][0][1][0]  # top right x coord
+    y2 = corner_list[0][0][3][1]  # bottom left y coord
 
     # Calculate the center points of the AR Tag
     cX = (x1 + x2) / 2
@@ -155,74 +151,6 @@ def detect_ar_tag(reg_img):
         reg_img - the image with detected AR Tags drawn on top of it
     """
 
-<<<<<<< HEAD
-    tags = []
-
-    # print(frame.shape) #480x640
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-    parameters = aruco.DetectorParameters_create()
-    parameters.markerBorderBits = 1
-    parameters.errorCorrectionRate = 1
-
-    # print(parameters)
-
-    """    detectMarkers(...)
-        detectMarkers(image, dictionary[, corners[, ids[, parameters[, rejectedI
-        mgPoints]]]]) -> corners, ids, rejectedImgPoints
-        """
-    # lists of ids and the corners beloning to each id
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
-    # It's working.
-    # my problem was that the cellphone put black all around it. The algorithm
-    # depends very much upon finding rectangular black blobs
-
-    # reg_img = aruco.drawDetectedMarkers(reg_img, corners)
-
-    """
-    if ids is not None:
-        tags.clear()
-        for array in ids:
-            tags.append(array[0])
-    """
-
-    # print(rejectedImgPoints)
-    # Display the resulting frame
-    # cv2.imshow('frame',reg_img)
-
-    # tag 1
-    if ids is not None and len(ids) > 0:
-        x1 = corners[0][0][0][0]  # top left x coord
-        y1 = corners[0][0][0][1]  # top left y coord
-        x2 = corners[0][0][1][0]  # top right x coord
-        y2 = corners[0][0][3][1]  # bottom left y coord
-
-        # Calculate the center points of the AR Tag
-        cX = (x1 + x2) / 2
-        cY = (y1 + y2) / 2
-
-        # Find the distance/angle of said center pixels
-        distance, angle = track_ar_tag((cX, cY))
-        tags.append(Tag(cX, cY, distance, angle))
-
-    # tag 2
-    if ids is not None and len(ids) > 1:
-        x1b = corners[1][0][0][0]  # top left x coord
-        y1b = corners[1][0][0][1]  # top left y coord
-        x2b = corners[1][0][1][0]  # top right x coord
-        y2b = corners[1][0][3][1]  # bottom left y coord
-
-        cXb = (x1b + x2b) / 2
-        cYb = (y1b + y2b) / 2
-
-        distance, angle = track_ar_tag((cXb, cYb))
-        tags.append(Tag(cXb, cYb, distance, angle))
-
-    return tags, reg_img, ids
-
-=======
     # Frame Adjustments
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
@@ -258,7 +186,6 @@ def detect_ar_tag(reg_img):
                 t.resetSpotted()
 
     return detected_tags, reg_img
->>>>>>> aruco_vision
 
 def track_ar_tag(center):
     """
