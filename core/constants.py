@@ -47,6 +47,8 @@ manifest = {}
 UDP_OUTGOING_PORT = None
 TCP_OUTGOING_PORT = 11111
 
+# ArUco Detection Occurrences
+TAG_OCCURRENCES = 5
 
 class ApproachState(Enum):
     APPROACHING = 1

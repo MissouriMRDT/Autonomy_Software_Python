@@ -1,17 +1,57 @@
+from asyncio.log import logger
 from collections import namedtuple
 from math import dist
 import cv2
+from cv2 import aruco
 import logging
 from numpy.core.numeric import NaN
 import itertools
 import core
 import numpy as np
-from cv2 import aruco
+
+class Tag:
+    def __init__(self, id, gps, center):
+        self.id = id
+        self.lat, self.long = gps
+        self.cX, self.cY = center
+        self.detected = 1
+        self.distance, self.angle = NaN
+
+    def checkTag(self, id, gps):
+        if id == self.id:
+            self.tagSpotted()
+            self.gps = gps
+
+            if self.detected >= 5:
+                self.distance, self.angle = track_ar_tag((self.cX, self.cY))
+            return True
+        else:
+            return False
+
+    def tagSpotted(self):
+        self.detected += 1
+
+    def print(self):
+        print(output.format(id = self.id, detected = self.detected))
 
 tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
+FRAMES_DETECTED = 5
+detected_tags = []
+output = "Ids: {id:02d}   |   Detected: {detected:02d}"
 
-Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
+def addTag(id, corners, gps):
+    latitude, longitude = gps
 
+    x1 = corners[0][0][0][0]  # top left x coord
+    y1 = corners[0][0][0][1]  # top left y coord
+    x2 = corners[0][0][1][0]  # top right x coord
+    y2 = corners[0][0][3][1]  # bottom left y coord
+
+    # Calculate the center points of the AR Tag
+    cX = (x1 + x2) / 2
+    cY = (y1 + y2) / 2
+
+    detected_tags.append(Tag(id, (latitude, longitude), (cX, cY)))
 
 def detect_ar_tag(reg_img):
     """
@@ -21,75 +61,35 @@ def detect_ar_tag(reg_img):
         reg_img - the provided image we are looking at to find an ar tag
     Returns:
     --------
-        tags - a list of Tags (named tuple) that contain the (cX, cY, distance, angle) of the detected AR tags
+        tags - a list of Tags (class) that contain the (id, gps, cX and cY) of the detected AR tags
         reg_img - the image with detected AR Tags drawn on top of it
     """
 
-    tags = []
-
-    # print(frame.shape) #480x640
-    # Our operations on the frame come here
+    # Frame Adjustments
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
 
-    # print(parameters)
-
-    """    detectMarkers(...)
-        detectMarkers(image, dictionary[, corners[, ids[, parameters[, rejectedI
-        mgPoints]]]]) -> corners, ids, rejectedImgPoints
-        """
-    # lists of ids and the corners beloning to each id
+    # Capture Tags
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-    # It's working.
-    # my problem was that the cellphone put black all around it. The algorithm
-    # depends very much upon finding rectangular black blobs
-
-    if corners:
+    # Add Tags to Tag Class Object
+    if ids is not None:
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
-    """
-    if ids is not None:
-        tags.clear()
-        for array in ids:
-            tags.append(array[0])
-    """
+        for i in ids:
+            for j in i:
+                if len(detected_tags) == 0:
+                    addTag(j, corners, (37.951500, -91.772552))
+                else:
+                    found = False
+                    for t in detected_tags:
+                        if t.checkTag(j, (37.951500, -91.772552)):
+                            found = True
+                    if not found:
+                        addTag(j, corners, (37.951500, -91.772552))
 
-    # print(rejectedImgPoints)
-    # Display the resulting frame
-    # cv2.imshow('frame',reg_img)
-
-    # tag 1
-    if ids is not None and len(ids) > 0:
-        x1 = corners[0][0][0][0]  # top left x coord
-        y1 = corners[0][0][0][1]  # top left y coord
-        x2 = corners[0][0][1][0]  # top right x coord
-        y2 = corners[0][0][3][1]  # bottom left y coord
-
-        # Calculate the center points of the AR Tag
-        cX = (x1 + x2) / 2
-        cY = (y1 + y2) / 2
-
-        # Find the distance/angle of said center pixels
-        distance, angle = track_ar_tag((cX, cY))
-        tags.append(Tag(cX, cY, distance, angle))
-
-    # tag 2
-    if ids is not None and len(ids) > 1:
-        x1b = corners[1][0][0][0]  # top left x coord
-        y1b = corners[1][0][0][1]  # top left y coord
-        x2b = corners[1][0][1][0]  # top right x coord
-        y2b = corners[1][0][3][1]  # bottom left y coord
-
-        cXb = (x1b + x2b) / 2
-        cYb = (y1b + y2b) / 2
-
-        distance, angle = track_ar_tag((cXb, cYb))
-        tags.append(Tag(cXb, cYb, distance, angle))
-
-    return tags, reg_img
-
+    return detected_tags, reg_img
 
 def track_ar_tag(center):
     """

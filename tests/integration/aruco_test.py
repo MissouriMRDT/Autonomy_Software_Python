@@ -1,63 +1,92 @@
-import numpy as np
 import cv2
 from cv2 import aruco
 
-tags = []
+class Tag:
+    def __init__(self, id, gps, center):
+        self.id = id
+        self.lat, self.long = gps
+        self.cX, self.cY = center
+        self.detected = 1
 
+    def checkTag(self, id, gps):
+        if id == self.id:
+            self.tagSpotted()
+            self.gps = gps
+            return True
+        else:
+            return False
+
+    def tagSpotted(self):
+        self.detected += 1
+
+    def print(self):
+        print(output.format(id = self.id, detected = self.detected))
+
+FRAMES_DETECTED = 5
 cap = cv2.VideoCapture(0)
+output = "Ids: {id:02d}   |   Detected: {detected:02d}"
+frame_found = False
+detected_tags = []
 
-while(True):
-    # Capture frame-by-frame
+# Add Tag Function
+def addTag(id, corners, gps):
+    latitude, longitude = gps
+
+    x1 = corners[0][0][0][0]  # top left x coord
+    y1 = corners[0][0][0][1]  # top left y coord
+    x2 = corners[0][0][1][0]  # top right x coord
+    y2 = corners[0][0][3][1]  # bottom left y coord
+
+    # Calculate the center points of the AR Tag
+    cX = (x1 + x2) / 2
+    cY = (y1 + y2) / 2
+
+    detected_tags.append(Tag(id, (latitude, longitude), (cX, cY)))
+
+while True:
     ret, reg_img = cap.read()
-    #print(frame.shape) #480x640
-    # Our operations on the frame come here
+
+    # Frame Adjustments
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
 
-    #print(parameters)
-
-    '''    detectMarkers(...)
-        detectMarkers(image, dictionary[, corners[, ids[, parameters[, rejectedI
-        mgPoints]]]]) -> corners, ids, rejectedImgPoints
-        '''
-        #lists of ids and the corners beloning to each id
+    # Capture Tags
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-    # print(corners)
 
-    #It's working.
-    # my problem was that the cellphone put black all around it. The algorithm
-    # depends very much upon finding rectangular black blobs
-
-    reg_img = aruco.drawDetectedMarkers(reg_img, corners)
-
+    # Add Tags to Tag Class Object
     if ids is not None:
-        for i in range(0, len(ids) - 1):
-            x1 = corners[i][0][0][0] #top left x coord
-            y1 = corners[i][0][0][1] # top left y coord
-            x2 = corners[i][0][1][0] # top right x coord
-            y2 = corners[i][0][3][1] # bottom left y coord
+        reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
-            # Calculate the center points of the AR Tag
-            cX = (x1 + x2) / 2
-            cY = (y1 + y2) / 2
+        for i in ids:
+            for j in i:
+                if len(detected_tags) == 0:
+                    addTag(j, corners, (37.951500, -91.772552))
+                else:
+                    found = False
+                    for t in detected_tags:
+                        if t.checkTag(j, (37.951500, -91.772552)):
+                            found = True
+                    if not found:
+                        addTag(j, corners, (37.951500, -91.772552))
+        
+    # Print Frames Detected 5 or more times
+    for t in detected_tags:
+        if t.detected >= FRAMES_DETECTED:
+            frame_found = True
+            print (output.format(id = t.id, detected = t.detected))
 
-            # Find the distance/angle of said center pixels
-            print("(" + cX + "," + cY + ")")
+    # Frame Bounding Line
+    if (frame_found):
+        print ("--------------------------------------------------------------------------")
 
-    if len(corners) != 0:
-        x = corners[0][0][0][0]
-        y = corners[0][0][0][1]
-        w = corners[0][0][1][0] - corners[0][0][0][0]
-        h = corners[0][0][3][1] - corners[0][0][0][1]
-
-    #print(rejectedImgPoints)
-    # Display the resulting frame
+    # Show Frame
     cv2.imshow('frame', reg_img)
 
+    # Exit Test
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# When everything done, release the capture
+# Release Frames
 cap.release()
 cv2.destroyAllWindows()
