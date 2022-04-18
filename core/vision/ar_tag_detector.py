@@ -5,6 +5,7 @@ from algorithms.AR_tag import Tag
 import core
 import algorithms
 import logging
+from core.constants import FRAMES_DETECTED
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -13,7 +14,7 @@ async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
-    Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
+    Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"]) # Temporary Solution until 4/18 Meeting
 
     logger = logging.getLogger(__name__)
     while True:
@@ -25,7 +26,7 @@ async def async_ar_tag_detector():
         temp = []
 
         for t in tags:
-            if t.dectected >= 5:
+            if t.dectected >= FRAMES_DETECTED:
                 temp.append(Tag(t.cX, t.cY, t.distance, t.angle))
 
         if len(temp) > 0:
