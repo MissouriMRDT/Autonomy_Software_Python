@@ -11,62 +11,64 @@ import numpy as np
 import interfaces
 from core.constants import FRAMES_DETECTED
 
+
 class Tag:
-    def __init__(self, id, gps, center):
+    def __init__(self, tag, gps, center):
         """
         Creates an object of Tag
         Parameters:
         -----------
-            id - the tag that was found
-            gps - the coordinates of the tag found
+            tag - the id that was found
+            gps - the coordinates of the tag (lat, long)
             center - the center points of the tag
         Returns:
         --------
             None
         """
 
-        self.id = id
+        self.id = tag
         self.lat, self.long = gps
         self.cX, self.cY = center
         self.detected = 1
+        self.empty = 0
         self.distance, self.angle = NaN
 
-    def checkTag(self, id, gps):
+    def check_tag(self, tag, gps):
         """
         Checks to see if the tag that was spotted has already been added to the array.
         Parameters:
         -----------
-            id - the tag that is being checked
-            gps - the coordinates of the tag being checked
+            tag - the id that is being checked
+            gps - the coordinates of the tag (lat, long)
         Returns:
         --------
             bool - True if detected, False if not detected
         """
-        
-        if id == self.id:
-            self.tagSpotted(gps)
+
+        if self.id == tag:
+            self.tag_spotted(gps)
             return True
         else:
             return False
 
-    def tagSpotted(self, gps):
+    def tag_spotted(self, gps):
         """
-        Increments the detected variable and updates GPS, distance, and angle
+        Increments the detected variable and updates GPS
         Parameters:
         -----------
-            gps - the coordinates of the tag
+            gps - the coordinates of the tag (lat, long)
         Returns:
         --------
             None
         """
 
         self.detected += 1
-        self.gps = gps
+        self.lat, self.long = gps
 
         if self.detected >= FRAMES_DETECTED:
             self.distance, self.angle = track_ar_tag((self.cX, self.cY))
 
-    def resetSpotted(self):
+    def reset_spotted(self):
         """
         Resets the tags detected counter
         Parameters:
@@ -90,16 +92,17 @@ class Tag:
             None
         """
 
-        print(output.format(id = self.id, detected = self.detected))
+        print(output.format(id=self.id, detected=self.detected))
 
-tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml") # What is this line used for? Can it be removed?
+
 detected_tags = []
 blank_frames = 0
 output = "Ids: {id:02d}   |   Detected: {detected:02d}"
 
-def getGPS():
+
+def get_gps():
     """
-    Finds the GPS Cordinates for the Aruco Tag
+    Finds the GPS Coordinates for the Aruco Tag
     Parameters:
     -----------
         None
@@ -114,30 +117,32 @@ def getGPS():
 
     return latitude, longitude
 
-def addTag(id, corners):
+
+def add_tag(tag, corner):
     """
     Creates a new Object of Tag in the detected_tags list
     Parameters:
     -----------
-        id - the id of the aruco tag
-        corners - the four corner points of the aruco tag for distance calculations
+        tag - the id of the aruco tag
+        corner - the four corner points of the aruco tag for distance calculations
     Returns:
     --------
         None
     """
 
-    latitude, longitude = getGPS()
+    latitude, longitude = get_gps()
 
-    x1 = corners[0][0][0][0]  # top left x coord
-    y1 = corners[0][0][0][1]  # top left y coord
-    x2 = corners[0][0][1][0]  # top right x coord
-    y2 = corners[0][0][3][1]  # bottom left y coord
+    x1 = corner[0][0][0][0]  # top left x coord
+    y1 = corner[0][0][0][1]  # top left y coord
+    x2 = corner[0][0][1][0]  # top right x coord
+    y2 = corner[0][0][3][1]  # bottom left y coord
 
     # Calculate the center points of the AR Tag
     cX = (x1 + x2) / 2
     cY = (y1 + y2) / 2
 
-    detected_tags.append(Tag(id, (latitude, longitude), (cX, cY)))
+    detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
+
 
 def detect_ar_tag(reg_img):
     """
@@ -165,27 +170,39 @@ def detect_ar_tag(reg_img):
     if ids is not None:
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
 
+        # Create a list of all ids seen in frame
+        frameTags = []
+        for i in ids:
+            for j in i:
+                frameTags.append(j)
+
         # Loops through ids found and checks adds them to the list accordingly.
         for i in ids:
             for j in i:
                 if len(detected_tags) == 0:
-                    addTag(j, corners)
+                    add_tag(j, corners)
                 else:
                     found = False
                     for t in detected_tags:
-                        if t.checkTag(j, getGPS()):
+                        if t.checkTag(j, get_gps()):
                             found = True
                     if not found:
-                        addTag(j, corners)
-    
+                        add_tag(j, corners)
+
+        # Loops through ids found on current leg and checks if they were in current frame.
+        for t in detected_tags:
+            if t.id not in frameTags:
+                t.empty += 1
+
     # Checks for Blank Frames and resets counter if >= FRAMES_DETECTED
     else:
-        blank_frames += 1
-        if blank_frames >= FRAMES_DETECTED:
-            for t in detected_tags:
-                t.resetSpotted()
+        for t in detected_tags:
+            t.empty += 1
+            # if t.empty >= FRAMES_DETECTED:
+            #     t.resetSpotted()
 
     return detected_tags, reg_img
+
 
 def track_ar_tag(center):
     """
