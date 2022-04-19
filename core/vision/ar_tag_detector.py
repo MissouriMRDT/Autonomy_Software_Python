@@ -10,11 +10,11 @@ from core.constants import FRAMES_DETECTED
 # Dict to hold the obstacle info
 ar_tags = []
 
+
 async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
-    Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"]) # Temporary Solution until 4/18 Meeting
 
     logger = logging.getLogger(__name__)
     while True:
@@ -23,21 +23,16 @@ async def async_ar_tag_detector():
         tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
-        temp = []
         ids = []
 
-        for t in tags:
-            if t.dectected >= FRAMES_DETECTED:
-                ids.append(t.id)
-                temp.append(Tag(t.cX, t.cY, t.distance, t.angle))
-
         if core.waypoint_handler.gps_data:
-            if core.waypoint_handler.gps_data.leg_type == "MARKER" and len(temp) > 0:
-                ar_tags.clear()
-                ar_tags.extend(temp)
-            elif core.waypoint_handler.gps_data.leg_type == "GATE" and len(temp) > 1:
-                ar_tags.clear()
-                ar_tags.extend(temp)
+            ar_tags.clear()
+
+            if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(ids) > 0) or (core.waypoint_handler.gps_data.leg_type == "GATE" and len(ids) > 1):
+                for t in tags:
+                    if t.dectected >= FRAMES_DETECTED:
+                        ids.append(t.id)
+                        ar_tags.append(t)
         # else:
         #     ar_tags.clear()
 
@@ -87,6 +82,6 @@ def get_tags() -> List[Tag]:
 
     Returns:
     --------
-        tags - A list of named tuples of the type Tag
+        tags - A list of class objects of the type Tag
     """
     return ar_tags
