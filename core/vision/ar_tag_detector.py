@@ -28,9 +28,9 @@ async def async_ar_tag_detector():
         if core.waypoint_handler.gps_data:
             ar_tags.clear()
 
-            if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(ids) > 0) or (core.waypoint_handler.gps_data.leg_type == "GATE" and len(ids) > 1):
+            if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(tags) > 0) or (core.waypoint_handler.gps_data.leg_type == "GATE" and len(tags) > 1):
                 for t in tags:
-                    if t.dectected >= FRAMES_DETECTED:
+                    if t.detected >= FRAMES_DETECTED:
                         ids.append(t.id)
                         ar_tags.append(t)
         # else:
@@ -54,8 +54,8 @@ def is_marker():
     -------------
         detect (bool) - whether or not something was detected
     """
-    # flag = len(ar_tags) > 0 and ar_ids[0] in [0, 1, 2, 3]
-    flag = False
+    flag = len(ar_tags) > 0 and ar_tags[0].id in [0, 1, 2, 3]
+    # flag = False
     return flag
 
 
@@ -72,7 +72,7 @@ def is_gate():
     flag = len(ar_tags) >= 2 and ar_tags[0].id in [0, 1] and ar_tags[1].id in [0, 1]
     logger = logging.getLogger(__name__)
 
-    logger.info(f"1111111111111111111111111111{flag}")
+    # logger.info(f"1111111111111111111111111111{flag}")
     return flag
 
 

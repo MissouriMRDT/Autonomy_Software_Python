@@ -31,7 +31,8 @@ class Tag:
         self.cX, self.cY = center
         self.detected = 1
         self.empty = 0
-        self.distance, self.angle = NaN
+        self.distance = 0
+        self.angle = 0
 
     def check_tag(self, tag, gps):
         """
@@ -160,7 +161,7 @@ def detect_ar_tag(reg_img):
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
-    parameters.markerBoarderBits = 1
+    parameters.markerBorderBits = 1
     parameters.errorCorrectionRate = 1
 
     # Capture Tags
@@ -184,7 +185,7 @@ def detect_ar_tag(reg_img):
                 else:
                     found = False
                     for t in detected_tags:
-                        if t.checkTag(j, get_gps()):
+                        if t.check_tag(j, get_gps()):
                             found = True
                     if not found:
                         add_tag(j, corners)
