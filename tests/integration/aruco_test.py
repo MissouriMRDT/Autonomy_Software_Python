@@ -165,7 +165,7 @@ while True:
                 else:
                     found = False
                     for t in detected_tags:
-                        if t.checkTag(j, get_gps()):
+                        if t.check_tag(j, get_gps()):
                             found = True
                     if not found:
                         add_tag(j, corners)

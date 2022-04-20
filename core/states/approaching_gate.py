@@ -6,6 +6,8 @@ import algorithms
 from core.states import RoverState
 import time
 import math
+from core.vision.ar_tag_detector import clear_tags
+
 
 
 class ApproachingGate(RoverState):
@@ -29,6 +31,7 @@ class ApproachingGate(RoverState):
         state: RoverState = None
 
         if event == core.AutonomyEvents.REACHED_MARKER:
+            clear_tags()
             state = core.states.Idle()
 
         elif event == core.AutonomyEvents.START:
@@ -61,6 +64,10 @@ class ApproachingGate(RoverState):
             gps_data = core.waypoint_handler.get_waypoint()
             orig_goal, orig_start, leg_type = gps_data.data()
 
+            print(f"TAG 1: {tags[0].angle}")
+            print(f"TAG 2: {tags[1].angle}")
+
+
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
@@ -84,6 +91,7 @@ class ApproachingGate(RoverState):
                     - 2 * tags[0].distance * tags[1].distance * math.cos(math.radians(combinedAngle))
                 )
                 self.logger.info(f"Gate width {gateWidth}")
+                print(f"COMBINED ANGLE {combinedAngle}")
 
                 # we want to use the smaller side for our midpoint triangle
                 D1 = min(tags[0].distance, tags[1].distance)

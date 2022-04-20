@@ -20,7 +20,7 @@ class Tag:
         -----------
             tag - the id that was found
             gps - the coordinates of the tag (lat, long)
-            center - the center points of the tag
+            corner - the four corner points of the aruco tag for distance calculations
         Returns:
         --------
             None
@@ -34,37 +34,53 @@ class Tag:
         self.distance = 0
         self.angle = 0
 
-    def check_tag(self, tag, gps):
+    def check_tag(self, tag, gps, corner, index):
         """
         Checks to see if the tag that was spotted has already been added to the array.
         Parameters:
         -----------
             tag - the id that is being checked
             gps - the coordinates of the tag (lat, long)
+            corner - the four corner points of the aruco tag for distance calculations
+            index - the index in the tag list
         Returns:
         --------
             bool - True if detected, False if not detected
         """
 
+        print("INSIDE CHECK TAG")
+
         if self.id == tag:
-            self.tag_spotted(gps)
+            self.tag_spotted(gps, corner, index)
             return True
         else:
             return False
 
-    def tag_spotted(self, gps):
+    def tag_spotted(self, gps, corner, index):
         """
         Increments the detected variable and updates GPS
         Parameters:
         -----------
             gps - the coordinates of the tag (lat, long)
+            corner - the four corner points of the aruco tag for distance calculations
         Returns:
         --------
             None
         """
 
+        print("INSIDE TAG_SPOTTED")
+
         self.detected += 1
         self.lat, self.long = gps
+
+        x1 = corner[index][0][0][0]  # top left x coord
+        y1 = corner[index][0][0][1]  # top left y coord
+        x2 = corner[index][0][1][0]  # top right x coord
+        y2 = corner[index][0][3][1]  # bottom left y coord
+
+        # Calculate the center points of the AR Tag
+        self.cX = (x1 + x2) / 2
+        self.cY = (y1 + y2) / 2
 
         if self.detected >= FRAMES_DETECTED:
             self.distance, self.angle = track_ar_tag((self.cX, self.cY))
@@ -119,13 +135,14 @@ def get_gps():
     return latitude, longitude
 
 
-def add_tag(tag, corner):
+def add_tag(tag, corner, index):
     """
     Creates a new Object of Tag in the detected_tags list
     Parameters:
     -----------
         tag - the id of the aruco tag
         corner - the four corner points of the aruco tag for distance calculations
+        index - the index in the tag list
     Returns:
     --------
         None
@@ -133,10 +150,10 @@ def add_tag(tag, corner):
 
     latitude, longitude = get_gps()
 
-    x1 = corner[0][0][0][0]  # top left x coord
-    y1 = corner[0][0][0][1]  # top left y coord
-    x2 = corner[0][0][1][0]  # top right x coord
-    y2 = corner[0][0][3][1]  # bottom left y coord
+    x1 = corner[index][0][0][0]  # top left x coord
+    y1 = corner[index][0][0][1]  # top left y coord
+    x2 = corner[index][0][1][0]  # top right x coord
+    y2 = corner[index][0][3][1]  # bottom left y coord
 
     # Calculate the center points of the AR Tag
     cX = (x1 + x2) / 2
@@ -170,6 +187,7 @@ def detect_ar_tag(reg_img):
     # Add Tags to Tag Class Object
     if ids is not None:
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+        index_counter = 0
 
         # Create a list of all ids seen in frame
         frameTags = []
@@ -178,17 +196,18 @@ def detect_ar_tag(reg_img):
                 frameTags.append(j)
 
         # Loops through ids found and checks adds them to the list accordingly.
-        for i in ids:
-            for j in i:
-                if len(detected_tags) == 0:
-                    add_tag(j, corners)
-                else:
-                    found = False
-                    for t in detected_tags:
-                        if t.check_tag(j, get_gps()):
-                            found = True
-                    if not found:
-                        add_tag(j, corners)
+        for i in frameTags:
+            if len(detected_tags) == 0:
+                add_tag(i, corners, index_counter)
+            else:
+                found = False
+                for t in detected_tags:
+                    if t.check_tag(i, get_gps(), corners, index_counter):
+                        found = True
+                if not found:
+                    add_tag(i, corners, index_counter)
+            
+            index_counter += 1
 
         # Loops through ids found on current leg and checks if they were in current frame.
         for t in detected_tags:
@@ -223,6 +242,7 @@ def track_ar_tag(center):
     # Center coordinates
     cX, cY = center
 
+
     # Depth image is at half resolution
     cX = int(cX / 2)
     cY = int(cY / 2)
@@ -239,8 +259,10 @@ def track_ar_tag(center):
 
     while not np.isfinite(distance) and index < len(perm):
         if index < len(perm):
+            print(f"IN DISTANCE CHANGER: {distance} == ", end="")
             distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
             index += 1
+            print(distance)
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000

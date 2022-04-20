@@ -1,11 +1,14 @@
 import asyncio
 from collections import namedtuple
+import imp
 from typing import List
 from algorithms.AR_tag import Tag
 import core
 import algorithms
 import logging
 from core.constants import FRAMES_DETECTED
+from core.states import RoverState
+from algorithms.AR_tag import detected_tags
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -36,6 +39,11 @@ async def async_ar_tag_detector():
         # else:
         #     ar_tags.clear()
 
+        print ("Before RoverState")
+        if RoverState == core.states.Idle():
+            print ("Inside RoverState")
+            clear_tags()
+
         logger.debug("Running AR Tag async")
         logger.info(f"Tags Spotted: {ids}")
 
@@ -44,6 +52,9 @@ async def async_ar_tag_detector():
 
 def clear_tags():
     ar_tags.clear()
+    print ("Inside Clear")
+    print (len(detected_tags))
+    detected_tags.clear()
 
 
 def is_marker():
@@ -69,7 +80,7 @@ def is_gate():
     -------------
         detect (bool) - whether or not something was detected
     """
-    flag = len(ar_tags) >= 2 and ar_tags[0].id in [0, 1] and ar_tags[1].id in [0, 1]
+    flag = len(ar_tags) >= 2 and ar_tags[0].id in [4, 5] and ar_tags[1].id in [4, 5]
     logger = logging.getLogger(__name__)
 
     # logger.info(f"1111111111111111111111111111{flag}")

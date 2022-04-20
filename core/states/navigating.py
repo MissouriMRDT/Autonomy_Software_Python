@@ -7,6 +7,7 @@ import interfaces
 import algorithms
 from core.states import RoverState
 from interfaces import nav_board
+from core.vision.ar_tag_detector import clear_tags
 
 
 class Navigating(RoverState):
@@ -70,13 +71,26 @@ class Navigating(RoverState):
         """
         Defines regular rover operation when under this state
         """
-        # last_leg_type = core.waypoint_handler.last_leg_type
+        # try:
+        #     last_leg_type = core.waypoint_handler.gps_data.leg_type
+        # except:
+        #     pass
 
         current = interfaces.nav_board.location()
         gps_data = core.waypoint_handler.get_waypoint()
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         distance *= 1000 # convert from km to m
+
+
+        last_leg_type = core.waypoint_handler.last_leg_type
+
+        # print ("Leg Type: " + str(last_leg_type))
+
+        print (f"###############################################################{distance}")
+        if distance > 20:
+            print (f"================================================================================{distance}")
+            clear_tags()
         
         # move to approaching marker if 1 ar tag is spotted during marker leg type
         if core.waypoint_handler.gps_data.leg_type == "MARKER" and core.vision.ar_tag_detector.is_marker() and distance<10:
@@ -87,7 +101,6 @@ class Navigating(RoverState):
             core.waypoint_handler.gps_data.leg_type = "GATE"
             return core.states.ApproachingGate()
 
-        last_leg_type = core.waypoint_handler.last_leg_type
         # core.vision.ar_tag_detector.clear_tags()
 
         # Based on last leg type, give rover room to begin driving
@@ -96,6 +109,7 @@ class Navigating(RoverState):
             backup_distance = 2 # meters
             interfaces.drive_board.backup(backup_distance)
             # core.waypoint_handler.reset_last_leg_type()
+
 
         # create new position leg type 2 meters in front of rover and insert in from of queue
         # elif last_leg_type == "GATE":
