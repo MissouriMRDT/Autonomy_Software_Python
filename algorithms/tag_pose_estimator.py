@@ -41,7 +41,7 @@ while(True):
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         #draw bounding box and ID on the markers
-        frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
+        # frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
 
         rvecs, tvecs, _objPoints = aruco.estimatePoseSingleMarkers(corners, 0.2, mtx, dist, None, None)
 

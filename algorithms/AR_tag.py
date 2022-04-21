@@ -159,7 +159,8 @@ def add_tag(tag, corner, index):
     cX = (x1 + x2) / 2
     cY = (y1 + y2) / 2
 
-    detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
+    if tag <= 5:
+        detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
 
 
 def detect_ar_tag(reg_img):
@@ -186,7 +187,7 @@ def detect_ar_tag(reg_img):
 
     # Add Tags to Tag Class Object
     if ids is not None:
-        reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+        # reg_img = aruco.drawDetectedMarkers(reg_img, corners)
         index_counter = 0
 
         # Create a list of all ids seen in frame

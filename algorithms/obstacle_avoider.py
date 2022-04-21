@@ -1,6 +1,6 @@
 import interfaces
 from geopy import Point
-from geopy.distance import VincentyDistance
+from geopy.distance import VincentyDistance, great_circle
 from algorithms import geomath
 
 
@@ -82,5 +82,7 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
         The coords of the obstacle
     """
     destination = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
+    # destination = great_circle(meters=distMeters).destination(Point(lat1, lon1), bearing)
+    
     lat2, lon2 = destination.latitude, destination.longitude
     return (lat2, lon2)

@@ -79,7 +79,7 @@ def main() -> None:
         print(corners, ids)
 
         # draw bounding box and ID on the markers
-        img2 = aruco.drawDetectedMarkers(gray, corners, ids)
+        # img2 = aruco.drawDetectedMarkers(gray, corners, ids)
         # img2 = aruco.drawAxis(
         #     img2,
         # )

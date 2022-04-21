@@ -7,14 +7,13 @@ from core.states import RoverState
 import time
 import math
 from core.vision.ar_tag_detector import clear_tags
-
+import numpy as np
 
 
 class ApproachingGate(RoverState):
     """
     Within approaching gate, 3 waypoints are calculated in front of, between, and throught the viewed gate, allowing the rover to traverse through the gate fully.
     """
-
     def start(self):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
@@ -117,6 +116,9 @@ class ApproachingGate(RoverState):
                     ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
                 )
                 self.logger.info(f"Calculated Distance to gate: {distToMidpoint}")
+                
+                if np.isnan(distToMidpoint):
+                    return self
 
                 # Last step to get angle to the midpoint, depending on where tags are relative to rover
                 if tags[0].angle < 0 and tags[1].angle < 0:
@@ -145,6 +147,7 @@ class ApproachingGate(RoverState):
                 )
 
                 points = [targetBeforeGate, target, targetPastGate]
+
 
                 if D1 < 4:
                     points = [target, targetPastGate]

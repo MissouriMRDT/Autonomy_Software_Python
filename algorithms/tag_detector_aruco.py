@@ -37,7 +37,7 @@ while(True):
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         #draw bounding box and ID on the markers
-        frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
+        # frame = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
         
         # resize frame to show even on smaller screens
         frame = cv2.resize(frame, None, fx = 1.6, fy = 1.6)
