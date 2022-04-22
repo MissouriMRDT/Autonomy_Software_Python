@@ -67,8 +67,8 @@ class ApproachingGate(RoverState):
                 self.logger.info("Gate detected, beginning navigation")
 
                 # Get
-                post_1_coord = (tags[0].distance, tags[0].angle)
-                post_2_coord = (tags[1].distance, tags[1].angle)
+                post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
+                post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
 
                 targetBeforeGate, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
 
@@ -179,18 +179,18 @@ def find_gate_path(polar_p1, polar_p2):
 
     # Compute angle to those points
     if ret_point_1[0] < 0:
-        p1_angle = 180 - math.asin(ret_point_1[1] / p1_distance)
+        p1_angle = math.pi / 2 - math.asin(ret_point_1[1] / p1_distance)
     else:
         p1_angle = math.asin(ret_point_1[1] / p1_distance)
 
     if ret_point_2[0] < 0:
-        p2_angle = 180 - math.asin(ret_point_2[1] / p2_distance)
+        p2_angle = math.pi / 2 - math.asin(ret_point_2[1] / p2_distance)
     else:
         p2_angle = math.asin(ret_point_2[1] / p2_distance)
 
     # Compute angle of midpoint
     if midpoint[0] < 0:
-        mid_angle = 180 - math.asin(midpoint[1] / midpoint_distance)
+        mid_angle = math.pi / 2 - math.asin(midpoint[1] / midpoint_distance)
     else:
         mid_angle = math.asin(midpoint[1] / midpoint_distance)
 
