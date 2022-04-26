@@ -1,4 +1,5 @@
 import asyncio
+from algorithms import obstacle_avoider
 import algorithms.geomath as geomath
 from core.vision.ar_tag_detector import is_gate
 import core
@@ -207,8 +208,8 @@ def find_gate_path(polar_p1, polar_p2):
 def camera_point_to_gps_coord(distance, angle, heading):
 
     bearing = heading + angle
-    lat, long = geomath.reverse_haversine(
-        distance, bearing, interfaces.nav_board.location()[0], interfaces.nav_board.location()[1]
+    lat, long = obstacle_avoider.coords_obstacle(
+        distance, interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], bearing
     )
 
     return core.Coordinate(lat, long)
