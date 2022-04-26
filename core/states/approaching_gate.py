@@ -206,7 +206,7 @@ def find_gate_path(polar_p1, polar_p2):
 
 def camera_point_to_gps_coord(distance, angle, heading):
 
-    bearing = heading - angle
+    bearing = heading + angle
     lat, long = geomath.reverse_haversine(
         distance, bearing, interfaces.nav_board.location()[0], interfaces.nav_board.location()[1]
     )
