@@ -180,7 +180,7 @@
                 "sha256:efd656893171bbf1331beca4ec9f2e74358fc732a2084f664fd149cc4b3441d2"
             ],
             "index": "pypi",
-            "version": "==1.19.3"
+            "version": ">=1.19.3"
         },
         "pillow": {
             "hashes": [
