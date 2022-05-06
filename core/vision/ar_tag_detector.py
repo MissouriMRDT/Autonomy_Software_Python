@@ -41,7 +41,6 @@ async def async_ar_tag_detector():
 
         print ("Before RoverState")
         if RoverState == core.states.Idle():
-            print ("Inside RoverState")
             clear_tags()
 
         logger.debug("Running AR Tag async")
@@ -52,7 +51,6 @@ async def async_ar_tag_detector():
 
 def clear_tags():
     ar_tags.clear()
-    print ("Inside Clear")
     print (len(detected_tags))
     detected_tags.clear()
 
