@@ -155,7 +155,8 @@ def add_tag(tag, corner, index):
     cX = (x1 + x2) / 2
     cY = (y1 + y2) / 2
 
-    detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
+    if tag <= 5:
+        detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
 
 
 def detect_ar_tag(reg_img):
