@@ -1,5 +1,4 @@
 import asyncio
-from turtle import distance
 import algorithms.geomath as geomath
 import algorithms.obstacle_avoider as obs_avoid
 from core.vision.ar_tag_detector import is_gate
@@ -10,8 +9,6 @@ from core.states import RoverState
 import time
 import math
 
-# NO GPS VERSION
-# drives in a straight line through the gate (this will be bad at steep angles)
 
 class ApproachingGate(RoverState):
     """
@@ -22,8 +19,6 @@ class ApproachingGate(RoverState):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
-        self.last_distance = 100
-        self.not_seen = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -68,102 +63,71 @@ class ApproachingGate(RoverState):
             gps_data = core.waypoint_handler.get_waypoint()
             orig_goal, orig_start, leg_type = gps_data.data()
 
+            # If we've seen at least 5 frames of 2 tags, assume it's a gate
+            if len(tags) == 2 and self.gate_detection_attempts >= 5:
+                self.logger.info("Gate detected, beginning navigation")
 
-            self.logger.info("Gate detected, beginning navigation")
+                # Get
+                post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
+                post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
 
-            # Get
-            distance = (tags[0].distance + tags[1].distance) / 2
-            angle = (tags[0].angle +  tags[1].angle) / 2
+                targetBeforeGate, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
 
-            print("---------", distance)
-            print(">>>>>>>>>>>>>>", self.last_distance)
-            if distance == self.last_distance:
-                self.not_seen += 1
-                if self.not_seen > 100:
-                    t1 = time.time()
-                    t2 = time.time()
-                    # drive past gate for 10 seconds
-                    while t2 - t1 < 10:
-                        t2 = time.time()
-                        interfaces.drive_board.send_drive(150, 150)
+                points = [targetBeforeGate, midpoint, targetPastGate]
+
+                start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+
+                print("DONAVAN SUKCS:", post_1_coord, "   ", post_2_coord)
+                input()
+
+                pointNum = 1
+                # Approach the gate using GPS drive
+
+                for point in points:
+                    while (
+                        algorithms.gps_navigate.get_approach_status(
+                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                        )
+                        == core.ApproachState.APPROACHING
+                    ):  
+                        self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
+                        left, right = algorithms.gps_navigate.calculate_move(
+                            core.Coordinate(point[0], point[1]),
+                            interfaces.nav_board.location(),
+                            start,
+                            250,
+                        )
+
+                        self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
+
+                        interfaces.drive_board.send_drive(left, right)
+                        time.sleep(0.01)
+                        print("THWAP:", pointNum)
+                    pointNum += 1
                     interfaces.drive_board.stop()
-                    self.logger.info("Reached Marker")
 
-                    # Transmit that we have reached the marker
-                    core.rovecomm_node.write(
-                        core.RoveCommPacket(
-                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                            "B",
-                            (1,),
-                        ),
-                        False,
-                    )
+                self.logger.info("Reached Gate")
 
-                    # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-            else:
-                print("JJJJJJJJJJJJJJJ")
-                self.not_seen = 0
-                
+                # Transmit that we have reached the gate
+                core.rovecomm_node.write(
+                    core.RoveCommPacket(
+                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                        "B",
+                        (1,),
+                    ),
+                    False,
+                )
 
+                # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
 
-            self.last_distance = distance
+                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
+            # If we grabbed more than one, see if it's a gate
+            elif len(tags) > 1:
+                self.gate_detection_attempts += 1
+                self.logger.info(f"2 Markers in frame, count:{self.gate_detection_attempts}")
 
-            left, right = algorithms.follow_marker.drive_to_marker(300, angle)
-            # left = right = 150
-
-            # angle = interfaces.nav_board.heading() + angle
-            # if angle < 0:
-            #     right = right * (1 - (angle / 180.0))
-            # elif angle > 0:
-            #     left = left * (1 + (angle / 180.0))
-            # print("++++++", angle)
-            # right = int(right)
-            # left = int(left)
-
-
-            print("??????", self.not_seen)
-            if self.not_seen == 0:
-                print("hi")
-                if angle < 0:
-                    right *= 1.2
-                    # left *= 0.8
-                elif angle > 0:
-                    left *= 1.2
-                    # right *= 0.8
-
-            right = int(right)
-            left = int(left)
-
-
-
-            self.logger.info("Marker in frame")
-            self.num_detection_attempts = 0
-
-            print(f"DISTANCE: {distance}")
-            # if distance < 1.25:
-            #     interfaces.drive_board.stop()
-
-            #     self.logger.info("Reached Marker")
-
-            #     # Transmit that we have reached the marker
-            #     core.rovecomm_node.write(
-            #         core.RoveCommPacket(
-            #             core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-            #             "B",
-            #             (1,),
-            #         ),
-            #         False,
-            #     )
-
-            #     # Tell multimedia board to flash our LED matrix green to indicate reached marker
-            #     interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-            #     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-            # else:
-            self.logger.info(f"Driving to target with speeds: ({left}, {right})")
-            interfaces.drive_board.send_drive(left, right)
         else:
             self.num_detection_attempts += 1
             self.gate_detection_attempts = 0
