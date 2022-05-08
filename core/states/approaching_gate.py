@@ -75,17 +75,17 @@ class ApproachingGate(RoverState):
 
             # Get
             distance = (tags[0].distance + tags[1].distance) / 2
-            angle = (tags[0].angle + tags[1].angle) / 2
+            angle = ((tags[0].angle - 30) + (tags[1].angle - 30)) / 2
 
             print("---------", distance)
             print(">>>>>>>>>>>>>>", self.last_distance)
-            if distance == self.last_distance:
+            if distance == self.last_distance or np.isnan(tags[0].distance) or np.isnan(tags[1].distance):
                 self.not_seen += 1
-                if self.not_seen > 100:
+                if self.not_seen > 10:
                     t1 = time.time()
                     t2 = time.time()
                     # drive past gate for 10 seconds
-                    while t2 - t1 < 10:
+                    while t2 - t1 < 3:
                         t2 = time.time()
                         interfaces.drive_board.send_drive(150, 150)
                     interfaces.drive_board.stop()
@@ -125,10 +125,10 @@ class ApproachingGate(RoverState):
             print("??????", self.not_seen)
             if self.not_seen == 0:
                 print("hi")
-                if angle < 0:
+                if angle < -0.5:
                     right *= 1.2
                     # left *= 0.8
-                elif angle > 0:
+                elif angle > 0.5:
                     left *= 1.2
                     # right *= 0.8
 

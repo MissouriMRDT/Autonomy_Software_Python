@@ -8,8 +8,6 @@ import algorithms
 from core.states import RoverState
 import time
 import math
-import geopy.distance
-import geopy
 
 
 class ApproachingGate(RoverState):
@@ -62,31 +60,57 @@ class ApproachingGate(RoverState):
             # Use get_tags to create an array of the 2 gate posts
             # (named tuples containing the distance and relative angle from the camera)
             tags = core.vision.ar_tag_detector.get_tags()
-            start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+            gps_data = core.waypoint_handler.get_waypoint()
+            orig_goal, orig_start, leg_type = gps_data.data()
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5:
                 self.logger.info("Gate detected, beginning navigation")
 
                 # Get
-                post_1_coord = (tags[0].distance, tags[0].angle)
-                post_2_coord = (tags[1].distance, tags[1].angle)
+                post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
+                post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
 
-                targetBeforeGate, midpoint, targetPastGate = find_gate_path(
-                    post_1_coord, post_2_coord, (start[0], start[1]), interfaces.nav_board.heading()
-                )
+                targetBeforeGate, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
 
-                print("POST 1 COORD:", post_1_coord[0] / 1)
-                print("POST 2 COORD:", float(post_2_coord[0]))
-                print("TB4GATE:", targetBeforeGate)
-                print("MIDPOINT:", midpoint)
-                print("PAST GATE:", targetBeforeGate)
-                input()
+                points = [midpoint, targetPastGate]
 
-                points = [targetBeforeGate, midpoint, targetPastGate]
+                start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
 
                 pointNum = 1
                 # Approach the gate using GPS drive
+
+                while (
+                    algorithms.gps_navigate.get_approach_status(
+                        core.Coordinate(targetBeforeGate[0], targetBeforeGate[1]),
+                        interfaces.nav_board.location(),
+                        start,
+                        0.5,
+                    )
+                    == core.ApproachState.APPROACHING
+                ):
+                    self.logger.info(f"Driving towards: Lat: {targetBeforeGate[0]}, Lon: {targetBeforeGate[1]}")
+                    left, right = algorithms.gps_navigate.calculate_move(
+                        core.Coordinate(targetBeforeGate[0], targetBeforeGate[1]),
+                        interfaces.nav_board.location(),
+                        start,
+                        250,
+                    )
+
+                    self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
+
+                    interfaces.drive_board.send_drive(left, right)
+                    time.sleep(0.01)
+                    print("SADFEFISFJSEJF: 0")
+                interfaces.drive_board.stop()
+
+                tags = core.vision.ar_tag_detector.get_tags()
+
+                # post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
+                # post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
+
+                # urmom, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
+                # points = [midpoint, targetPastGate]
 
                 for point in points:
                     while (
@@ -107,7 +131,7 @@ class ApproachingGate(RoverState):
 
                         interfaces.drive_board.send_drive(left, right)
                         time.sleep(0.01)
-                        print("THWAP:", pointNum)
+                        print("asdfawehfwejflawjfjawoiefjawe:", pointNum)
                     pointNum += 1
                     interfaces.drive_board.stop()
 
@@ -146,7 +170,7 @@ class ApproachingGate(RoverState):
         return self
 
 
-def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
+def find_gate_path(polar_p1, polar_p2):
 
     # This function finds two points that the rover can use to pass through a gate.
     # It does this by finding a line perpinduclar to the gate that passes through the midpoint.
@@ -164,11 +188,11 @@ def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
     #   The first object is the point closest to the rover.
 
     # Distance each point will be from the gate (meters)
-    distance = 3
+    distance = 4
 
     # Convert Polar coordinate input to rectangular coordinates
-    p1 = (polar_p1[0] * math.cos(math.radians(polar_p1[1])), polar_p1[0] * math.sin(math.radians(polar_p1[1])))
-    p2 = (polar_p2[0] * math.cos(math.radians(polar_p2[1])), polar_p2[0] * math.sin(math.radians(polar_p2[1])))
+    p1 = (polar_p1[0] * math.cos(polar_p1[1]), polar_p1[0] * math.sin(polar_p1[1]))
+    p2 = (polar_p2[0] * math.cos(polar_p2[1]), polar_p2[0] * math.sin(polar_p2[1]))
 
     # Compute the midpoint of point_1 and point_2
     midpoint = ((p2[0] + p1[0]) / 2, (p2[1] + p1[1]) / 2)
@@ -192,33 +216,41 @@ def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
 
     # Compute angle to those points
     if ret_point_1[0] < 0:
-        p1_angle = math.pi - math.asin(ret_point_1[1] / p1_distance)
+        p1_angle = math.pi / 2 - math.asin(ret_point_1[1] / p1_distance)
     else:
         p1_angle = math.asin(ret_point_1[1] / p1_distance)
 
     if ret_point_2[0] < 0:
-        p2_angle = math.pi - math.asin(ret_point_2[1] / p2_distance)
+        p2_angle = math.pi / 2 - math.asin(ret_point_2[1] / p2_distance)
     else:
         p2_angle = math.asin(ret_point_2[1] / p2_distance)
 
     # Compute angle of midpoint
     if midpoint[0] < 0:
-        mid_angle = math.pi - math.asin(midpoint[1] / midpoint_distance)
+        mid_angle = math.pi / 2 - math.asin(midpoint[1] / midpoint_distance)
     else:
         mid_angle = math.asin(midpoint[1] / midpoint_distance)
 
-    gps_pos = geopy.Point(current_gps_pos[0], current_gps_pos[1])
-    dest_point_1 = geopy.distance.distance(meters=p1_distance).destination(
-        gps_pos, bearing=(current_heading + math.degrees(p1_angle)) % 360
-    )
-    dest_point_2 = geopy.distance.distance(meters=p2_distance).destination(
-        gps_pos, bearing=(current_heading + math.degrees(p2_angle)) % 360
-    )
-    dest_point_mid = geopy.distance.distance(meters=midpoint_distance).destination(
-        gps_pos, bearing=(current_heading + math.degrees(mid_angle)) % 360
+    print(
+        "ADFHALJEFHWAOIEFJHAWSIOEJHFIOAWEJ: ",
+        "point_1 {}, {} || midpoint {}. {}".format(p1_distance, p1_angle, midpoint_distance, mid_angle),
     )
 
+    coord_1 = camera_point_to_gps_coord(p1_distance, math.degrees(p1_angle), interfaces.nav_board.heading())
+    coord_2 = camera_point_to_gps_coord(p2_distance, math.degrees(p2_angle), interfaces.nav_board.heading())
+    mid_coord = camera_point_to_gps_coord(midpoint_distance, math.degrees(mid_angle), interfaces.nav_board.heading())
+
     if p2_distance < p1_distance:
-        return dest_point_1, dest_point_mid, dest_point_2
+        return coord_2, mid_coord, coord_1
     else:
-        return dest_point_1, dest_point_mid, dest_point_2
+        return coord_1, mid_coord, coord_2
+
+
+def camera_point_to_gps_coord(distance, angle, heading):
+
+    bearing = heading + angle
+    lat, long = obs_avoid.coords_obstacle(
+        distance, interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], bearing
+    )
+
+    return core.Coordinate(lat, long)
