@@ -48,8 +48,6 @@ class Tag:
             bool - True if detected, False if not detected
         """
 
-        print("INSIDE CHECK TAG")
-
         if self.id == tag:
             self.tag_spotted(gps, corner, index)
             return True
@@ -67,8 +65,6 @@ class Tag:
         --------
             None
         """
-
-        print("INSIDE TAG_SPOTTED")
 
         self.detected += 1
         self.lat, self.long = gps
@@ -260,10 +256,8 @@ def track_ar_tag(center):
 
     while not np.isfinite(distance) and index < len(perm):
         if index < len(perm):
-            print(f"IN DISTANCE CHANGER: {distance} == ", end="")
             distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
             index += 1
-            print(distance)
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000

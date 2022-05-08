@@ -17,6 +17,8 @@ class ApproachingMarker(RoverState):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
+        self.last_distance = 100
+        self.not_seen = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -64,13 +66,26 @@ class ApproachingMarker(RoverState):
             distance = tags[0].distance
             angle = tags[0].angle
 
+            # check to see if weve lost sight of tag
+            if self.last_distance == distance:
+                self.not_seen += 1
+            else:
+                self.not_seen = 0
+
+            out_of_frame = False
+            if self.not_seen > 10 and distance < 3:
+                out_of_frame = True
+
+            self.last_distance = distance
+
+            # calculate drive
             left, right = algorithms.follow_marker.drive_to_marker(300, angle)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0
 
             print(f"DISTANCE: {distance}")
-            if distance < 1.25:
+            if distance < 1.25 or out_of_frame:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")

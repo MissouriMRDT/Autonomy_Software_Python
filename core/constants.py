@@ -50,6 +50,7 @@ TCP_OUTGOING_PORT = 11111
 # ArUco Detection Occurrences
 FRAMES_DETECTED = 5
 
+
 class ApproachState(Enum):
     APPROACHING = 1
     CLOSE_ENOUGH = 2
