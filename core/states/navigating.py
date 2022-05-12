@@ -87,9 +87,7 @@ class Navigating(RoverState):
 
         # print ("Leg Type: " + str(last_leg_type))
 
-        print (f"###############################################################{distance}")
-        if distance > 20:
-            print (f"================================================================================{distance}")
+        if distance > 25:
             clear_tags()
         
         # move to approaching marker if 1 ar tag is spotted during marker leg type

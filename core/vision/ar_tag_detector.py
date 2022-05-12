@@ -18,7 +18,6 @@ async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
-
     logger = logging.getLogger(__name__)
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
@@ -39,12 +38,15 @@ async def async_ar_tag_detector():
         # else:
         #     ar_tags.clear()
 
-        print ("Before RoverState")
         if RoverState == core.states.Idle():
             clear_tags()
 
         logger.debug("Running AR Tag async")
         logger.info(f"Tags Spotted: {ids}")
+        if (len(ar_tags) >= 2):
+            distance = (ar_tags[0].distance + ar_tags[1].distance) / 2
+            angle = ((ar_tags[0].angle) + (ar_tags[1].angle)) / 2
+            logger.info(f"Marker detected {angle} degrees at distance {distance}")
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

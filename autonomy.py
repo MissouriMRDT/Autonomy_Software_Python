@@ -41,7 +41,6 @@ async def autonomy_state_loop():
         await core.states.state_machine.run()
 
         logger.info(f"Current State: {core.states.state_machine.state}")
-        print(interfaces.nav_board.location())
 
         # Transmit the current state to Base Station
 

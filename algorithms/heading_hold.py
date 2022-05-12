@@ -1,4 +1,6 @@
 import logging
+
+# from torch import negative
 import interfaces
 from algorithms.PID_controller import PIDcontroller
 
@@ -13,7 +15,17 @@ def clamp(x, minimum, maximum):
     --------
         val - the clamped value
     """
-    return max(minimum, min(x, maximum))
+    if x < 0:
+        is_negative = True
+    else:
+        is_negative = False
+    x = abs(x)
+    
+    result = max(minimum, min(x, maximum))
+    if is_negative:
+        result *= -1
+
+    return result
 
 
 def get_motor_power_from_heading(speed, goal_heading):

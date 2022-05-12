@@ -17,7 +17,7 @@ class ApproachingMarker(RoverState):
         # Schedule AR Tag detection
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
-        self.last_distance = 100
+        self.last_angle = 1000
         self.not_seen = 0
 
     def exit(self):
@@ -67,7 +67,7 @@ class ApproachingMarker(RoverState):
             angle = tags[0].angle
 
             # check to see if weve lost sight of tag
-            if self.last_distance == distance:
+            if self.last_angle == angle:
                 self.not_seen += 1
             else:
                 self.not_seen = 0
@@ -76,7 +76,7 @@ class ApproachingMarker(RoverState):
             if self.not_seen > 10 and distance < 3:
                 out_of_frame = True
 
-            self.last_distance = distance
+            self.last_angle = angle
 
             # calculate drive
             left, right = algorithms.follow_marker.drive_to_marker(300, angle)
@@ -102,6 +102,10 @@ class ApproachingMarker(RoverState):
 
                 # Tell multimedia board to flash our LED matrix green to indicate reached marker
                 interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+
+                # Clear ar tag list!?!?!?!?
+                core.vision.ar_tag_detector.clear_tags()
+                
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
             else:
                 self.logger.info(f"Driving to target with speeds: ({left}, {right})")

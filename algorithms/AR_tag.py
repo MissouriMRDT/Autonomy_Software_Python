@@ -65,7 +65,6 @@ class Tag:
         --------
             None
         """
-
         self.detected += 1
         self.lat, self.long = gps
 
@@ -239,10 +238,15 @@ def track_ar_tag(center):
     # Center coordinates
     cX, cY = center
 
-
-    # Depth image is at half resolution
-    cX = int(cX / 2)
-    cY = int(cY / 2)
+    # Grab the camera parameters
+    try:
+        img_res_x, img_res_y = core.vision.camera_handler.get_camera_res()
+    except Exception as e:
+        img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+        
+    # Scale ar tag value between image resolutions.
+    depth_cX = int((cX * (core.vision.camera_handler.depth_res_x)) / (img_res_x))
+    depth_cY = int((cY * (core.vision.camera_handler.depth_res_y)) / (img_res_y))
 
     # Grab the distance from the depth map
     distance = NaN
@@ -256,14 +260,16 @@ def track_ar_tag(center):
 
     while not np.isfinite(distance) and index < len(perm):
         if index < len(perm):
-            distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
+            distance = core.vision.camera_handler.grab_depth_data()[depth_cY + perm[index][1]][depth_cX + perm[index][0]]
+            # If distance is equal to or greater than 40000 (max zed and sim range), then set distance to NaN.
+            if (distance >= 40000):
+                distance = NaN
+            print("FUCK:", distance, "Index:", index)
             index += 1
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000
-
-    # Grab the camera parameters
-    img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
+    
     hfov = core.vision.camera_handler.get_hfov()
 
     # Calculate the angle of the object using camera params
@@ -271,6 +277,4 @@ def track_ar_tag(center):
     pixel_offset = cX - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
 
-    logger.info(f"Distance to marker: {distance} at pixel ({cX}, {cY})")
-    logger.info(f"Angle to marker: {angle}")
     return distance, angle

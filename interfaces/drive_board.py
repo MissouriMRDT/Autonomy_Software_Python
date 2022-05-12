@@ -125,3 +125,23 @@ class DriveBoard:
         # Stop rover
         self.logger.info(f"Backing Up: COMPLETED")
         self.stop()
+
+
+    def time_drive(self, distance):
+        """
+        Drives the rover in a straiht line for time x.
+        x is calculated by dividing goal distance by the constant METERS_PER_SECOND
+
+        Parameters:
+        -----------
+            distance (float) - distance to travel
+        """
+        goal_time = distance / constants.METERS_PER_SECOND
+        t1 = time.time()
+        t2 = time.time()
+
+        while t2 - t1 < goal_time:
+            t2 = time.time()
+            interfaces.drive_board.send_drive(constants.MAX_DRIVE_POWER, constants.MAX_DRIVE_POWER)
+
+        interfaces.drive_board.stop()

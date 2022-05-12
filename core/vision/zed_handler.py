@@ -20,10 +20,10 @@ class ZedHandler(Camera):
         self.logger = logging.getLogger(__name__)
 
         # Define the camera resolutions
-        self.depth_res_x = 640
-        self.depth_res_y = 360
-        self.reg_res_x = 1280
-        self.reg_res_y = 720
+        self.depth_res_x = 720
+        self.depth_res_y = 404
+        self.reg_res_x = 1920
+        self.reg_res_y = 1080
         self.hfov = 85
 
         # Define the desired runtime FPS
@@ -138,6 +138,9 @@ class ZedHandler(Camera):
         """
         info = self.zed.get_camera_information().calibration_parameters
         return info
+
+    def get_camera_res(self):
+        return self.zed.get_camera_information().camera_resolution
 
     def get_pose(self, pose):
         """

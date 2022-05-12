@@ -3,7 +3,17 @@ import logging
 
 
 def clamp(n, min_n, max_n):
-    return max(min(max_n, n), min_n)
+    if n < 0:
+        negative = True
+    else:
+        negative = False
+    x = abs(n)
+    
+    result = max(min_n, min(x, max_n))
+    if negative:
+        result *= -1
+
+    return result
 
 
 class PIDcontroller:
