@@ -5,6 +5,7 @@ import algorithms.heading_hold as heading_hold
 import algorithms.marker_search as marker_search
 import algorithms.PID_controller as PID_controller
 import algorithms.obstacle_detector as obstacle_detector
-import algorithms.new_obstacle_detector as new_obstacle_detector
+import algorithms.o3d_obstacle_detector as o3d_obstacle_detector
+import algorithms.yolo_obstacle_detector as yolo_obstacle_detector
 import algorithms.obstacle_avoider as obstacle_avoider
 import algorithms.AR_tag as AR_tag

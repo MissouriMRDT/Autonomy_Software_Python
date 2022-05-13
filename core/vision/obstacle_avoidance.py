@@ -3,6 +3,7 @@ import core
 import algorithms
 import cv2
 import asyncio
+import os
 import open3d as o3d
 
 
@@ -15,7 +16,7 @@ DETECTION_CORES = 1
 # Define multiprocessing toggle.
 MULTIPROC_MODE = True
 # Define a constant for toggling between the different methods of obstacle detection.
-USE_NEW_METHOD = True
+DETECTION_METHOD = 2  # 0 = Depth image method, 1 = Point cloud RANSAC and DBSCAN, 2 = YOLO
 DISPLAY = False
 
 
@@ -25,7 +26,13 @@ async def async_obstacle_detector():
     """
     # Declare objects
     logger = logging.getLogger(__name__)
-    ObstacleIgnorance = algorithms.new_obstacle_detector.ObstacleDetector()
+    ObstacleIgnorance = algorithms.o3d_obstacle_detector.ObstacleDetector()
+    # Declare objects
+    ObstacleIgnoranceYOLO = algorithms.yolo_obstacle_detector.ObstacleDetector(
+        weights=os.path.dirname(__file__) + "/../../resources/yolo_models/LargeModelCompleteNewDataset/weights/best.pt",
+        net_img_size=640,
+        min_confidence=0.4,
+    )
 
     # Create visualizer for masking the object and floor onto the reg_img.
     if DISPLAY:
@@ -33,12 +40,43 @@ async def async_obstacle_detector():
         vis2.create_window("annotation mask", width=1386, height=752, visible=False)
     else:
         vis2 = None
+        core.vision.feed_handler.add_feed(2, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     while True:
+        # Create instance variables.
         reg_img = core.vision.camera_handler.grab_regular()
+        object_summary = ""
+        inference_time = -1
 
         # Determine which object detection method to use.
-        if USE_NEW_METHOD:
+        if DETECTION_CORES == 2:
+            # Get point cloud from zed cam.
+            zed_point_cloud = core.vision.camera_handler.grab_point_cloud()
+            # Resize the image so it matches the dimensions of the depth data
+            depth_img_x, depth_img_y = core.vision.camera_handler.get_depth_res()
+            reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
+
+            # Detect obstacles.
+            objects, pred = ObstacleIgnoranceYOLO.detect_obstacles(reg_img)
+
+            # Track a specific obstacle. (closest one)
+            angle, distance, object_summary, inference_time = ObstacleIgnoranceYOLO.track_obstacle(
+                zed_point_cloud=zed_point_cloud, reg_img=reg_img
+            )
+
+            # If obstacle has been detected store its info.
+            if distance > -1:
+                # Update the current obstacle info
+                obstacle_dict["detected"] = True
+                obstacle_dict["angle"] = angle
+                obstacle_dict["distance"] = distance / 1000
+            else:
+                # Update the current obstacle info
+                obstacle_dict["detected"] = False
+                obstacle_dict["angle"] = None
+                obstacle_dict["distance"] = None
+            pass
+        elif DETECTION_METHOD == 1:
             # Get point cloud from zed cam.
             zed_point_cloud = core.vision.camera_handler.grab_point_cloud()
 
@@ -93,10 +131,15 @@ async def async_obstacle_detector():
                 obstacle_dict["angle"] = None
                 obstacle_dict["distance"] = None
 
-        if obstacle_dict["detected"]:
+        if DETECTION_METHOD == 2 and obstacle_dict["detected"]:
+            logger.info(
+                f"Object tracked at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!\nTotal Objects Detected: {object_summary}Done. ({inference_time:.3f}s)"
+            )
+        else:
             logger.info(
                 f"Object detected at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!"
             )
+
         core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

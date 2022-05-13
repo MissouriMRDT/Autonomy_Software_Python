@@ -20,6 +20,10 @@ sklearn = "*"
 cython = "*"
 pyopengl = "*"
 numpy = "*"
+torch = "*"
+torchvision = "*"
+seaborn = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
 opencv-contrib-python = "*"
