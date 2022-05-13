@@ -13,6 +13,7 @@ import math
 from core.vision.ar_tag_detector import clear_tags
 import numpy as np
 
+
 # NO GPS VERSION
 # drives in a straight line through the gate (this will be bad at steep angles)
 

@@ -60,5 +60,7 @@ def calculate_move(goal, location, start, speed = 450):
 
     goal_heading = target_heading
     logger.debug(f"Current heading: {interfaces.nav_board.heading()}, Goal: {goal_heading}")
+    print("GOAL HEADING: ", goal_heading)
+    goal_heading %= 360
 
     return hh.get_motor_power_from_heading(speed, goal_heading)

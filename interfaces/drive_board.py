@@ -18,7 +18,17 @@ def clamp(n, min_n, max_n):
         min_n - the minimum value it can be
         max_n - the maximum value it can be
     """
-    return max(min(max_n, n), min_n)
+    if n < 0:
+        is_negative = True
+    else:
+        is_negative = False
+    n = abs(n)
+    
+    result = max(min_n, min(n, max_n))
+    if is_negative:
+        result *= -1
+
+    return result
 
 
 class DriveBoard:

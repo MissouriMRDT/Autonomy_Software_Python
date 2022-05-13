@@ -7,9 +7,9 @@ def clamp(n, min_n, max_n):
         negative = True
     else:
         negative = False
-    x = abs(n)
+    n = abs(n)
     
-    result = max(min_n, min(x, max_n))
+    result = max(min_n, min(n, max_n))
     if negative:
         result *= -1
 

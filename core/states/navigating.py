@@ -95,7 +95,7 @@ class Navigating(RoverState):
             return core.states.ApproachingMarker()
 
         
-        if core.waypoint_handler.gps_data.leg_type == "GATE" or "MARKER" and core.vision.ar_tag_detector.is_gate() and distance<10:
+        if (core.waypoint_handler.gps_data.leg_type == "GATE" or core.waypoint_handler.gps_data.leg_type == "MARKER") and core.vision.ar_tag_detector.is_gate() and distance<10:
             core.waypoint_handler.gps_data.leg_type = "GATE"
             return core.states.ApproachingGate()
 
