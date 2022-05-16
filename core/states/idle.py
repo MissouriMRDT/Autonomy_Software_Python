@@ -1,6 +1,6 @@
 import core
 from core.states import RoverState
-
+from algorithms import small_movements
 
 class Idle(RoverState):
     """
@@ -14,7 +14,9 @@ class Idle(RoverState):
         Defines all transitions between states based on events
         """
         state: RoverState = None
+
         if event == core.AutonomyEvents.START:
+            small_movements.time_drive(2, False) #Back up 2 meters.
             state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
