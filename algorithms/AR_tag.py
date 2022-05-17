@@ -264,8 +264,9 @@ def track_ar_tag(center):
             # If distance is equal to or greater than 40000 (max zed and sim range), then set distance to NaN.
             if (distance >= 40000):
                 distance = NaN
-            print("FUCK:", distance, "Index:", index)
             index += 1
+
+    print("Center Depth Val:(", depth_cX, depth_cY, ")", dist)
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000

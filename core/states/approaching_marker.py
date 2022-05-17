@@ -73,7 +73,7 @@ class ApproachingMarker(RoverState):
                 self.not_seen = 0
 
             out_of_frame = False
-            if self.not_seen > 10 and distance < 3:
+            if self.not_seen > 10:
                 out_of_frame = True
 
             self.last_angle = angle

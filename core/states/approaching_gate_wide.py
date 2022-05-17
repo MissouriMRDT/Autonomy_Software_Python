@@ -91,7 +91,7 @@ class ApproachingGate(RoverState):
             angle = ((tags[0].angle) + (tags[1].angle)) / 2
             if abs(tags[0].angle) + abs(tags[1].angle) > constants.AR_SKEW_THRESHOLD:
                 self.is_first = False
-                self.is_first = False
+                self.is_turning = True
 
         if self.is_first:
             
@@ -103,9 +103,12 @@ class ApproachingGate(RoverState):
             print("POST 1 COORD:", post_1_coord)
             print("POST 2 COORD:", post_2_coord)
 
-            targetBeforeGate, midpoint, targetPastGate = find_gate_path(
-                post_1_coord, post_2_coord, (start[0], start[1]), interfaces.nav_board.heading()
-            )
+            try:
+                targetBeforeGate, midpoint, targetPastGate = find_gate_path(
+                    post_1_coord, post_2_coord, (start[0], start[1]), interfaces.nav_board.heading()
+                )
+            except:
+                return self
 
             print("TB4GATE:", targetBeforeGate.latitude, targetBeforeGate.longitude)
             print("MIDPOINT:", midpoint.latitude, midpoint)
@@ -122,6 +125,8 @@ class ApproachingGate(RoverState):
                 )
                 == core.ApproachState.APPROACHING
             ):
+                print("FIRST GPS POINT")
+
                 self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                 left, right = algorithms.gps_navigate.calculate_move(
                     core.Coordinate(point[0], point[1]),
@@ -144,6 +149,8 @@ class ApproachingGate(RoverState):
             return self
 
         if self.is_turning:
+            print("TURNING")
+
             if self.og_angle < 0:
                 interfaces.drive_board.send_drive(-150, 150)
             else:
@@ -169,6 +176,8 @@ class ApproachingGate(RoverState):
                 #     t2 = time.time()
                 #     interfaces.drive_board.send_drive(150, 150)
                 # interfaces.drive_board.stop()
+                if not(0 < distance < 5) or np.isnan(distance):
+                    distance = 3 
                 interfaces.drive_board.time_drive(distance + 2)
                 self.logger.info("Reached Marker")
 
