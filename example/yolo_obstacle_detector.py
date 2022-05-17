@@ -14,7 +14,7 @@ DISPLAY = True
 def main():
     # Declare objects
     ObstacleIgnorance = algorithms.yolo_obstacle_detector.ObstacleDetector(
-        weights=os.path.dirname(__file__) + "/../resources/yolo_models/LargeModelCompleteNewDataset/weights/best.pt",
+        weights=os.path.dirname(__file__) + "/../resources/yolo_models/2022-0511/weights/best.pt",
         net_img_size=640,
         min_confidence=0.4,
     )

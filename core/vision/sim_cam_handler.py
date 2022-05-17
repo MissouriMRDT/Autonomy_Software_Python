@@ -28,10 +28,10 @@ class SimCamHandler(Camera):
         # Define the camera resolutions
         self.point_cloud_res_x = 720
         self.point_cloud_res_y = 404
-        self.depth_res_x = 720
-        self.depth_res_y = 404
-        self.reg_res_x = 1280
-        self.reg_res_y = 720
+        self.depth_res_x = 1920
+        self.depth_res_y = 1080
+        self.reg_res_x = 1920
+        self.reg_res_y = 1080
         self.hfov = 85
 
         # Desired FPS

@@ -3,6 +3,8 @@ import numpy as np
 import torch
 import pyzed.sl as sl
 import torch.backends.cudnn as cudnn
+from numpy.core.numeric import NaN
+import itertools
 import core
 import math
 import os
@@ -322,7 +324,7 @@ class ObstacleDetector:
 
                 # Loop through the object array and get info about each object.
                 closest_box = None
-                object_2d_point = None
+                point = None
                 for i, obj in enumerate(self.objects):
                     # # Create a new zed box object.
                     # box = sl.CustomBoxObjectData()
@@ -333,25 +335,21 @@ class ObstacleDetector:
                     # # Store each in a list.
                     # box_objects.append(box)
 
-                    # Print object center in screen.
+                    # Use the bounding box info to get the center point of the object in the point cloud
                     point = (
-                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
                         int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
+                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
                     )
-
-                    # Put object identifier number on screen.
-                    cv2.putText(
-                        reg_img,
-                        str(i),
-                        point,
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (0, 0, 255),
-                        thickness=1,
+                    # Scale the object center in the screen to the point cloud res.
+                    cloud_res_x, cloud_res_y = core.vision.camera_handler.get_cloud_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    cloud_point = (
+                        int((point[0] * cloud_res_y) / img_res_y) - 1,
+                        int((point[1] * cloud_res_x) / img_res_x) - 1,
                     )
 
                     # Get 3d position of the object.
-                    location = point_cloud[point[1] - 1][point[0]]
+                    location = point_cloud[cloud_point[0], cloud_point[1]]
 
                     # Calculate distance of current object.
                     current_distance = math.sqrt(
@@ -364,7 +362,6 @@ class ObstacleDetector:
                     ):
                         # If closer than store the current box.
                         closest_box = location
-                        object_2d_point = point
                         object_distance = current_distance
                         # Find the angle of object from camera center line.
                         object_angle = math.copysign(
@@ -372,10 +369,10 @@ class ObstacleDetector:
                         )
 
                 # Draw circle of current tracked object.
-                if object_2d_point is not None:
+                if point is not None:
                     reg_img = cv2.circle(
                         reg_img,
-                        (object_2d_point[0], object_2d_point[1]),
+                        point,
                         radius=5,
                         color=(0, 0, 255),
                         thickness=-1,
@@ -427,21 +424,27 @@ class ObstacleDetector:
                 #     #         thickness=-1,
                 #     #     )
             else:
-                # Create instance variables.
-                closest_object_centerpoint = None
-
                 # If we are using the sim, then map the bounding boxes to the point cloud image location.
                 point_cloud = np.asarray(zed_point_cloud)
 
                 # Loop through the object array and get info about each object.
+                point = None
                 for i, obj in enumerate(self.objects):
                     # Use the bounding box info to get the center point of the object in the point cloud
                     point = (
                         int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
                         int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
                     )
-                    # Get the 3d world coordinates of the point.
-                    location = point_cloud[point[0]][point[1]]
+                    # Scale the object center in the screen to the point cloud res.
+                    cloud_res_x, cloud_res_y = core.vision.camera_handler.get_cloud_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    cloud_point = (
+                        int((point[0] * cloud_res_y) / img_res_y) - 1,
+                        int((point[1] * cloud_res_x) / img_res_x) - 1,
+                    )
+
+                    # Get 3d position of the object.
+                    location = point_cloud[cloud_point[0], cloud_point[1]]
                     # Alter number signs to match zed defualt coordinate plane.
                     location[0] *= -1
                     location[1] *= -1
@@ -459,14 +462,12 @@ class ObstacleDetector:
                         object_angle = math.copysign(
                             math.degrees(math.acos(location[2] / object_distance)), location[0]
                         )
-                        # Store the new closest object center point.
-                        closest_object_centerpoint = point
 
                 # Draw circle of current tracked object.
-                if closest_object_centerpoint is not None:
+                if point is not None:
                     reg_img = cv2.circle(
                         reg_img,
-                        (closest_object_centerpoint[1], closest_object_centerpoint[0]),
+                        (point[1], point[0]),
                         radius=5,
                         color=(0, 0, 255),
                         thickness=-1,

@@ -19,17 +19,19 @@ class ZedHandler(Camera):
         self.feed_handler = feed_handler
         self.logger = logging.getLogger(__name__)
 
-        # Define the camera resolutions
-        self.depth_res_x = 720
-        self.depth_res_y = 404
-        self.reg_res_x = 1280
-        self.reg_res_y = 720
-        self.hfov = 85
-
         # Resolution of point cloud.
         self.cloud_res = sl.Resolution()
         self.cloud_res.width = 720
         self.cloud_res.height = 404
+
+        # Define the camera resolutions
+        self.point_cloud_res_x = self.cloud_res.width
+        self.point_cloud_res_y = self.cloud_res.height
+        self.depth_res_x = 1920
+        self.depth_res_y = 1080
+        self.reg_res_x = 1920
+        self.reg_res_y = 1080
+        self.hfov = 85
 
         # Define the desired runtime FPS
         self.fps = 60
@@ -81,8 +83,6 @@ class ZedHandler(Camera):
         self.image_size = self.zed.get_camera_information().camera_resolution
 
         self.depth_size = self.zed.get_camera_information().camera_resolution
-        self.depth_size.width = self.depth_size.width / 2
-        self.depth_size.height = self.depth_size.height / 2
 
         # Declare your sl.Mat matrices
         image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
