@@ -8,6 +8,7 @@ import algorithms
 from core.states import RoverState
 from interfaces import nav_board
 from core.vision.ar_tag_detector import clear_tags
+from algorithms import small_movements
 
 
 class Navigating(RoverState):
@@ -20,7 +21,12 @@ class Navigating(RoverState):
     """
 
     def start(self):
-        pass
+        if self.start_logger == 0:
+            self.is_first = True
+        else:
+            self.is_first = False
+        self.start_logger += 1
+
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -81,7 +87,9 @@ class Navigating(RoverState):
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         distance *= 1000 # convert from km to m
-
+        
+        if self.is_first == True:
+            small_movements.time_drive(2, False) #Back up 2 meters.
 
         last_leg_type = core.waypoint_handler.last_leg_type
 

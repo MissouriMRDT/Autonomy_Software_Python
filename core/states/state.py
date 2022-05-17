@@ -8,6 +8,8 @@ class RoverState:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        #self.start_logger = 0
+        #self.is_first = False
 
         # Call start(), use to schedule tasks
         self.start()
