@@ -21,8 +21,8 @@ class ZedHandler(Camera):
 
         # Resolution of point cloud.
         self.cloud_res = sl.Resolution()
-        self.cloud_res.width = 720
-        self.cloud_res.height = 404
+        self.cloud_res.width = 1920
+        self.cloud_res.height = 1080
 
         # Define the camera resolutions
         self.point_cloud_res_x = self.cloud_res.width
@@ -39,7 +39,7 @@ class ZedHandler(Camera):
         # Set configuration parameters
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
-        self.init.camera_resolution = sl.RESOLUTION.HD720
+        self.init.camera_resolution = sl.RESOLUTION.HD1080
         self.init.depth_mode = sl.DEPTH_MODE.ULTRA
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = self.fps
