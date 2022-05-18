@@ -194,6 +194,16 @@ class Navigating(RoverState):
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 elif leg_type == "POSITION":
                     self.logger.info("Reached position waypoint")
+                    core.rovecomm_node.write(
+                        core.RoveCommPacket(
+                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                            "B",
+                            (1,),
+                        ),
+                        False,
+                    )
+                    
+                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 else:
                     return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
