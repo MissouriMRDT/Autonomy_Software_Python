@@ -1,6 +1,10 @@
+from cgitb import small
 import core
 from core.states import RoverState
 from algorithms import small_movements
+import asyncio
+import argparse
+import run
 
 class Idle(RoverState):
     """
@@ -16,7 +20,9 @@ class Idle(RoverState):
         state: RoverState = None
 
         if event == core.AutonomyEvents.START:
-            small_movements.time_drive(2, False) #Back up 2 meters.
+            if core.backup == "YES":
+                small_movements.time_drive(2, False) #Back up 2 meters.
+                small_movements.rotate_rover(-60)
             state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:

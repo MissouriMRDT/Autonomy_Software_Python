@@ -21,12 +21,7 @@ class Navigating(RoverState):
     """
 
     def start(self):
-        if self.start_logger == 0:
-            self.is_first = True
-        else:
-            self.is_first = False
-        self.start_logger += 1
-
+        pass
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -87,9 +82,6 @@ class Navigating(RoverState):
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         distance *= 1000 # convert from km to m
-        
-        if self.is_first == True:
-            small_movements.time_drive(2, False) #Back up 2 meters.
 
         last_leg_type = core.waypoint_handler.last_leg_type
 
@@ -111,10 +103,12 @@ class Navigating(RoverState):
 
         # Based on last leg type, give rover room to begin driving
         # Back up 2 meters
-        if last_leg_type == "POST" or last_leg_type == "MARKER":
-            backup_distance = 2 # meters
-            interfaces.drive_board.backup(backup_distance)
+        #if last_leg_type == "POST" or last_leg_type == "MARKER":
+            #backup_distance = 2 # meters
+            #interfaces.drive_board.backup(backup_distance)
             # core.waypoint_handler.reset_last_leg_type()
+        
+        
 
 
         # create new position leg type 2 meters in front of rover and insert in from of queue

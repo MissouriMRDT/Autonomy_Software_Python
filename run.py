@@ -10,7 +10,7 @@ import os
 import sys
 import time
 import asyncio
-
+from core.states import state
 
 def setup_logger(level) -> logging.Logger:
     """
@@ -61,6 +61,9 @@ def main() -> None:
     # Regular (on rover) or Sim (using the autonomy simulator)
     parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
 
+    #Optional parameter to determine whether the rover backs up after start autonomy
+    parser.add_argument("--reverse", choices=["YES", "NO"], default="NO")
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -83,7 +86,7 @@ def main() -> None:
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Initialize the core handlers (excluding vision)
-    core.setup(args.mode)
+    core.setup(args.mode, args.reverse)
 
     # Initialize the core vision components
     core.vision.setup(args.vision, args.stream)

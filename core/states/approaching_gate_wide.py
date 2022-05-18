@@ -2,6 +2,7 @@ import asyncio
 from turtle import distance
 from algorithms import AR_tag
 import algorithms.geomath as geomath
+import algorithms.small_movements as small_movements
 import algorithms.obstacle_avoider as obs_avoid
 from core.vision.ar_tag_detector import is_gate
 import core
