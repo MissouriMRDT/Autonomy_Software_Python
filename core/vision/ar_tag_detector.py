@@ -35,8 +35,8 @@ async def async_ar_tag_detector():
                     if t.detected >= FRAMES_DETECTED:
                         ids.append(t.id)
                         ar_tags.append(t)
-        # else:
-        #     ar_tags.clear()
+        else:
+            ar_tags.clear()
 
         if RoverState == core.states.Idle():
             clear_tags()
