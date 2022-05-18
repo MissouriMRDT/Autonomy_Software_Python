@@ -92,7 +92,6 @@ class ApproachingGate(RoverState):
             angle = ((tags[0].angle) + (tags[1].angle)) / 2
             if abs(tags[0].angle) + abs(tags[1].angle) > constants.AR_SKEW_THRESHOLD:
                 self.is_first = False
-                self.is_turning = True
 
         if self.is_first:
             
