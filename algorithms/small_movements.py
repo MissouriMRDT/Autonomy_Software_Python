@@ -6,7 +6,6 @@ import algorithms.heading_hold as hh
 import algorithms
 import itertools
 import time
-from core import constants
 import asyncio
 
 def backup(target_distance, speed = -200):
@@ -41,29 +40,31 @@ def backup(target_distance, speed = -200):
         interfaces.drive_board.stop()
 
 
-def time_drive(distance, is_forward):
+def time_drive(distance):
     """
-    Drives the rover in a straiht line for time 'goal_time'.
+    Drives the rover in a straight line for time 'goal_time'.
     'goal_time' is calculated by dividing goal distance by the constant METERS_PER_SECOND
 
     Parameters:
     -----------
-        distance (float) - distance to travel
-        is_forward (True/False) - True for forwards, False for backwards.
+        distance (float) - distance to travel. Negative for reverse.
     """
-    goal_time = distance / constants.METERS_PER_SECOND
+
+    goal_time = abs(distance) / core.METERS_PER_SECOND
     t1 = time.time()
     t2 = time.time()
     
-    if is_forward == True:
+    if distance > 0:
         while t2 - t1 < goal_time:
             t2 = time.time()
-            interfaces.drive_board.send_drive(constants.MAX_DRIVE_POWER, constants.MAX_DRIVE_POWER)
+            interfaces.drive_board.send_drive(core.MAX_DRIVE_POWER, core.MAX_DRIVE_POWER)
+            time.sleep(core.EVENT_LOOP_DELAY)
             
-    elif is_forward == False:
+    elif distance < 0:
         while t2 - t1 < goal_time:
             t2 = time.time()
-            interfaces.drive_board.send_drive(-constants.MAX_DRIVE_POWER, -constants.MAX_DRIVE_POWER)
+            interfaces.drive_board.send_drive(-core.MAX_DRIVE_POWER, -core.MAX_DRIVE_POWER)
+            time.sleep(core.EVENT_LOOP_DELAY)
             
     """
     I need to figure out how to do this asynchronously.
@@ -90,13 +91,17 @@ def rotate_rover(angle):
     going = True
     while going:
         if (interfaces.nav_board.heading() + 5) % 360 < target_heading:
-            interfaces.drive_board.send_drive(constants.MIN_DRIVE_POWER, -constants.MAX_DRIVE_POWER)
+            interfaces.drive_board.send_drive(core.MIN_DRIVE_POWER, -core.MAX_DRIVE_POWER)
             going = True
+            time.sleep(core.EVENT_LOOP_DELAY)
         elif (interfaces.nav_board.heading() - 5) % 360 > target_heading:
-            interfaces.drive_board.send_drive(-constants.MAX_DRIVE_POWER, constants.MIN_DRIVE_POWER)
+            interfaces.drive_board.send_drive(-core.MAX_DRIVE_POWER, core.MIN_DRIVE_POWER)
             going = True
+            time.sleep(core.EVENT_LOOP_DELAY)
         else:
             going = False
+
+    interfaces.drive_board.stop()
 
 def dance_party():
     '''

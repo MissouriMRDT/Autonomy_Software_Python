@@ -90,7 +90,7 @@ class ApproachingGate(RoverState):
         if not self.is_turning:
             distance = (tags[0].distance + tags[1].distance) / 2
             angle = ((tags[0].angle) + (tags[1].angle)) / 2
-            if abs(tags[0].angle) + abs(tags[1].angle) > constants.AR_SKEW_THRESHOLD:
+            if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
                 self.is_first = False
 
         if self.is_first:
@@ -178,7 +178,7 @@ class ApproachingGate(RoverState):
                 # interfaces.drive_board.stop()
                 if not(0 < distance < 5) or np.isnan(distance):
                     distance = 3 
-                interfaces.drive_board.time_drive(distance + 2)
+                small_movements.time_drive(distance + 2)
                 self.logger.info("Reached Marker")
 
                 # Transmit that we have reached the marker

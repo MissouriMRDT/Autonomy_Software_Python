@@ -62,7 +62,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
 
     #Optional parameter to determine whether the rover backs up after start autonomy
-    parser.add_argument("--reverse", choices=["YES", "NO"], default="NO")
+    parser.add_argument("--reverse", choices=["STRAIGHT","LEFT", "RIGHT", "NO"], default="NO")
 
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:

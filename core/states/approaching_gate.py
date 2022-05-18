@@ -1,5 +1,6 @@
 import asyncio
 from turtle import distance
+from algorithms import small_movements
 import algorithms.geomath as geomath
 import algorithms.obstacle_avoider as obs_avoid
 from core.vision.ar_tag_detector import is_gate
@@ -91,7 +92,7 @@ class ApproachingGate(RoverState):
                     #     t2 = time.time()
                     #     interfaces.drive_board.send_drive(150, 150)
                     # interfaces.drive_board.stop()
-                    interfaces.drive_board.time_drive(distance + 2)
+                    small_movements.time_drive(distance + 2)
                     self.logger.info("Reached Marker")
 
                     # Transmit that we have reached the marker

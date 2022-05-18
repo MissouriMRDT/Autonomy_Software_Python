@@ -20,9 +20,14 @@ class Idle(RoverState):
         state: RoverState = None
 
         if event == core.AutonomyEvents.START:
-            if core.backup == "YES":
-                small_movements.time_drive(2, False) #Back up 2 meters.
+            if core.backup == "STRAIGHT":
+                small_movements.time_drive(-2) #Back up 2 meters.
+            elif core.backup == "LEFT":
+                small_movements.time_drive(-2)
                 small_movements.rotate_rover(-60)
+            elif core.backup == "RIGHT":
+                small_movements.time_drive(-2)
+                small_movements.rotate_rover(60)
             state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
