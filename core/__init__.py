@@ -18,12 +18,13 @@ rovecomm_node: RoveComm
 waypoint_handler: WaypointHandler
 
 
-def setup(type="REGULAR"):
+def setup(type="REGULAR", reverse="NO"):
     """
     Sets up any core handlers
     """
     # load the manifest
     this.manifest = get_manifest()
+    this.backup = reverse
 
     # IPs and ports depend on type
     if type == "REGULAR":
