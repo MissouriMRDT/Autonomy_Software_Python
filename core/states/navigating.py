@@ -83,6 +83,8 @@ class Navigating(RoverState):
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         distance *= 1000 # convert from km to m
 
+        print(current)
+
         last_leg_type = core.waypoint_handler.last_leg_type
 
         # print ("Leg Type: " + str(last_leg_type))

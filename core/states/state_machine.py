@@ -39,9 +39,9 @@ class StateMachine(object):
     async def run(self):
         # Handle transitions for enabling/disabling
         if self.enable_flag is True:
-            self.state = self.state.on_event(core.AutonomyEvents.START)
             # Update the state display on lighting to Autonomy
             interfaces.multimedia_board.send_lighting_state(core.OperationState.AUTONOMY)
+            self.state = self.state.on_event(core.AutonomyEvents.START)
             self.enable_flag = False
 
         elif self.disable_flag is True:

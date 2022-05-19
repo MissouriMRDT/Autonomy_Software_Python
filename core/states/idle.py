@@ -4,6 +4,7 @@ from core.states import RoverState
 from algorithms import small_movements
 import asyncio
 import argparse
+from interfaces import nav_board
 import run
 
 class Idle(RoverState):
