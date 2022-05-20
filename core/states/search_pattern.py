@@ -3,6 +3,7 @@ import algorithms
 import interfaces
 import asyncio
 from core.states import RoverState
+from algorithms import small_movements
 
 
 class SearchPattern(RoverState):
@@ -95,10 +96,11 @@ class SearchPattern(RoverState):
             core.waypoint_handler.set_goal(goal)
 
             self.logger.info(f"Search Pattern: Adding New Waypoint ({goal[0]}, {goal[1]}")
-
+        
         left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
 
         self.logger.debug(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
+        
 
         return self
