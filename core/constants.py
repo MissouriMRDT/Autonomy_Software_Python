@@ -32,7 +32,7 @@ VISION_RANGE = 0.007  # kilometers
 MIN_OBSTACLE_PIXEL_AREA = 400  # minimum contour area in pixels of detected obstacle
 DEPTH_STEP_SIZE = 0.5  # Depth in meters that each segment of obstacle detection will run on
 NUM_DEPTH_SEGMENTS = 3  # Number of segments of depth map to actually run contour detection on
-ZED_X_OFFSET = 0.060325
+ZED_Z_OFFSET = 0.64  # Offset in meters.
 
 Coordinate = collections.namedtuple("Coordinate", ["lat", "lon"])
 

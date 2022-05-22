@@ -26,10 +26,10 @@ class SimCamHandler(Camera):
         self.r_lock = threading.RLock()
 
         # Define the camera resolutions
-        self.point_cloud_res_x = 720
+        self.point_cloud_res_x = 813
         self.point_cloud_res_y = 404
-        self.depth_res_x = 1920
-        self.depth_res_y = 1080
+        self.depth_res_x = 813
+        self.depth_res_y = 404
         self.reg_res_x = 1920
         self.reg_res_y = 1080
         self.hfov = 85
@@ -122,18 +122,9 @@ class SimCamHandler(Camera):
                 # Check if we have actually recieved data from the network.
                 if len(self.point_cloud) > 0:
                     # Convert depth data to numpy array
-                    self.point_cloud = np.asarray(self.point_cloud, dtype=np.float32)
-                    # Get the min and max of the orignal non-scaled point cloud from the end of the array so we can scale it back up.
-                    # Remove the scale values from the array.
-                    self.point_cloud = np.interp(
-                        self.point_cloud,
-                        (self.point_cloud.min(), self.point_cloud.max()),
-                        (self.scale_vals[0], self.scale_vals[1]),
-                    ).astype(np.float32)
-
+                    self.point_cloud = np.asarray(self.point_cloud, dtype=np.int32)
                     # Add defualt RGBA value to the color channel of the image.
-                    self.point_cloud[:, :, 3] = 2
-
+                    self.point_cloud[:, :, 3] = 111
                     # Reorder the numbers to fit the zed's default coordinate system. (Webots is Z positive forward, X positive left, Y positive up) (Zed is X positive right, Y positive down, Z positive forward)
                     self.point_cloud[:, :, [0, 1, 2]] = self.point_cloud[:, :, [1, 2, 0]]
             elif msg_type == b"m":
@@ -144,6 +135,12 @@ class SimCamHandler(Camera):
                 if len(self.point_cloud) > 0:
                     self.scale_vals[0] = minmax[0]
                     self.scale_vals[1] = minmax[1]
+                    # Rescale the point cloud.
+                    self.point_cloud = np.interp(
+                        self.point_cloud,
+                        (self.point_cloud.min(), self.point_cloud.max()),
+                        (self.scale_vals[0], self.scale_vals[1]),
+                    ).astype(np.float32)
             self.r_lock.release()
 
             # Now let the feed_handler stream/save the frames

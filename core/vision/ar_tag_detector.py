@@ -15,19 +15,19 @@ async def async_ar_tag_detector():
     """
     logger = logging.getLogger(__name__)
     while True:
-        reg_img = core.vision.camera_handler.grab_regular()
+        # reg_img = core.vision.camera_handler.grab_regular()
 
-        tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        # tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
 
-        core.vision.feed_handler.handle_frame("artag", reg_img)
+        # core.vision.feed_handler.handle_frame("artag", reg_img)
 
-        if len(tags) > 0:
-            ar_tags.clear()
-            ar_tags.extend(tags)
-        else:
-            ar_tags.clear()
+        # if len(tags) > 0:
+        #     ar_tags.clear()
+        #     ar_tags.extend(tags)
+        # else:
+        #     ar_tags.clear()
 
-        logger.debug("Running AR Tag async")
+        # logger.debug("Running AR Tag async")
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

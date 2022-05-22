@@ -29,15 +29,12 @@ def main():
         reg_img = core.vision.camera_handler.grab_regular()
         # Get point cloud from zed cam.
         zed_point_cloud = core.vision.camera_handler.grab_point_cloud()
-        # Resize the image so it matches the dimensions of the depth data
-        depth_img_x, depth_img_y = core.vision.camera_handler.get_depth_res()
-        reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
 
         # Detect obstacles.
         objects, pred = ObstacleIgnorance.detect_obstacles(reg_img)
 
         # Track a specific obstacle. (closest one)
-        object_angle, object_distance, object_summary, inference_time = ObstacleIgnorance.track_obstacle(
+        object_angle, object_distance, object_summary, inference_time, _ = ObstacleIgnorance.track_obstacle(
             zed_point_cloud=zed_point_cloud, reg_img=reg_img
         )
 

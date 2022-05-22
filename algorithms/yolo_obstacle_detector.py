@@ -1,10 +1,11 @@
+from asyncio import constants
 import logging
 import numpy as np
 import torch
 import pyzed.sl as sl
 import torch.backends.cudnn as cudnn
 from numpy.core.numeric import NaN
-import itertools
+import core.constants
 import core
 import math
 import os
@@ -187,7 +188,6 @@ def torch_proc(img_queue, result_queue, weights, img_size, conf_thres=0.2, iou_t
         inference_time = time.time() - s
 
         # Put results into queue.
-        # result_queue.put([predictions, detections, names])
         result_queue.put([predictions, detections, names, inference_time])
 
 
@@ -283,10 +283,12 @@ class ObstacleDetector:
             distance - the distance of the center of the obstacle from the ZED
             object_summary - a string containing the names and quantity of objects detected.
             inference_time - the total amount of time it took for the neural network to complete inferencing.
+            object_locations - a list of all the detected objects distances and angles.
         """
         # Create instance variables.
         object_distance = -1
         object_angle = 0
+        object_locations = []
 
         # Check if we have any predictions.
         if self.predictions is not None:
@@ -323,7 +325,6 @@ class ObstacleDetector:
                 point_cloud = zed_point_cloud.get_data()
 
                 # Loop through the object array and get info about each object.
-                closest_box = None
                 point = None
                 for i, obj in enumerate(self.objects):
                     # # Create a new zed box object.
@@ -360,13 +361,15 @@ class ObstacleDetector:
                     if not math.isnan(current_distance) and (
                         object_distance == -1 or current_distance < object_distance
                     ):
-                        # If closer than store the current box.
-                        closest_box = location
+                        # Store the new distance.
                         object_distance = current_distance
-                        # Find the angle of object from camera center line.
-                        object_angle = math.copysign(
-                            math.degrees(math.acos(closest_box[2] / object_distance)), closest_box[0]
-                        )
+                        # Do adjacent/hypot before pugging it in so we can check.
+                        cah = location[2] / object_distance
+                        # Calculate and store the object angle.
+                        if cah >= 0 or cah <= math.pi:
+                            object_angle = math.copysign(
+                                math.degrees(math.acos(location[2] / object_distance)), location[0]
+                            )
 
                 # Draw circle of current tracked object.
                 if point is not None:
@@ -424,11 +427,8 @@ class ObstacleDetector:
                 #     #         thickness=-1,
                 #     #     )
             else:
-                # If we are using the sim, then map the bounding boxes to the point cloud image location.
-                point_cloud = np.asarray(zed_point_cloud)
-
                 # Loop through the object array and get info about each object.
-                point = None
+                closest_point = None
                 for i, obj in enumerate(self.objects):
                     # Use the bounding box info to get the center point of the object in the point cloud
                     point = (
@@ -436,42 +436,46 @@ class ObstacleDetector:
                         int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
                     )
                     # Scale the object center in the screen to the point cloud res.
-                    cloud_res_x, cloud_res_y = core.vision.camera_handler.get_cloud_res()
+                    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
                     img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
-                    cloud_point = (
-                        int((point[0] * cloud_res_y) / img_res_y) - 1,
-                        int((point[1] * cloud_res_x) / img_res_x) - 1,
+                    scaled_point = (
+                        int((point[0] * depth_res_y) / img_res_y),
+                        int((point[1] * depth_res_x) / img_res_x),
                     )
 
-                    # Get 3d position of the object.
-                    location = point_cloud[cloud_point[0], cloud_point[1]]
-                    # Alter number signs to match zed defualt coordinate plane.
-                    location[0] *= -1
-                    location[1] *= -1
+                    # Grab depth data from the zed.
+                    depth = core.vision.camera_handler.grab_depth_data()
+                    # Get distance of the object from the camera. Add zed offset from robot center.
+                    current_distance = depth[scaled_point[0]][scaled_point[1]][0]
 
-                    # Calculate the distance of the object.
-                    current_distance = math.sqrt(
-                        location[0] * location[0] + location[1] * location[1] + location[2] * location[2]
-                    )
+                    # Calculate the angle of the object using camera params
+                    angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                    pixel_offset = point[1] - (img_res_x / 2)
+                    angle = pixel_offset * angle_per_pixel
+                    # If angle and distance make sense, then add the object info the the object location array.
+                    if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                        object_locations.append((angle, current_distance / 1000))
 
-                    # Determine if current point is the closest point.
-                    if (object_distance == -1 and not location[2] < 0) or object_distance > current_distance:
-                        # Store the new distance.
+                    # print("Point: ", point)
+                    # print("Cloud Point:", scaled_point)
+                    # print("Depth Point:", depth[scaled_point[0]][scaled_point[1]])
+
+                    # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALL ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                    if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
+                        # Store the closest distance, angle, and point in image.
                         object_distance = current_distance
-                        # Calculate and store the object angle.
-                        object_angle = math.copysign(
-                            math.degrees(math.acos(location[2] / object_distance)), location[0]
-                        )
+                        object_angle = angle
+                        closest_point = point
 
                 # Draw circle of current tracked object.
-                if point is not None:
+                if closest_point is not None:
                     reg_img = cv2.circle(
                         reg_img,
-                        (point[1], point[0]),
+                        (closest_point[1], closest_point[0]),
                         radius=5,
                         color=(0, 0, 255),
                         thickness=-1,
                     )
 
         # return angle, distance
-        return object_angle, object_distance, self.object_summary, self.inference_time
+        return object_angle, object_distance, self.object_summary, self.inference_time, object_locations
