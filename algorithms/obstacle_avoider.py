@@ -157,11 +157,13 @@ class ASTAR_AVOIDER:
     def __init__(self):
         # Create class variables.
         self.obstacle_coords = []
+        self.utm_zone = []
 
     def update_obstacles(
         self,
         object_locations,
         min_object_distance=1.0,
+        max_object_distance=15.0,
         min_object_angle=-40,
         max_object_angle=40,
     ):
@@ -182,7 +184,9 @@ class ASTAR_AVOIDER:
         # Loop through each obstacle and calculate their coords and add them to the array.
         for object in object_locations:
             # Check the object distance to see if it meets the requirements.
-            if object[1] > min_object_distance and (object[0] > min_object_angle and object[0] < max_object_angle):
+            if (object[1] > min_object_distance and object[1] < max_object_distance) and (
+                object[0] > min_object_angle and object[0] < max_object_angle
+            ):
                 # Calculate the absolute heading of the obstacle, in relation to the rover
                 angle = (interfaces.nav_board.heading() + object[0]) % 360
 
@@ -215,9 +219,21 @@ class ASTAR_AVOIDER:
                 self.obstacle_coords.append((obstacle_easting, obstacle_northing))
                 # If the length of the array is greater than 50, remove the oldest element.
                 if len(self.obstacle_coords) > 50:
-                    self.obstacle_coords.pop(0)
+                    self.obstacle_coords = self.obstacle_coords[:-25]
 
-        print("Object Array Length:", len(self.obstacle_coords))
+    def get_obstacle_coords(self):
+        """
+        Returns the obstacle coords array.
+        """
+        # Create instance variables.
+        coords = []
+
+        # Convert each coord to GPS
+        for object in self.obstacle_coords:
+            coord = utm.to_latlon(*(object[0], object[1], self.utm_zone[0], self.utm_zone[1]))
+            coords.append(coord)
+
+        return coords
 
     def plan_astar_avoidance_route(
         self,
@@ -242,7 +258,7 @@ class ASTAR_AVOIDER:
         current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
         # Convert the gps coords to UTM coords. These coords are in meters and they are easier to work with.
         current_utm_pos = utm.from_latlon(current_gps_pos[0], current_gps_pos[1])
-        utm_zone = (current_utm_pos[2], current_utm_pos[3])
+        self.utm_zone = (current_utm_pos[2], current_utm_pos[3])
 
         # Only continue if obstacle_coords is not empty.
         if len(self.obstacle_coords) > 0:
@@ -255,12 +271,6 @@ class ASTAR_AVOIDER:
             gps_data = core.waypoint_handler.get_waypoint()
             waypoint_goal, _, _ = gps_data.data()
             waypoint_goal = utm.from_latlon(waypoint_goal[0], waypoint_goal[1])
-            # Calculate the midpoint between the UTM start and end points.
-            # endpoint_easting, endpoint_northing = (
-            #     (start.position[0] + waypoint_goal[0]) / 2,
-            #     (start.position[1] + waypoint_goal[1]) / 2,
-            # )
-            # end = Node(None, (endpoint_easting, endpoint_northing))
             end = Node(None, (waypoint_goal[0], waypoint_goal[1]))
 
             # Create open and closed list.
@@ -279,7 +289,7 @@ class ASTAR_AVOIDER:
             # Define movement search pattern. In this case check in a grid pattern
             # 0.5 meters away from current position.
             ####################################################################
-            offset = 0.5
+            offset = 0.3
             adjacent_movements = (
                 (0.0, -offset),
                 (0.0, offset),
@@ -306,14 +316,14 @@ class ASTAR_AVOIDER:
                 if outer_iterations > max_interations:
                     # Print info message.
                     logger.info("Unable to solve path: too many iterations.")
-                    return return_path(current_node, utm_zone)
+                    return return_path(current_node, self.utm_zone)
 
                 # Found the goal.
                 if (
-                    fabs(current_node.position[0] - end.position[0]) <= offset
-                    and fabs(current_node.position[1] - end.position[1]) <= offset
+                    fabs(current_node.position[0] - end.position[0]) <= 1.0
+                    and fabs(current_node.position[1] - end.position[1]) <= 1.0
                 ):
-                    return return_path(current_node, utm_zone)
+                    return return_path(current_node, self.utm_zone)
 
                 ####################################################################
                 # Generate children locations for current node.

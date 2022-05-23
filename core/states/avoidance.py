@@ -3,6 +3,7 @@ import cv2
 from algorithms import obstacle_avoider
 import asyncio
 from core.waypoints import WaypointHandler
+import matplotlib.pyplot as plt
 import core
 import time
 import interfaces
@@ -61,6 +62,9 @@ class Avoidance(RoverState):
         """
         Defines regular rover operation when under this state
         """
+        # Create instance variables.
+        path_expiration = 10.0
+
         # This is the ASTAR detection method.
         if core.vision.obstacle_avoidance.DETECTION_METHOD == 2:
             # Get boolean toggle for if one or more obstacles have been detected.
@@ -74,19 +78,35 @@ class Avoidance(RoverState):
             if object_locations is not None:
                 astar.update_obstacles(
                     object_locations,
-                    min_object_distance=1.4,
-                    min_object_angle=-40,
-                    max_object_angle=40,
+                    min_object_distance=1.0,
+                    max_object_distance=5.0,
+                    min_object_angle=-20,
+                    max_object_angle=20,
                 )
 
             # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
-            if is_obstacle and time_since_last_path > 7.0:
+            if is_obstacle and time_since_last_path > path_expiration:
                 # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-                path = astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=1)
-                print(path)
+                path = astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=1.5)
 
                 # If path was generated successfully, then overwrite current path with new one.
                 if path is not None:
+                    #########################################################
+                    # DEBUG THIS IS HELPFUL
+                    #########################################################
+                    # Get Obstacle Coordinates
+                    obstacle_coords = astar.get_obstacle_coords()
+                    print("Obstacle Coords Length:", len(obstacle_coords))
+                    # Append obstacle coords to path.
+                    all_points = path + obstacle_coords
+                    # Split XY array to X and Y arrays.
+                    xs = [t[0] * -1 for t in all_points]
+                    ys = [t[1] for t in all_points]
+                    # Plot and save output.
+                    plt.scatter(xs, ys)
+                    plt.show()
+                    plt.savefig("logs/avoidance_gps_path.png")
+
                     # Store path.
                     self.path = path
                     # Pop first element out.
@@ -107,7 +127,7 @@ class Avoidance(RoverState):
                         goal,
                         current,
                         self.previous_loc,
-                        0.5,
+                        0.6,
                     )
                     == core.ApproachState.APPROACHING
                 ):
@@ -116,7 +136,7 @@ class Avoidance(RoverState):
                         goal,
                         current,
                         self.previous_loc,
-                        core.MAX_DRIVE_POWER,
+                        175,
                     )
                     self.logger.info(f"Avoiding: Driving at ({left}, {right})")
                     interfaces.drive_board.send_drive(left, right)
@@ -146,9 +166,9 @@ class Avoidance(RoverState):
                 )
 
             # Condition for moving out of avoidance state.
-            print("test1")
             if len(self.path) <= 0 and not self.last_point:
-                print("test2")
+                # Cleat matplotlib plt object.
+                plt.clf()
                 # Move states.
                 return self.on_event(core.AutonomyEvents.END_OBSTACLE_AVOIDANCE)
 

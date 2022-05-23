@@ -363,13 +363,13 @@ class ObstacleDetector:
                     ):
                         # Store the new distance.
                         object_distance = current_distance
-                        # Do adjacent/hypot before pugging it in so we can check.
-                        cah = location[2] / object_distance
-                        # Calculate and store the object angle.
-                        if cah >= 0 or cah <= math.pi:
-                            object_angle = math.copysign(
-                                math.degrees(math.acos(location[2] / object_distance)), location[0]
-                            )
+                        # Calculate the angle of the object using camera params
+                        angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                        pixel_offset = point[1] - (img_res_x / 2)
+                        angle = pixel_offset * angle_per_pixel
+                        # If angle and distance make sense, then add the object info the the object location array.
+                        if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                            object_locations.append((angle, current_distance / 1000))
 
                 # Draw circle of current tracked object.
                 if point is not None:

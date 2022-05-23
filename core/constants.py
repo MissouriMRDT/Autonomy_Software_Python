@@ -17,7 +17,7 @@ BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in b
 METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 MAX_DRIVE_POWER = 300  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
-MIN_DRIVE_POWER = 150
+MIN_DRIVE_POWER = 50
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 0.008
