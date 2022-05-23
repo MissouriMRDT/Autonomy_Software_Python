@@ -9,6 +9,7 @@ class WaypointHandler:
         # Class variables
         self.waypoints: deque = deque()
         self.gps_data: core.GPSData = None
+        self.last_leg_type: str = None
 
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddPositionLeg"]["dataId"], self.add_position_waypoint
@@ -19,6 +20,9 @@ class WaypointHandler:
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddGateLeg"]["dataId"], self.add_gate_waypoint
         )
+        # core.rovecomm_node.set_callback(
+        #     core.manifest["Autonomy"]["Commands"]["AddPostLeg"]["dataId"], self.add_post_waypoint
+        # )
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["ClearWaypoints"]["dataId"], self.clear_waypoints
         )
@@ -54,6 +58,16 @@ class WaypointHandler:
         waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(("POSITION", waypoint))
         self.logger.info(f"Added Position Waypoint: lat ({latitude}), lon({longitude})")
+
+    def add_post_waypoint(self, packet) -> None:
+        """
+        Adds the data from the packet (expects lat, lon) to the waypoints deque
+        as a post
+        """
+        latitude, longitude = packet.data
+        waypoint = core.Coordinate(latitude, longitude)
+        self.waypoints.append(("POST", waypoint))
+        self.logger.info(f"Added Post Waypoint: lat ({latitude}), lon({longitude})")
 
     def clear_waypoints(self, packet) -> None:
         """
@@ -100,6 +114,9 @@ class WaypointHandler:
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
         """
+        if self.gps_data != None:
+            self.last_leg_type = self.gps_data.leg_type
+
         self.gps_data = core.GPSData()
         self.gps_data.start = interfaces.nav_board.location()
 
@@ -115,3 +132,10 @@ class WaypointHandler:
 
         self.logger.info(f"Set Waypoint Target: lat ({current_goal.lat}), lon({current_goal.lon})")
         return self.gps_data
+
+    def reset_last_leg_type(self):
+        """
+        Resets the last_leg_type member variable to prevent running
+        navigation setup fuctions multiple times
+        """
+        self.last_leg_type = ""

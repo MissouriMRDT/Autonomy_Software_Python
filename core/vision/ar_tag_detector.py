@@ -1,9 +1,14 @@
 import asyncio
+from collections import namedtuple
+import imp
 from typing import List
 from algorithms.AR_tag import Tag
 import core
 import algorithms
 import logging
+from core.constants import FRAMES_DETECTED
+from core.states import RoverState
+from algorithms.AR_tag import detected_tags
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -15,21 +20,42 @@ async def async_ar_tag_detector():
     """
     logger = logging.getLogger(__name__)
     while True:
-        # reg_img = core.vision.camera_handler.grab_regular()
+        reg_img = core.vision.camera_handler.grab_regular()
 
-        # tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        core.vision.feed_handler.handle_frame("artag", reg_img)
 
-        # core.vision.feed_handler.handle_frame("artag", reg_img)
+        ids = []
 
-        # if len(tags) > 0:
-        #     ar_tags.clear()
-        #     ar_tags.extend(tags)
-        # else:
-        #     ar_tags.clear()
+        if core.waypoint_handler.gps_data:
+            ar_tags.clear()
 
-        # logger.debug("Running AR Tag async")
+            if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(tags) > 0) or (
+                core.waypoint_handler.gps_data.leg_type == "GATE" and len(tags) > 1
+            ):
+                for t in tags:
+                    if t.detected >= FRAMES_DETECTED:
+                        ids.append(t.id)
+                        ar_tags.append(t)
+        else:
+            ar_tags.clear()
+
+        if RoverState == core.states.Idle():
+            clear_tags()
+
+        if len(ar_tags) >= 2:
+            distance = (ar_tags[0].distance + ar_tags[1].distance) / 2
+            angle = ((ar_tags[0].angle) + (ar_tags[1].angle)) / 2
+            logger.info(f"Tags Spotted: {ids}")
+            logger.info(f"Marker detected {angle} degrees at distance {distance}")
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
+
+
+def clear_tags():
+    ar_tags.clear()
+    print(len(detected_tags))
+    detected_tags.clear()
 
 
 def is_marker():
@@ -40,7 +66,9 @@ def is_marker():
     -------------
         detect (bool) - whether or not something was detected
     """
-    return len(ar_tags) > 0
+    flag = len(ar_tags) > 0 and ar_tags[0].id in [0, 1, 2, 3]
+    # flag = False
+    return flag
 
 
 def is_gate():
@@ -53,7 +81,9 @@ def is_gate():
     -------------
         detect (bool) - whether or not something was detected
     """
-    return len(ar_tags) > 1
+    flag = len(ar_tags) >= 2 and ar_tags[0].id in [4, 5] and ar_tags[1].id in [4, 5]
+
+    return flag
 
 
 def get_tags() -> List[Tag]:
@@ -62,6 +92,6 @@ def get_tags() -> List[Tag]:
 
     Returns:
     --------
-        tags - A list of named tuples of the type Tag
+        tags - A list of class objects of the type Tag
     """
     return ar_tags

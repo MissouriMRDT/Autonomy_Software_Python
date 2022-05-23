@@ -1,5 +1,11 @@
+from cgitb import small
 import core
 from core.states import RoverState
+from algorithms import small_movements
+import asyncio
+import argparse
+from interfaces import nav_board
+import run
 
 
 class Idle(RoverState):
@@ -14,7 +20,16 @@ class Idle(RoverState):
         Defines all transitions between states based on events
         """
         state: RoverState = None
+
         if event == core.AutonomyEvents.START:
+            if core.backup == "STRAIGHT":
+                small_movements.time_drive(-2)  # Back up 2 meters.
+            elif core.backup == "LEFT":
+                small_movements.time_drive(-2)
+                small_movements.rotate_rover(-60)
+            elif core.backup == "RIGHT":
+                small_movements.time_drive(-2)
+                small_movements.rotate_rover(60)
             state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:

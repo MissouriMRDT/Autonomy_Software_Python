@@ -1,6 +1,5 @@
 from math import fabs
 import math
-from os import EX_CANTCREAT
 import interfaces
 from geopy import Point
 from geopy.distance import VincentyDistance

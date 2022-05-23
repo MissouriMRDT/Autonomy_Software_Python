@@ -14,8 +14,10 @@ RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
-MAX_DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
-MIN_DRIVE_POWER = 50
+METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
+AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
+MAX_DRIVE_POWER = 300  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+MIN_DRIVE_POWER = 150
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 0.008
@@ -46,6 +48,9 @@ manifest = {}
 # Outgoing communication ports
 UDP_OUTGOING_PORT = None
 TCP_OUTGOING_PORT = 11111
+
+# ArUco Detection Occurrences
+FRAMES_DETECTED = 5
 
 
 class ApproachState(Enum):

@@ -22,7 +22,7 @@ def main():
 
     # Setup camera stream.
     if not DISPLAY:
-        core.vision.feed_handler.add_feed(2, "yolo", stream_video=core.vision.STREAM_FLAG)
+        core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     while True:
         # Get other info and image stream from ZED camera.
@@ -50,7 +50,7 @@ def main():
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
-            core.vision.feed_handler.handle_frame("yolo", reg_img)
+            core.vision.feed_handler.handle_frame("obstacle", reg_img)
 
     # Close all windows.
     cv2.destroyAllWindows()

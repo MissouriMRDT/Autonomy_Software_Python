@@ -40,7 +40,7 @@ async def async_obstacle_detector():
         vis2.create_window("annotation mask", width=1386, height=752, visible=False)
     else:
         vis2 = None
-        core.vision.feed_handler.add_feed(2, "yolo", stream_video=core.vision.STREAM_FLAG)
+        core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     while True:
         # Create instance variables.
@@ -141,7 +141,7 @@ async def async_obstacle_detector():
                 f"Object detected at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!"
             )
 
-        core.vision.feed_handler.handle_frame("yolo", reg_img)
+        core.vision.feed_handler.handle_frame("obstacle", reg_img)
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 
