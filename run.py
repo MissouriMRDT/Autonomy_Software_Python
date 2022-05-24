@@ -66,7 +66,7 @@ def main() -> None:
     parser.add_argument("--reverse", choices=["STRAIGHT", "LEFT", "RIGHT", "NO"], default="NO")
 
     # Optional argument for obstacle avoidance toggle.
-    parser.add_argument("--obstacle-avoidance", choices=["ENABLE", "DISABLE"], default="ENABLE")
+    parser.add_argument("--obstacle-avoidance", choices=["ENABLE", "DISABLE"], default="DISABLE")
 
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:

@@ -204,7 +204,7 @@ class ObstacleDetector:
         self.inference_time = 0
 
         # Create queues for results.
-        self.ctx = mp.get_context("forkserver")
+        self.ctx = mp.get_context("spawn")
         self.detection_image_queue = self.ctx.Queue(maxsize=2)
         self.detection_result_queue = self.ctx.Queue()
 

@@ -479,7 +479,7 @@ class ObstacleDetector:
         self.conversion_process_queue = deque()
         self.detection_process_queue = deque()
         # Create queues for results.
-        self.ctx = mp.get_context("fork")
+        self.ctx = mp.get_context("spawn")
         self.conversion_data_queue = self.ctx.Queue()
         self.detection_data_queue = self.ctx.Queue()
 
