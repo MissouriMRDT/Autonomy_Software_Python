@@ -65,6 +65,9 @@ def main() -> None:
     # Optional parameter to determine whether the rover backs up after start autonomy
     parser.add_argument("--reverse", choices=["STRAIGHT", "LEFT", "RIGHT", "NO"], default="NO")
 
+    # Optional argument for obstacle avoidance toggle.
+    parser.add_argument("--obstacle-avoidance", choices=["ENABLE", "DISABLE"], default="ENABLE")
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -90,7 +93,7 @@ def main() -> None:
     core.setup(args.mode, args.reverse)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream)
+    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance)
 
     # Initialize the Interfaces
     interfaces.setup()

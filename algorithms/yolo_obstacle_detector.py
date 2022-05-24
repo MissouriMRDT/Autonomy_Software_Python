@@ -362,7 +362,7 @@ class ObstacleDetector:
                         object_distance == -1 or current_distance < object_distance
                     ):
                         # Store the new distance.
-                        object_distance = current_distance
+                        object_distance = current_distance + core.constants.ZED_Z_OFFSET
                         # Calculate the angle of the object using camera params
                         angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
                         pixel_offset = point[1] - (img_res_x / 2)
@@ -446,7 +446,7 @@ class ObstacleDetector:
                     # Grab depth data from the zed.
                     depth = core.vision.camera_handler.grab_depth_data()
                     # Get distance of the object from the camera. Add zed offset from robot center.
-                    current_distance = depth[scaled_point[0]][scaled_point[1]][0]
+                    current_distance = depth[scaled_point[0]][scaled_point[1]][0] + core.constants.ZED_Z_OFFSET
 
                     # Calculate the angle of the object using camera params
                     angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x

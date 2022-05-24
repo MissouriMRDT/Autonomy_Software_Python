@@ -158,6 +158,8 @@ class ASTAR_AVOIDER:
         # Create class variables.
         self.obstacle_coords = []
         self.utm_zone = []
+        self.start = Node()
+        self.end = Node()
 
     def update_obstacles(
         self,
@@ -235,6 +237,21 @@ class ASTAR_AVOIDER:
 
         return coords
 
+    def get_distance_from_goal(self):
+        """
+        Calculates and returns the current distance from the waypoint goal.
+        """
+        # Calculate distance from goal.
+        if self.start.position is not None and self.end.position is not None:
+            distance_from_goal = math.sqrt(
+                math.pow(self.start.position[0] - self.end.position[0], 2)
+                + math.pow(self.start.position[1] - self.end.position[1], 2)
+            )
+        else:
+            distance_from_goal = -1.0
+
+        return distance_from_goal
+
     def plan_astar_avoidance_route(
         self,
         max_route_size=10,
@@ -265,13 +282,13 @@ class ASTAR_AVOIDER:
             ####################################################################
             # Create start and end node.
             ####################################################################
-            start = Node(None, (current_utm_pos[0], current_utm_pos[1]))
+            self.start = Node(None, (current_utm_pos[0], current_utm_pos[1]))
             # Calculate gps coord fixed distance in front of the rover.
             # Find the gps coordinate of the end point.
             gps_data = core.waypoint_handler.get_waypoint()
             waypoint_goal, _, _ = gps_data.data()
             waypoint_goal = utm.from_latlon(waypoint_goal[0], waypoint_goal[1])
-            end = Node(None, (waypoint_goal[0], waypoint_goal[1]))
+            self.end = Node(None, (waypoint_goal[0], waypoint_goal[1]))
 
             # Create open and closed list.
             open_list = []
@@ -279,7 +296,7 @@ class ASTAR_AVOIDER:
 
             # Heapify open list and add our start node.
             heapq.heapify(open_list)
-            heapq.heappush(open_list, start)
+            heapq.heappush(open_list, self.start)
 
             # Define a stop condition.
             outer_iterations = 0
@@ -320,8 +337,8 @@ class ASTAR_AVOIDER:
 
                 # Found the goal.
                 if (
-                    fabs(current_node.position[0] - end.position[0]) <= 1.0
-                    and fabs(current_node.position[1] - end.position[1]) <= 1.0
+                    fabs(current_node.position[0] - self.end.position[0]) <= 1.0
+                    and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
                 ):
                     return return_path(current_node, self.utm_zone)
 
@@ -338,8 +355,8 @@ class ASTAR_AVOIDER:
 
                     # Check if the new child node is within range of our specified area.
                     if (
-                        fabs(child_node_pos[0] - start.position[0]) > max_route_size
-                        or fabs(child_node_pos[1] - start.position[1]) > max_route_size
+                        fabs(child_node_pos[0] - self.start.position[0]) > max_route_size
+                        or fabs(child_node_pos[1] - self.start.position[1]) > max_route_size
                     ):
                         continue
 
@@ -372,8 +389,8 @@ class ASTAR_AVOIDER:
 
                     # Calculate f, g, and h values.
                     child.g = current_node.g + offset
-                    child.h = ((child.position[0] - end.position[0]) ** 2) + (
-                        (child.position[1] - end.position[1]) ** 2
+                    child.h = ((child.position[0] - self.end.position[0]) ** 2) + (
+                        (child.position[1] - self.end.position[1]) ** 2
                     )
                     child.f = child.g + child.h
 

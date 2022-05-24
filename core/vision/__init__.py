@@ -15,9 +15,10 @@ feed_handler = FeedHandler()
 
 # Flag to indicate whether or not we are streaming
 STREAM_FLAG = True
+AVOIDANCE_FLAG = False
 
 
-def setup(type="ZED", stream="Y"):
+def setup(type="ZED", stream="Y", avoidance="DISABLE"):
     """
     Sets up the vision system and camera/feed handlers
 
@@ -43,6 +44,12 @@ def setup(type="ZED", stream="Y"):
         this.STREAM_FLAG = True
     else:
         this.STREAM_FLAG = False
+
+    # Flag to enable whether or not we are doing obstacle avoidance.
+    if avoidance == "ENABLE":
+        this.AVOIDANCE_FLAG = True
+    else:
+        this.AVOIDANCE_FLAG = False
 
 
 def close(type="ZED"):

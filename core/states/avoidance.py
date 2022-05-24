@@ -104,7 +104,7 @@ class Avoidance(RoverState):
                     ys = [t[1] for t in all_points]
                     # Plot and save output.
                     plt.scatter(xs, ys)
-                    plt.show()
+                    plt.gca().set_aspect("equal", adjustable="box")
                     plt.savefig("logs/avoidance_gps_path.png")
 
                     # Store path.
@@ -166,7 +166,7 @@ class Avoidance(RoverState):
                 )
 
             # Condition for moving out of avoidance state.
-            if len(self.path) <= 0 and not self.last_point:
+            if (len(self.path) <= 0 and not self.last_point) or astar.get_distance_from_goal() <= 5.0:
                 # Cleat matplotlib plt object.
                 plt.clf()
                 # Move states.

@@ -40,7 +40,7 @@ async def async_ar_tag_detector():
         else:
             ar_tags.clear()
 
-        if RoverState == core.states.Idle():
+        if str(core.states.state_machine.state) == "Idle" or str(core.states.state_machine.state) == "Avoidance":
             clear_tags()
 
         if len(ar_tags) >= 2:
@@ -54,7 +54,6 @@ async def async_ar_tag_detector():
 
 def clear_tags():
     ar_tags.clear()
-    print(len(detected_tags))
     detected_tags.clear()
 
 
