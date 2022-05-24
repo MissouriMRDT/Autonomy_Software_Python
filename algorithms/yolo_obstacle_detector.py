@@ -456,10 +456,6 @@ class ObstacleDetector:
                     if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
                         object_locations.append((angle, current_distance / 1000))
 
-                    # print("Point: ", point)
-                    # print("Cloud Point:", scaled_point)
-                    # print("Depth Point:", depth[scaled_point[0]][scaled_point[1]])
-
                     # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALL ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
                     if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
                         # Store the closest distance, angle, and point in image.
