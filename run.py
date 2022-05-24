@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import asyncio
+from core.states import state
 
 
 def setup_logger(level) -> logging.Logger:
@@ -55,11 +56,17 @@ def main() -> None:
     parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
 
     # Optional parameter specify whether we are streaming or not
-    parser.add_argument("--stream", choices=["Y", "N"], default="Y")
+    parser.add_argument("--stream", choices=["Y", "N"], default="N")
 
     # Optional parameter to set the mode of operation:
     # Regular (on rover) or Sim (using the autonomy simulator)
     parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
+
+    # Optional parameter to determine whether the rover backs up after start autonomy
+    parser.add_argument("--reverse", choices=["STRAIGHT", "LEFT", "RIGHT", "NO"], default="NO")
+
+    # Optional argument for obstacle avoidance toggle.
+    parser.add_argument("--obstacle-avoidance", choices=["ENABLE", "DISABLE"], default="ENABLE")
 
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
@@ -83,10 +90,10 @@ def main() -> None:
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Initialize the core handlers (excluding vision)
-    core.setup(args.mode)
+    core.setup(args.mode, args.reverse)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream)
+    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance)
 
     # Initialize the Interfaces
     interfaces.setup()

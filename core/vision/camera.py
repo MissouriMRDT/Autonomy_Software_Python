@@ -8,6 +8,8 @@ class Camera:
         self.reg_res_y = 0
         self.depth_res_x = 0
         self.depth_res_y = 0
+        self.point_cloud_res_x = 0
+        self.point_cloud_res_y = 0
 
         # Other params
         self.hfov = 0
@@ -57,6 +59,17 @@ class Camera:
             reg_res_y - the resolution of the height of the image
         """
         return self.depth_res_x, self.depth_res_y
+
+    def get_cloud_res(self) -> Tuple[int, int]:
+        """
+        Returns the resolution for the point cloud.
+
+        Returns:
+        --------
+            reg_res_x - the resolution of the width of the image
+            reg_res_y - the resolution of the height of the image
+        """
+        return self.point_cloud_res_x, self.point_cloud_res_y
 
     def get_hfov(self) -> int:
         return self.hfov

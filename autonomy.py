@@ -27,7 +27,9 @@ def main() -> None:
 
     # Create our two detection tasks
     loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
-    loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+    # Check if obstacle avoidance command-line argument was set.
+    if core.vision.AVOIDANCE_FLAG:
+        loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
 
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())
@@ -41,7 +43,6 @@ async def autonomy_state_loop():
         logger.info(f"Current State: {core.states.state_machine.state}")
 
         # Transmit the current state to Base Station
-
         core.rovecomm_node.write(
             core.RoveCommPacket(
                 core.manifest["Autonomy"]["Telemetry"]["CurrentState"]["dataId"],

@@ -2,8 +2,15 @@ import time
 import logging
 
 
-def clamp(n, min_n, max_n):
-    return max(min(max_n, n), min_n)
+def clamp(x, minimum, maximum):
+    """
+    Clamps the x value between the min and max values
+
+    Returns:
+    --------
+        val - the clamped value
+    """
+    return max(minimum, min(x, maximum))
 
 
 class PIDcontroller:

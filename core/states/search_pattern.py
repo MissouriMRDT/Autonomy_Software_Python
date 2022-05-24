@@ -3,6 +3,7 @@ import algorithms
 import interfaces
 import asyncio
 from core.states import RoverState
+from algorithms import small_movements
 
 
 class SearchPattern(RoverState):
@@ -54,13 +55,6 @@ class SearchPattern(RoverState):
         """
         Defines regular rover operation when under this state
         """
-        
-        if (
-            core.vision.obstacle_avoidance.is_obstacle()
-            and core.vision.obstacle_avoidance.get_distance() < 1.5):
-            self.logger.info("Detected obstacle, now avoiding")
-            return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
-        
         gps_data = core.waypoint_handler.get_waypoint()
 
         goal, start, leg_type = gps_data.data()
@@ -72,7 +66,8 @@ class SearchPattern(RoverState):
 
         # Check to see if gate or marker was detected
         # If so, immediately stop all movement to ensure that we don't lose sight of the AR tag(s)
-        if core.vision.ar_tag_detector.is_gate() and leg_type == "GATE":
+        if core.vision.ar_tag_detector.is_gate():
+            core.waypoint_handler.gps_data.leg_type = "GATE"
             interfaces.drive_board.stop()
 
             # Sleep for a brief second

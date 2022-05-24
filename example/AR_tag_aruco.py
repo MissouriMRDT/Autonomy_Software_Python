@@ -76,6 +76,7 @@ def main() -> None:
         img = aruco.drawDetectedMarkers(gray, corners, ids)
 
         cv2.imshow("img", img)
+        core.vision.feed_handler.handle_frame("ar", img)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

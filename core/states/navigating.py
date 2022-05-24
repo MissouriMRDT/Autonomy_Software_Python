@@ -1,10 +1,14 @@
 import asyncio
+from algorithms import geomath
 from core.vision import obstacle_avoidance
 from core.waypoints import WaypointHandler
 import core
 import interfaces
 import algorithms
 from core.states import RoverState
+from interfaces import nav_board
+from core.vision.ar_tag_detector import clear_tags
+from algorithms import small_movements
 
 
 class Navigating(RoverState):
@@ -29,7 +33,10 @@ class Navigating(RoverState):
         """
         state: RoverState = None
 
-        if event == core.AutonomyEvents.NO_WAYPOINT:
+        if core.vision.ar_tag_detector.is_gate():
+            state = core.states.ApproachingGate()
+
+        elif event == core.AutonomyEvents.NO_WAYPOINT:
             state = core.states.Idle()
 
         elif event == core.AutonomyEvents.REACHED_MARKER:
@@ -65,6 +72,32 @@ class Navigating(RoverState):
         """
         Defines regular rover operation when under this state
         """
+        current = interfaces.nav_board.location()
+        gps_data = core.waypoint_handler.get_waypoint()
+        goal, start, leg_type = gps_data.data()
+        bearing, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])
+        distance *= 1000  # convert from km to m
+
+        if distance > 25:
+            clear_tags()
+
+        # move to approaching marker if 1 ar tag is spotted during marker leg type
+        if (
+            core.waypoint_handler.gps_data.leg_type == "MARKER"
+            and core.vision.ar_tag_detector.is_marker()
+            and distance < 5
+        ):
+            return core.states.ApproachingMarker()
+
+        if (
+            (core.waypoint_handler.gps_data.leg_type == "GATE" or core.waypoint_handler.gps_data.leg_type == "MARKER")
+            and core.vision.ar_tag_detector.is_gate()
+            and distance < 5
+        ):
+            core.waypoint_handler.gps_data.leg_type = "GATE"
+            return core.states.ApproachingGate()
+
+        core.waypoint_handler.reset_last_leg_type()
 
         gps_data = core.waypoint_handler.get_waypoint()
 
@@ -82,7 +115,7 @@ class Navigating(RoverState):
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()
-            and core.vision.obstacle_avoidance.get_distance() < 1.5
+            and core.vision.obstacle_avoidance.get_distance() < 4.0
             and core.vision.obstacle_avoidance.get_distance()
             < (
                 algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000
@@ -117,7 +150,7 @@ class Navigating(RoverState):
                 core.waypoint_handler.set_goal(interfaces.nav_board.location())
                 core.waypoint_handler.set_start(interfaces.nav_board.location())
 
-                if leg_type == "POSITION":
+                if leg_type == "POST":
                     self.logger.info("Reached Marker")
 
                     # Transmit that we have reached the marker
@@ -131,6 +164,19 @@ class Navigating(RoverState):
                     )
 
                     # Tell multimedia board to flash our LED matrix green to indicate reached marker
+                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+                elif leg_type == "POSITION":
+                    self.logger.info("Reached position waypoint")
+                    core.rovecomm_node.write(
+                        core.RoveCommPacket(
+                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                            "B",
+                            (1,),
+                        ),
+                        False,
+                    )
+
                     interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 else:

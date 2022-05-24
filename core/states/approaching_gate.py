@@ -55,7 +55,7 @@ class ApproachingGate(RoverState):
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_gate():
-            # Use get_tags to create an array of the 2 gate posts 
+            # Use get_tags to create an array of the 2 gate posts
             # (named tuples containing the distance and relative angle from the camera)
             tags = core.vision.ar_tag_detector.get_tags()
             gps_data = core.waypoint_handler.get_waypoint()

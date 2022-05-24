@@ -24,6 +24,7 @@ torch = "*"
 torchvision = "*"
 seaborn = "*"
 opencv-contrib-python = "*"
+utm = "*"
 
 [dev-packages]
 opencv-contrib-python = "*"
