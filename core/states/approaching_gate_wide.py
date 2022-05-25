@@ -24,6 +24,7 @@ import geopy
 # Create logger object.
 logger = logging.getLogger(__name__)
 
+
 class ApproachingGate(RoverState):
     """
     Within approaching gate, 3 waypoints are calculated in front of, between, and throught the viewed gate, allowing the rover to traverse through the gate fully.
@@ -94,7 +95,6 @@ class ApproachingGate(RoverState):
                 self.is_first = False
 
         if self.is_first:
-            
             # Get
             post_1_coord = [tags[0].distance, tags[0].angle]
             post_2_coord = [tags[1].distance, tags[1].angle]
@@ -116,8 +116,6 @@ class ApproachingGate(RoverState):
 
             point = targetBeforeGate.latitude, targetBeforeGate.longitude
             print(point)
-
-
 
             while (
                 algorithms.gps_navigate.get_approach_status(
@@ -155,7 +153,7 @@ class ApproachingGate(RoverState):
                 interfaces.drive_board.send_drive(-150, 150)
             else:
                 interfaces.drive_board.send_drive(150, -150)
-            
+
             if core.vision.ar_tag_detector.is_gate():
                 self.is_turning = False
                 interfaces.drive_board.stop()
@@ -176,8 +174,8 @@ class ApproachingGate(RoverState):
                 #     t2 = time.time()
                 #     interfaces.drive_board.send_drive(150, 150)
                 # interfaces.drive_board.stop()
-                if not(0 < distance < 5) or np.isnan(distance):
-                    distance = 3 
+                if not (0 < distance < 5) or np.isnan(distance):
+                    distance = 3
                 small_movements.time_drive(distance + 2)
                 self.logger.info("Reached Marker")
 

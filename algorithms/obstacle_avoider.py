@@ -278,139 +278,147 @@ class ASTAR_AVOIDER:
         self.utm_zone = (current_utm_pos[2], current_utm_pos[3])
 
         # Only continue if obstacle_coords is not empty.
-        if len(self.obstacle_coords) > 0:
+        ####################################################################
+        # Create start and end node.
+        ####################################################################
+        self.start = Node(None, (current_utm_pos[0], current_utm_pos[1]))
+        # Calculate gps coord fixed distance in front of the rover.
+        # Find the gps coordinate of the end point.
+        gps_data = core.waypoint_handler.get_waypoint()
+        waypoint_goal, _, _ = gps_data.data()
+        waypoint_goal = utm.from_latlon(waypoint_goal[0], waypoint_goal[1])
+        self.end = Node(None, (waypoint_goal[0], waypoint_goal[1]))
+
+        # Create open and closed list.
+        open_list = []
+        closed_list = []
+
+        # Heapify open list and add our start node.
+        heapq.heapify(open_list)
+        heapq.heappush(open_list, self.start)
+
+        # Define a stop condition.
+        outer_iterations = 0
+        max_interations = max_route_size * max_route_size // 2
+
+        ####################################################################
+        # Define movement search pattern. In this case check in a grid pattern
+        # 0.5 meters away from current position.
+        ####################################################################
+        offset = 0.3
+        adjacent_movements = (
+            (0.0, -offset),
+            (0.0, offset),
+            (-offset, 0.0),
+            (offset, 0.0),
+            (-offset, -offset),
+            (-offset, offset),
+            (offset, -offset),
+            (offset, offset),
+        )
+
+        ####################################################################
+        # Loop until the algorithm has found the end.
+        ####################################################################
+        while len(open_list) > 0:
+            # Increment counter.
+            outer_iterations += 1
+
+            # Get the current node.
+            current_node = heapq.heappop(open_list)
+            closed_list.append(current_node)
+
+            # Check if we have hit the maximum number of iterations.
+            if outer_iterations > max_interations:
+                # Print info message.
+                logger.info("Unable to solve path: too many iterations.")
+                return return_path(current_node, self.utm_zone)
+
+            # Found the goal.
+            if (
+                fabs(current_node.position[0] - self.end.position[0]) <= 1.0
+                and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
+            ):
+                return return_path(current_node, self.utm_zone)
+
             ####################################################################
-            # Create start and end node.
+            # Generate children locations for current node.
             ####################################################################
-            self.start = Node(None, (current_utm_pos[0], current_utm_pos[1]))
-            # Calculate gps coord fixed distance in front of the rover.
-            # Find the gps coordinate of the end point.
-            gps_data = core.waypoint_handler.get_waypoint()
-            waypoint_goal, _, _ = gps_data.data()
-            waypoint_goal = utm.from_latlon(waypoint_goal[0], waypoint_goal[1])
-            self.end = Node(None, (waypoint_goal[0], waypoint_goal[1]))
+            children = []
+            for new_position in adjacent_movements:
+                # Calculate child node position.
+                child_node_pos = (
+                    current_node.position[0] + new_position[0],
+                    current_node.position[1] + new_position[1],
+                )
 
-            # Create open and closed list.
-            open_list = []
-            closed_list = []
-
-            # Heapify open list and add our start node.
-            heapq.heapify(open_list)
-            heapq.heappush(open_list, self.start)
-
-            # Define a stop condition.
-            outer_iterations = 0
-            max_interations = max_route_size * max_route_size // 2
-
-            ####################################################################
-            # Define movement search pattern. In this case check in a grid pattern
-            # 0.5 meters away from current position.
-            ####################################################################
-            offset = 0.3
-            adjacent_movements = (
-                (0.0, -offset),
-                (0.0, offset),
-                (-offset, 0.0),
-                (offset, 0.0),
-                (-offset, -offset),
-                (-offset, offset),
-                (offset, -offset),
-                (offset, offset),
-            )
-
-            ####################################################################
-            # Loop until the algorithm has found the end.
-            ####################################################################
-            while len(open_list) > 0:
-                # Increment counter.
-                outer_iterations += 1
-
-                # Get the current node.
-                current_node = heapq.heappop(open_list)
-                closed_list.append(current_node)
-
-                # Check if we have hit the maximum number of iterations.
-                if outer_iterations > max_interations:
-                    # Print info message.
-                    logger.info("Unable to solve path: too many iterations.")
-                    return return_path(current_node, self.utm_zone)
-
-                # Found the goal.
+                # Check if the new child node is within range of our specified area.
                 if (
-                    fabs(current_node.position[0] - self.end.position[0]) <= 1.0
-                    and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
+                    fabs(child_node_pos[0] - self.start.position[0]) > max_route_size
+                    or fabs(child_node_pos[1] - self.start.position[1]) > max_route_size
                 ):
-                    return return_path(current_node, self.utm_zone)
+                    continue
 
-                ####################################################################
-                # Generate children locations for current node.
-                ####################################################################
-                children = []
-                for new_position in adjacent_movements:
-                    # Calculate child node position.
-                    child_node_pos = (
-                        current_node.position[0] + new_position[0],
-                        current_node.position[1] + new_position[1],
+                # Make sure we are not close to another object.
+                coord_to_close = False
+                for coord in self.obstacle_coords:
+                    # Calculate the straight-line distance of the robot position from the obstacle.
+                    robot_distance_from_obstacle = math.sqrt(
+                        math.pow(current_utm_pos[0] - child_node_pos[0], 2)
+                        + math.pow(current_utm_pos[1] - child_node_pos[1], 2)
                     )
-
-                    # Check if the new child node is within range of our specified area.
-                    if (
-                        fabs(child_node_pos[0] - self.start.position[0]) > max_route_size
-                        or fabs(child_node_pos[1] - self.start.position[1]) > max_route_size
-                    ):
-                        continue
-
-                    # Make sure we are not close to another object.
-                    coord_to_close = False
-                    for coord in self.obstacle_coords:
-                        # Calculate the straight-line distance from the obstacle.
-                        distance = math.sqrt(
-                            math.pow(coord[0] - child_node_pos[0], 2) + math.pow(coord[1] - child_node_pos[1], 2)
-                        )
-                        # Check if this obstacle is close to current child node.
-                        if distance <= near_object_threshold:
-                            coord_to_close = True
-                    # If the current child node is too close to the object skip it.
-                    if coord_to_close:
-                        continue
-
-                    # Create new node with child properties.
-                    new_node = Node(current_node, child_node_pos)
-                    # If everything checks out, add node to the list.
-                    children.append(new_node)
-
-                ####################################################################
-                # Loop through children, calculate cost, make move.
-                ####################################################################
-                for child in children:
-                    # Check if child is already on the closed list.
-                    if len([closed_child for closed_child in closed_list if closed_child == child]) > 0:
-                        continue
-
-                    # Calculate f, g, and h values.
-                    child.g = current_node.g + offset
-                    child.h = ((child.position[0] - self.end.position[0]) ** 2) + (
-                        (child.position[1] - self.end.position[1]) ** 2
+                    # Calculate the straight-line distance from the obstacle.
+                    distance = math.sqrt(
+                        math.pow(coord[0] - child_node_pos[0], 2) + math.pow(coord[1] - child_node_pos[1], 2)
                     )
-                    child.f = child.g + child.h
-
-                    # Check if child is already in the open list or a child exists that has a greater cost.
-                    if (
-                        len(
-                            [
-                                open_node
-                                for open_node in open_list
-                                if child.position == open_node.position and child.g > open_node.g
-                            ]
-                        )
-                        > 0
+                    # Check if we are getting closer to the obstacle.
+                    if distance <= near_object_threshold:
+                        coord_to_close = True
+                    # Check if the robot is within circle and pick the point that will move us away from it.
+                    if robot_distance_from_obstacle < near_object_threshold and not (
+                        distance - robot_distance_from_obstacle > offset / 1.5
                     ):
-                        continue
+                        coord_to_close = False
+                # If the current child node is too close to the object skip it.
+                if coord_to_close:
+                    continue
 
-                    # Add the child to the open list.
-                    heapq.heappush(open_list, child)
+                # Create new node with child properties.
+                new_node = Node(current_node, child_node_pos)
+                # If everything checks out, add node to the list.
+                children.append(new_node)
 
-            # If unable to calulate path, then return nothing
-            logger.info("Couldn't find path around obstacle to destination.")
+            ####################################################################
+            # Loop through children, calculate cost, make move.
+            ####################################################################
+            for child in children:
+                # Check if child is already on the closed list.
+                if len([closed_child for closed_child in closed_list if closed_child == child]) > 0:
+                    continue
 
+                # Calculate f, g, and h values.
+                child.g = current_node.g + offset
+                child.h = ((child.position[0] - self.end.position[0]) ** 2) + (
+                    (child.position[1] - self.end.position[1]) ** 2
+                )
+                child.f = child.g + child.h
+
+                # Check if child is already in the open list or a child exists that has a greater cost.
+                if (
+                    len(
+                        [
+                            open_node
+                            for open_node in open_list
+                            if child.position == open_node.position and child.g > open_node.g
+                        ]
+                    )
+                    > 0
+                ):
+                    continue
+
+                # Add the child to the open list.
+                heapq.heappush(open_list, child)
+
+        # If unable to calulate path, then return nothing
+        logger.info("Couldn't find path around obstacle to destination.")
         return None

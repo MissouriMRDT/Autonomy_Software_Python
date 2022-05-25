@@ -136,7 +136,7 @@ class Avoidance(RoverState):
                         goal,
                         current,
                         self.previous_loc,
-                        175,
+                        225,
                     )
                     self.logger.info(f"Avoiding: Driving at ({left}, {right})")
                     interfaces.drive_board.send_drive(left, right)
@@ -159,14 +159,15 @@ class Avoidance(RoverState):
                         self.last_point = False
             else:
                 # Stop the drive board.
-                interfaces.drive_board.stop()
+                # interfaces.drive_board.stop()
                 # Print debug that path has completed.
                 self.logger.info(
                     "Avoidance state completed a path from obstacle_avoider algorithm. Going back to Navigating."
                 )
+                print(len(self.path))
 
             # Condition for moving out of avoidance state.
-            if (len(self.path) <= 0 and not self.last_point) or astar.get_distance_from_goal() <= 5.0:
+            if (len(self.path) <= 1 and not self.last_point) or astar.get_distance_from_goal() <= 8.0:
                 # Cleat matplotlib plt object.
                 plt.clf()
                 # Move states.
