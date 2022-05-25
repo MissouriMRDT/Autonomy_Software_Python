@@ -32,6 +32,7 @@ async def async_obstacle_detector():
         weights=os.path.dirname(__file__) + "/../../resources/yolo_models/2022-0511/weights/best.pt",
         net_img_size=640,
         min_confidence=0.4,
+        classes=core.vision.YOLO_CLASSES,
     )
 
     # Create visualizer for masking the object and floor onto the reg_img.

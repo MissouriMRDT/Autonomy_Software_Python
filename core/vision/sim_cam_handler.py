@@ -6,6 +6,7 @@ import threading
 import socket, cv2, pickle, struct
 import gzip
 import numpy as np
+import time
 
 
 class SimCamHandler(Camera):
@@ -74,11 +75,10 @@ class SimCamHandler(Camera):
         # | in the image frame  | "r" for regular, "d" for depth,| frame itself           |
         # |                     | "p" for point_cloud            |                        |
         # +---------------------+--------------------------------+------------------------+
-
         while not self._stop.is_set():
             # First read the in the data length specifier (should be 8 bits)
             while len(data) < data_length_size:
-                packet = self.client_socket.recv(4 * 1024)
+                packet = self.client_socket.recv(8 * 1024)
                 if not packet:
                     break
                 data += packet
@@ -90,7 +90,7 @@ class SimCamHandler(Camera):
             # The first element in data is the type of frame encoded as a single byte
             # Either "r" or "d" or "p" for regular or depth or point_cloud
             while len(data) < type_size:
-                data += self.client_socket.recv(4 * 1024)
+                data += self.client_socket.recv(8 * 1024)
             type = data[:type_size]
             data = data[type_size:]
             msg_type = struct.unpack("c", type)[0]
@@ -101,7 +101,7 @@ class SimCamHandler(Camera):
             # Now keep reading the payload until we have read in all expected data in
             # the frame
             while len(data) < msg_size:
-                data += self.client_socket.recv(4 * 1024)
+                data += self.client_socket.recv(8 * 1024)
 
             frame_data = data[:msg_size]
             data = data[msg_size:]
@@ -119,14 +119,6 @@ class SimCamHandler(Camera):
             elif msg_type == b"p":
                 self.encoded_img = pickle.loads(frame_data)
                 self.point_cloud = cv2.imdecode(self.encoded_img, -1)
-                # Check if we have actually recieved data from the network.
-                if len(self.point_cloud) > 0:
-                    # Convert depth data to numpy array
-                    self.point_cloud = np.asarray(self.point_cloud, dtype=np.int32)
-                    # Add defualt RGBA value to the color channel of the image.
-                    self.point_cloud[:, :, 3] = 111
-                    # Reorder the numbers to fit the zed's default coordinate system. (Webots is Z positive forward, X positive left, Y positive up) (Zed is X positive right, Y positive down, Z positive forward)
-                    self.point_cloud[:, :, [0, 1, 2]] = self.point_cloud[:, :, [1, 2, 0]]
             elif msg_type == b"m":
                 minmax = struct.unpack(str(int(len(frame_data) / 4)) + "f", frame_data)
                 # Convert message to array.
@@ -135,12 +127,6 @@ class SimCamHandler(Camera):
                 if len(self.point_cloud) > 0:
                     self.scale_vals[0] = minmax[0]
                     self.scale_vals[1] = minmax[1]
-                    # Rescale the point cloud.
-                    self.point_cloud = np.interp(
-                        self.point_cloud,
-                        (self.point_cloud.min(), self.point_cloud.max()),
-                        (self.scale_vals[0], self.scale_vals[1]),
-                    ).astype(np.float32)
             self.r_lock.release()
 
             # Now let the feed_handler stream/save the frames
@@ -209,5 +195,22 @@ class SimCamHandler(Camera):
         """
         self.r_lock.acquire()
         point_cloud = self.point_cloud.copy()
+        scale_vals = self.scale_vals.copy()
         self.r_lock.release()
+        # Check if we have actually recieved data from the network.
+        if len(point_cloud) > 0:
+            # Convert depth data to numpy array
+            point_cloud = np.asarray(point_cloud, dtype=np.int32)
+            # Add defualt RGBA value to the color channel of the image.
+            point_cloud[:, :, 3] = 111
+            # Reorder the numbers to fit the zed's default coordinate system. (Webots is Z positive forward, X positive left, Y positive up) (Zed is X positive right, Y positive down, Z positive forward)
+            point_cloud[:, :, [0, 1, 2]] = point_cloud[:, :, [1, 2, 0]]
+
+            # Rescale the point cloud.
+            point_cloud = np.interp(
+                point_cloud,
+                (point_cloud.min(), point_cloud.max()),
+                (scale_vals[0], scale_vals[1]),
+            ).astype(np.float32)
+
         return point_cloud

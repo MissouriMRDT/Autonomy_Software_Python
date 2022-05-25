@@ -9,6 +9,7 @@ from sklearn.cluster import DBSCAN
 from multiprocessing import Queue, Process
 import multiprocessing as mp
 from collections import deque
+import platform
 
 
 class DummyTask:
@@ -478,8 +479,19 @@ class ObstacleDetector:
         # Create queue for AsyncResult objects returned by process pool.
         self.conversion_process_queue = deque()
         self.detection_process_queue = deque()
+
+        # Setup process creation method.
+        if platform.system() == "Linux":
+            # Set method.
+            self.ctx = mp.get_context("forkserver")
+            # Print info.
+            self.logger.info(f"Platform is {platform.system()}. Selecting forkserver process method.")
+        else:
+            # Set method.
+            self.ctx = mp.get_context("spawn")
+            # Print info.
+            self.logger.info(f"Platform is {platform.system()}. Selecting spawn process method.")
         # Create queues for results.
-        self.ctx = mp.get_context("fork")
         self.conversion_data_queue = self.ctx.Queue()
         self.detection_data_queue = self.ctx.Queue()
 

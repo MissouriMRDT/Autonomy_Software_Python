@@ -5,6 +5,7 @@ import torch
 import pyzed.sl as sl
 import torch.backends.cudnn as cudnn
 from numpy.core.numeric import NaN
+import platform
 import core.constants
 import core
 import math
@@ -127,7 +128,7 @@ def detections_to_custom_box(detections, img, img0):
     return output
 
 
-def torch_proc(img_queue, result_queue, weights, img_size, conf_thres=0.2, iou_thres=0.45):
+def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_thres=0.2, iou_thres=0.45):
     """
     This method runs in a seperate python process and uses shared queues to pass data back and forth with its
     parent process. This method opens the given weights file, loads the model, and then runs inference.
@@ -182,7 +183,9 @@ def torch_proc(img_queue, result_queue, weights, img_size, conf_thres=0.2, iou_t
         # Run inference on the image using the model.
         pred = model(img)
         # Get/filter the model detection results.
-        predictions = non_max_suppression(pred, conf_thres, iou_thres)
+        # # Select classes that we want track. For corresponding object labels check the order of classes in your
+        # .yaml file for your dataset.
+        predictions = non_max_suppression(pred, conf_thres, iou_thres, classes)
         # ZED CustomBox format (with inverse letterboxing tf applied)
         detections = detections_to_custom_box(predictions, img, image_net)
         inference_time = time.time() - s
@@ -192,7 +195,7 @@ def torch_proc(img_queue, result_queue, weights, img_size, conf_thres=0.2, iou_t
 
 
 class ObstacleDetector:
-    def __init__(self, weights, net_img_size, min_confidence):
+    def __init__(self, weights, net_img_size, min_confidence, classes=None):
         # Create objects and variables.
         self.logger = logging.getLogger(__name__)
         self.sim_active = False
@@ -203,8 +206,18 @@ class ObstacleDetector:
         self.object_summary = ""
         self.inference_time = 0
 
+        # Setup process creation method.
+        if platform.system() == "Linux":
+            # Set method.
+            self.ctx = mp.get_context("forkserver")
+            # Print info.
+            self.logger.info(f"Platform is {platform.system()}. Selecting forkserver process method.")
+        else:
+            # Set method.
+            self.ctx = mp.get_context("spawn")
+            # Print info.
+            self.logger.info(f"Platform is {platform.system()}. Selecting spawn process method.")
         # Create queues for results.
-        self.ctx = mp.get_context("forkserver")
         self.detection_image_queue = self.ctx.Queue(maxsize=2)
         self.detection_result_queue = self.ctx.Queue()
 
@@ -229,6 +242,7 @@ class ObstacleDetector:
                 self.detection_result_queue,
                 weights,
                 net_img_size,
+                classes,
                 min_confidence,
             ),
         )
