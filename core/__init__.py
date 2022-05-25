@@ -18,13 +18,14 @@ rovecomm_node: RoveComm
 waypoint_handler: WaypointHandler
 
 
-def setup(type="REGULAR", reverse="NO"):
+def setup(type="REGULAR", reverse="NO", gps_search="GPS"):
     """
     Sets up any core handlers
     """
     # load the manifest
     this.manifest = get_manifest()
     this.backup = reverse
+    this.gps_search = gps_search
 
     # IPs and ports depend on type
     if type == "REGULAR":

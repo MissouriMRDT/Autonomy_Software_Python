@@ -74,7 +74,15 @@ def main() -> None:
         type=int,
         help="filter by class(corresponds to order of classes in dataset .yaml file): --classes 0, or --classes 0 2 3",
     )
-
+    
+    #Enables/disables GPS search_pattern
+    parser.add_argument(
+        "--gps-search", 
+        choices=["GPS", "NO_GPS"],
+        default="GPS",
+        help='Enables/disables GPS search_pattern. ("GPS" for yes, NO_GPS for no).'
+    )
+    
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -97,7 +105,7 @@ def main() -> None:
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Initialize the core handlers (excluding vision)
-    core.setup(args.mode, args.reverse)
+    core.setup(args.mode, args.reverse, args.gps_search)
 
     # Initialize the core vision components
     core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes)

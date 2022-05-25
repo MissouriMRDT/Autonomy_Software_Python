@@ -6,6 +6,7 @@ import algorithms
 from core.states import RoverState
 import time
 import math
+from core.states import new_search_pattern
 
 
 class ApproachingMarker(RoverState):

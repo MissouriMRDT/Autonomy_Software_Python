@@ -8,7 +8,8 @@ import algorithms
 from core.states import RoverState
 from interfaces import nav_board
 from core.vision.ar_tag_detector import clear_tags
-from algorithms import small_movements
+from core.states import new_search_pattern
+
 
 
 class Navigating(RoverState):
@@ -43,7 +44,10 @@ class Navigating(RoverState):
             state = core.states.Idle()
 
         elif event == core.AutonomyEvents.REACHED_GPS_COORDINATE:
-            state = core.states.SearchPattern()
+            if core.gps_search == "GPS":
+                state = core.states.SearchPatternGPS()
+            if core.gps_search == "NO_GPS":
+                state = core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.NEW_WAYPOINT:
             state = self
@@ -73,6 +77,7 @@ class Navigating(RoverState):
         Defines regular rover operation when under this state
         """
         current = interfaces.nav_board.location()
+        print(f'Current position: {current}')
         gps_data = core.waypoint_handler.get_waypoint()
         goal, start, leg_type = gps_data.data()
         bearing, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])

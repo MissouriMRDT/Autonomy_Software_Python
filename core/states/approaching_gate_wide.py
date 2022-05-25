@@ -17,6 +17,7 @@ import numpy as np
 import core.constants as constants
 import geopy.distance
 import geopy
+from core.states import new_search_pattern
 
 # NO GPS VERSION
 # drives in a straight line through the gate (this will be bad at steep angles)

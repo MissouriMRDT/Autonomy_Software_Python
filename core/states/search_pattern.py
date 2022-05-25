@@ -3,10 +3,9 @@ import algorithms
 import interfaces
 import asyncio
 from core.states import RoverState
-from algorithms import small_movements
 
 
-class SearchPattern(RoverState):
+class SearchPatternGPS(RoverState):
     """
     The searching state’s goal is to drive the rover in an ever expanding Archimedean spiral, searching for the AR Tag.
     The spiral type was chosen because of it’s fixed distance between each rotation’s path.
@@ -52,9 +51,10 @@ class SearchPattern(RoverState):
         return state
 
     async def run(self) -> RoverState:
-        """
+        '''
         Defines regular rover operation when under this state
-        """
+        '''
+
         gps_data = core.waypoint_handler.get_waypoint()
 
         goal, start, leg_type = gps_data.data()
@@ -84,7 +84,7 @@ class SearchPattern(RoverState):
 
             self.logger.info("Search Pattern: Marker seen")
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
-
+        
         if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             interfaces.drive_board.stop()
 
@@ -94,12 +94,12 @@ class SearchPattern(RoverState):
             # Find and set the next goal in the search pattern
             goal = algorithms.marker_search.calculate_next_coordinate(start, goal)
             core.waypoint_handler.set_goal(goal)
-
+            
             self.logger.info(f"Search Pattern: Adding New Waypoint ({goal[0]}, {goal[1]}")
-
+        
         left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
 
-        self.logger.debug(f"Search Pattern: Driving at ({left}, {right})")
+        self.logger.info(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
-
+        
         return self
