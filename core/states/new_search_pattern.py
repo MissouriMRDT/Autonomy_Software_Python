@@ -7,11 +7,14 @@ import time
 
 class SearchPattern(RoverState):
     """
-    The searching state’s goal is to drive the rover in an ever expanding Archimedean spiral, searching for the AR Tag.
-    The spiral type was chosen because of it’s fixed distance between each rotation’s path.
+    This state’s goal is to drive the rover in a pattern that mimics an Archimedean Spiral without using GPS coordinates.
+    It accomplishes this via drive commands that decrease/increase in speed over time, causing it to turn in increasingly wider angles.
+    This state should only be used when innaccurate GPS data causes GPS search pattern to be compromised.
+    Command line argument for this state is --gps-search "GPS" or "NO_GPS", default = "GPS". 
     """
 
     def start(self):
+        #Set a starting time variable
         global t1
         t1 = time.time()
 
@@ -54,9 +57,10 @@ class SearchPattern(RoverState):
 
     async def run(self) -> RoverState:
         
+        #Set a second time variable that increases with each iteration of the loop
         t2 = time.time()
 
-        if core.vision.ar_tag_detector.is_gate():
+        if core.vision.ar_tag_detector.is_gate(): #Check for gate
             core.waypoint_handler.gps_data.leg_type = "GATE"
             interfaces.drive_board.stop()
 
@@ -66,7 +70,7 @@ class SearchPattern(RoverState):
             self.logger.info("Search Pattern: Gate seen")
             return self.on_event(core.AutonomyEvents.GATE_SEEN)
 
-        elif core.vision.ar_tag_detector.is_marker():
+        elif core.vision.ar_tag_detector.is_marker(): #Check for marker
             interfaces.drive_board.stop()
 
             # Sleep for a brief second
@@ -75,10 +79,14 @@ class SearchPattern(RoverState):
             self.logger.info("Search Pattern: Marker seen")
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
+        #Sleep so we don't overwhelm drive board
         await asyncio.sleep(0.1)
-        seconds_elapsed = t2 - t1
+        
+        seconds_elapsed = t2 - t1 #Calculates elapsed time from start
+
+        #Calculate drive speed. Currently left is set to decrease and right is set to increase
         left = int(core.MAX_DRIVE_POWER - (seconds_elapsed * core.INCREASE_INCREMENT))
-        right = int(core.MIN_DRIVE_POWER + (seconds_elapsed * core.DECREASE_INCREMENT))
+        right = int(core.SP_START_PWR + (seconds_elapsed * core.DECREASE_INCREMENT))
 
         print(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)

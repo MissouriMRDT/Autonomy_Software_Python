@@ -21,6 +21,7 @@ MIN_DRIVE_POWER = 50
 
 INCREASE_INCREMENT = 0.75  #Rate at which speed in search pattern increases
 DECREASE_INCREMENT = 0.30  #Rate at which speed in search pattern increases
+SP_START_PWR = 100
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 0.002
