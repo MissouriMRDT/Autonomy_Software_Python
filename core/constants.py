@@ -20,7 +20,7 @@ MAX_DRIVE_POWER = 300  # -1000 to 1000, normally 250 dropped lower for early tes
 MIN_DRIVE_POWER = 50
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 0.008
+SEARCH_DISTANCE = 0.002
 DELTA_THETA = math.pi / 4
 
 # Vision Parameters
