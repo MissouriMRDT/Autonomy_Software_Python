@@ -1,9 +1,10 @@
 import core
+from core.constants import SP_LEFT_MIN, SP_RIGHT_MAX
 import interfaces
 import asyncio
 from core.states import RoverState
 import time
-
+from interfaces.drive_board import clamp
 
 class SearchPattern(RoverState):
     """
@@ -84,11 +85,17 @@ class SearchPattern(RoverState):
         
         seconds_elapsed = t2 - t1 #Calculates elapsed time from start
 
+        seconds_elapsed = t2 - t1
+
         #Calculate drive speed. Currently left is set to decrease and right is set to increase
         left = int(core.MAX_DRIVE_POWER - (seconds_elapsed * core.INCREASE_INCREMENT))
-        right = int(core.SP_START_PWR + (seconds_elapsed * core.DECREASE_INCREMENT))
+        right = int(core.MIN_DRIVE_POWER + (seconds_elapsed * core.DECREASE_INCREMENT))
+
+        left = clamp(left, core.SP_LEFT_MIN, core.SP_LEFT_MAX)
+        right = clamp(right, core.SP_RIGHT_MIN, core.SP_RIGHT_MAX)    
 
         print(f"Search Pattern: Driving at ({left}, {right})")
+        self.logger.info(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
-            
+
         return self
