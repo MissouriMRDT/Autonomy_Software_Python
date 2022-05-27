@@ -1,5 +1,5 @@
 import core
-from core.constants import SP_LEFT_MIN, SP_RIGHT_MAX
+from core.constants import LOWER_RATE_OF_CHANGE, SP_LEFT_MAX, SP_LEFT_MIN, SP_RIGHT_MAX
 import interfaces
 import asyncio
 from core.states import RoverState
@@ -84,16 +84,19 @@ class SearchPattern(RoverState):
         await asyncio.sleep(0.1)
         
         seconds_elapsed = t2 - t1 #Calculates elapsed time from start
+        print(f'Time elapsed: {seconds_elapsed:.2f}')
 
-        seconds_elapsed = t2 - t1
+        #TODO: Fix the problem
 
-        #Calculate drive speed. Currently left is set to decrease and right is set to increase
-        left = int(core.MAX_DRIVE_POWER - (seconds_elapsed * core.INCREASE_INCREMENT))
-        right = int(core.MIN_DRIVE_POWER + (seconds_elapsed * core.DECREASE_INCREMENT))
+        #Divider value decreases the rate of change over time.
+        divider_value = seconds_elapsed * core.LOWER_RATE_OF_CHANGE + 0.57
+        print(f'Divider value; {divider_value}')
 
-        left = clamp(left, core.SP_LEFT_MIN, core.SP_LEFT_MAX)
-        right = clamp(right, core.SP_RIGHT_MIN, core.SP_RIGHT_MAX)    
-
+        #Calculate drive speed. Currently left is set to decrease and right is set to increase.
+        #Clamp divider value for testing purposes.
+        left = int(core.MAX_DRIVE_POWER - ((seconds_elapsed * core.DECREMENT)) / (clamp(divider_value, 1, 100)))
+        right = int(core.MIN_DRIVE_POWER + ((seconds_elapsed * core.INCREMENT)) / (clamp(divider_value, 1, 100)))
+    
         print(f"Search Pattern: Driving at ({left}, {right})")
         self.logger.info(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)

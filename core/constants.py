@@ -19,12 +19,13 @@ AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to
 MAX_DRIVE_POWER = 300  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 MIN_DRIVE_POWER = 50
 
-INCREASE_INCREMENT = 0.75  #Rate at which speed in search pattern increases
-DECREASE_INCREMENT = 0.30  #Rate at which speed in search pattern increases
+INCREMENT = 1.25  #Rate at which speed in search pattern increases
+DECREMENT = 1.25  #Rate at which speed in search pattern increases
 SP_RIGHT_MAX = 180
-SP_RIGHT_MIN = 100
+SP_RIGHT_MIN = 90
 SP_LEFT_MAX = 300
 SP_LEFT_MIN = 240
+LOWER_RATE_OF_CHANGE = 0.0123
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 0.002
