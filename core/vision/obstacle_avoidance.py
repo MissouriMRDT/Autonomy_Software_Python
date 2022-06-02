@@ -29,7 +29,7 @@ async def async_obstacle_detector():
     ObstacleIgnorance = algorithms.o3d_obstacle_detector.ObstacleDetector()
     # Declare objects
     ObstacleIgnoranceYOLO = algorithms.yolo_obstacle_detector.ObstacleDetector(
-        weights=os.path.dirname(__file__) + "/../../resources/yolo_models/2022-0511/weights/best.pt",
+        weights=os.path.dirname(__file__) + "/../../resources/yolo_models/2022-0601/weights/best.pt",
         net_img_size=640,
         min_confidence=0.4,
         classes=core.vision.YOLO_CLASSES,
