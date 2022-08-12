@@ -5,7 +5,7 @@
 
 # Autonomy Software
 
-This repo contains the Autonomy software stack for the current iteration of the MRDT Rover designed to compete at the University Rover Challenge. The software is developed to run on a Jetson TX2 development board.
+This repo contains the Autonomy software stack for the current iteration of the MRDT Rover designed to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
 
 ## Getting Set Up
 
@@ -35,7 +35,7 @@ pipenv install -d
 pipenv run <file you want to run>
 ```
 
-or the preffered option which will spawn a shell subprocess with which you can start running commands within the environment:
+or the preferred option which will spawn a shell subprocess with which you can start running commands within the environment:
 
 ```
 pipenv shell
@@ -49,7 +49,7 @@ pytest --cov # unit tests and coverage
 flake8 # linter used for code quality
 ```
 
-These packages will be run by default for any push to dev/master and any pull request into dev/master to ensure the code quality matches our standards.
+These packages will be run by default for any push to dev, release/testing, or release/competition and any pull request into dev, release/testing, or release/competition to ensure the code quality matches our standards.
 
 6. To run the autonomy main code:
 
@@ -65,7 +65,7 @@ Any of the ZED (our chosen Stereo Cam) specific code will require the [ZED SDK](
 
 IDE:
 
-[Visual Studio Code](https://code.visualstudio.com/) w/ Python extension installed
+[Visual Studio Code](https://code.visualstudio.com/) w/ Python extension installed.
 Use the settings.json located in .vscode/settings.json or at least mimic some of the settings (the linting/formatting will help greatly!)
 
 Version Control:
@@ -79,7 +79,7 @@ The architecture is broken up into four categories:
 
 1. Core - Contains all the core infrastructure of the Autonomy system, including the state machine, logging and networking with RoveComm.
 2. Interfaces - Objects who wrap functionality of various components of the rover.
-3. Algorithms - Core pieces of logic that perform the various computational taks that Autonomy requires, such as Haversine math, PID controls and Search pattern.
+3. Algorithms - Core pieces of logic that perform the various computational tasks that Autonomy requires, such as Haversine math, PID controls and Search pattern.
 4. Tests - Broken into two subcategories: Unit and Integration tests. Unit tests are designed to test the basic functionality of any algorithm developed within the Autonomy system. These should be designed to easily test any changes made to an algorithm and should serve as a way to verify if changes broke functionality. Integration tests are designed to test various integration points with hardware accessories and other rover functionality.
 
 ![Architecture Diagram](docs/architecture.png)
@@ -94,7 +94,9 @@ git checkout dev
 git branch -b feature/<your feature name>
 ```
 
-Every branch should contain the naming pattern feature/<feature name>. Once the feature has been developed and tested, create a Pull Request to merge your branches changes into dev. You can use the Github web interface for this.
+Every branch should contain the naming pattern feature/<feature_name>. Once the feature has been developed and tested, create a Pull Request to merge your branches changes into dev. You can use the GitHub web interface for this.
+
+Once ready to test multiple new features together create a pull request from dev to release/testing. When the software package for the year is complete create a pull request from release/testing into release/competition.
 
 Pull requests will not be accepted if they cause unit tests to break or have syntactical errors. If you are adding a new algorithm, make sure to add a corresponding unit test, or it will most likely not be accepted.
 
@@ -109,8 +111,7 @@ sudo apt-get install python3.8-dev  # for python3.8 installs
 ```
 
 To properly install python-pcl:
-1. sudo apt install python3-pcl
 
-2. copy over pcl/and egg files from usr/lib/python3/dist-packages to .local/share/virtualenvs/Autonomy_Software/lib/python3.8/site-packages/
-
-3. ln -s _pcl.cpython-36m-x86_64-linux-gnu.so _pcl.so in the site-packages
+```
+pip install python-pcl
+```
