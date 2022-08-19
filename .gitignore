@@ -5,8 +5,7 @@
 .pytest_cache/
 
 #pipenv lock file
-.lock
-Pipfile.lock
+*.lock
 
 # Mac Temp Files
 .DS_Store
@@ -27,5 +26,5 @@ resources/tests/output/*
 #Coverage files
 *.coverage
 
-# Map test output
-map.html
+# Web output files.
+*.html
