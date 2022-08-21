@@ -10,7 +10,8 @@ import math
 
 class ApproachingGate(RoverState):
     """
-    Within approaching gate, 3 waypoints are calculated in front of, between, and throught the viewed gate, allowing the rover to traverse through the gate fully.
+    Within approaching gate, 3 waypoints are calculated in front of, between, and through the viewed gate,
+    allowing the rover to traverse through the gate fully.
     """
 
     def start(self):
@@ -65,7 +66,7 @@ class ApproachingGate(RoverState):
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
-                # depending where the rover is facing, this is computed differently
+                # depending on where the rover is facing, this is computed differently
                 if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
                     larger = min(tags[0].angle, tags[1].angle)
                     smaller = max(tags[0].angle, tags[1].angle)
