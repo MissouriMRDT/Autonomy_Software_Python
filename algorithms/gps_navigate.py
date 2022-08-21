@@ -1,5 +1,13 @@
+#
+# Mars Rover Design Team
+# gps_navigate.py
+#
+# Created on Oct 20, 2018
+# Updated on Aug 21, 2022
+#
+
 import logging
-import math
+
 import interfaces
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
@@ -10,11 +18,13 @@ def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_
     """
     Calculates the current approach status of the rover in reference to goal and starting location
 
-    Returns:
-    -------
-        approach_status : enum
-            whether we are APPROACHING, PAST_GOAL or CLOSE_ENOUGH
+    :param goal: lat and lon of coordinate
+    :param location: lat and lon of the rover
+    :param start: lat and lon the leg started at
+    :param tolerance: how close we must get to gps (defaults to WAYPOINT_DISTANCE_THRESHOLD)
+    :return: approach_status : enum (whether we are APPROACHING, PAST_GOAL or CLOSE_ENOUGH)
     """
+
     logger = logging.getLogger(__name__)
 
     (s_bearing, s_distance) = geomath.haversine(start.lat, start.lon, goal.lat, goal.lon)
@@ -41,13 +51,13 @@ def calculate_move(goal, location, start, speed=150):
     """
     Calculates the necessary left and right speeds to keep the rover on course for goal location
 
-    Returns:
-    -------
-        left_speed : int16
-            the desired left speed between -1000, 1000
-        right speed: int16
-            the desired right speed between -1000, 1000
+    :param goal: lat and lon of coordinate
+    :param location: lat and lon of the rover
+    :param start: lat and lon the leg started at
+    :param speed: the speed the rover should be going at (defaults to 150)
+    :return: left and right speed in a range from -1000 to 1000 (left_speed, right_speed)
     """
+    
     logger = logging.getLogger(__name__)
 
     (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
