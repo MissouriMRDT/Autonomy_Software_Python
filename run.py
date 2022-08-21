@@ -33,7 +33,7 @@ def setup_logger(level) -> logging.Logger:
     :return: logging.Logger
     """
 
-    yaml_conf = yaml.safe_load(open("resources/logging.yaml", "r").read())
+    yaml_conf = yaml.safe_load(open("resources/logging/logging.yaml", "r").read())
     logging.config.dictConfig(yaml_conf)
 
     for handler in logging.getLogger().handlers:
