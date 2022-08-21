@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# state_machine.py
+#
+# Created on Dec 31, 2020
+# Updated on Aug 21, 2022
+#
+
 from core.states.state import RoverState
 import core
 import logging
