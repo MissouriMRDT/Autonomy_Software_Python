@@ -1,6 +1,6 @@
 import asyncio
 from typing import List
-from algorithms.AR_tag import Tag
+from algorithms.ar_tag import Tag
 import core
 import algorithms
 import logging
