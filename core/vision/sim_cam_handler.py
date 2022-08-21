@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# sim_cam_handler.py
+#
+# Created on Jan 11, 2021
+# Updated on Aug 21, 2022
+#
+
 from core.vision.camera import Camera
 import logging
 from core.vision import feed_handler
