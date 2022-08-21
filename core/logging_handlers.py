@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# logging_handlers.py
+#
+# Created on Sep 25, 2020
+# Updated on Aug 21, 2022
+#
+
 from core.rovecomm_module.rovecomm import RoveCommPacket
 import core
 import logging
@@ -10,6 +18,12 @@ class CsvHandler(WatchedFileHandler):
     def __init__(self, filename, header, encoding=None, delay=False, new_file=False):
         """
         Initializes the handler
+
+        :param filename:
+        :param header:
+        :param encoding:
+        :param delay:
+        :param new_file:
         """
 
         if new_file:
@@ -40,6 +54,9 @@ class RoveCommHandler(logging.Handler):
     def __init__(self, reliable, data_id):
         """
         Initializes the handler with given network variables
+
+        :param reliable:
+        :param data_id:
         """
         self.reliable = reliable
         self.data_id = data_id
@@ -49,6 +66,8 @@ class RoveCommHandler(logging.Handler):
     def emit(self, s):
         """
         Encodes and sends the log message over RoveComm
+
+        :param s:
         """
         msg = self.format(s)
         # Max string size is 255 characters, truncate the rest and flag it
