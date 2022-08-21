@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# constants.py
+#
+# Created on Jul 08, 2020
+# Updated on Aug 21, 2022
+#
+
 from enum import IntEnum, Enum
 import collections
 import math
