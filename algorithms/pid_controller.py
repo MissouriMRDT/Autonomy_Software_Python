@@ -9,7 +9,7 @@
 import time
 import logging
 
-from core.constants import clamp
+from algorithms.clamp import clamp
 
 
 class PIDcontroller:

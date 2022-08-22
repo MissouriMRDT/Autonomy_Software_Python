@@ -12,11 +12,21 @@ from collections import deque
 import interfaces
 
 
+class GPSData:
+    def __int__(self, goal, start, leg="POSITION"):
+        self.goal = goal
+        self.start = start
+        self.leg_type = leg
+
+    def data(self):
+        return self.goal, self.start, self.leg_type
+
+
 class WaypointHandler:
     def __init__(self):
         # Class variables
         self.waypoints: deque = deque()
-        self.gps_data: core.GPSData = None
+        self.gps_data: GPSData = None
 
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddPositionLeg"]["dataId"], self.add_position_waypoint
@@ -86,12 +96,12 @@ class WaypointHandler:
         self.waypoints.clear()
         self.logger.info("Cleared all waypoints")
 
-    def get_waypoint(self) -> core.GPSData:
+    def get_waypoint(self) -> GPSData:
         """
         Gets the current waypoint, pops a new from the deque if we haven't grabbed a
         waypoint from the deque yet
 
-        :return: core.GPSData
+        :return: GPSData
         """
 
         # Pop off a waypoint from the queue if there is currently none
@@ -133,15 +143,15 @@ class WaypointHandler:
         else:
             return True
 
-    def get_new_waypoint(self) -> core.GPSData:
+    def get_new_waypoint(self) -> GPSData:
         """
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
 
-        :return: core.GPSData
+        :return: GPSData
         """
 
-        self.gps_data = core.GPSData()
+        self.gps_data = GPSData()
         self.gps_data.start = interfaces.nav_board.location()
 
         try:

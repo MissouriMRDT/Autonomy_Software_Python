@@ -8,7 +8,7 @@
 
 from typing import Tuple
 import core
-from core.constants import clamp
+from algorithms.clamp import clamp
 import logging
 
 

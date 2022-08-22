@@ -8,9 +8,9 @@
 
 import logging
 
-from core.constants import clamp
-
 import interfaces
+
+from algorithms.clamp import clamp
 
 from algorithms.pid_controller import PIDcontroller
 
