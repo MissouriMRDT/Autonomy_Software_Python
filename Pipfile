@@ -15,9 +15,9 @@ snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
-opencv-contrib-python = "*"
 pytest = "*"
 flake8 = "*"
 pytest-cov = "*"
