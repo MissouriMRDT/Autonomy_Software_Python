@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# nav_board.py
+#
+# Created on Jul 19, 2020
+# Updated on Aug 21, 2022
+#
+
 import core
 import time
 import logging
@@ -5,9 +13,9 @@ import logging
 
 class NavBoard:
     """
-    Interface for the navboard, a seperate compute unit that provides GPS and IMU
+    Interface for the navboard, a separate compute unit that provides GPS and IMU
     (Pitch/Yaw/Roll) data to the Autonomy system. This interface collects and stores the
-    data received from the navboard so it can be used elsewhere.
+    data received from the navboard, so it can be used elsewhere.
     """
 
     def __init__(self):
@@ -32,10 +40,20 @@ class NavBoard:
         )
 
     def process_imu_data(self, packet):
+        """
+        Process IMU Data
+        :param packet: pitch, heading, and roll included
+        """
+
         self._pitch, self._heading, self._roll = packet.data
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
     def process_gps_data(self, packet) -> None:
+        """
+        Process GPS Data
+        :param packet: lat and lon included
+        """
+
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
