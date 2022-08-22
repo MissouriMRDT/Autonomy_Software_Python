@@ -8,19 +8,8 @@
 
 from typing import Tuple
 import core
+from core.constants import clamp
 import logging
-
-
-def clamp(n, min_n, max_n):
-    """
-    Clamps value n between min_n and max_n
-
-    :param n: the value to be clamped
-    :param min_n: the minimum value it can be
-    :param max_n: the maximum value it can be
-    :return: clamp value
-    """
-    return max(min(max_n, n), min_n)
 
 
 class DriveBoard:

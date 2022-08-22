@@ -8,23 +8,13 @@
 
 import logging
 
+from core.constants import clamp
+
 import interfaces
 
 from algorithms.pid_controller import PIDcontroller
 
 pid = PIDcontroller(Kp=3, Ki=0.25, Kd=0, wraparound=360)
-
-
-def clamp(x, minimum, maximum):
-    """
-    Clamps the x value between the min and max values
-
-    :param x: value to clamp
-    :param minimum: min value
-    :param maximum: max value
-    :return: val - the clamped value
-    """
-    return max(minimum, min(x, maximum))
 
 
 def get_motor_power_from_heading(speed, goal_heading):

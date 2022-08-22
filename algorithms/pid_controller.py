@@ -9,17 +9,7 @@
 import time
 import logging
 
-
-def clamp(n, min_n, max_n):
-    """
-    Clamps the x value between the min and max values
-
-    :param n: value to clamp
-    :param min_n: min value
-    :param max_n: max value
-    :return: val - the clamped value
-    """
-    return max(min(max_n, n), min_n)
+from core.constants import clamp
 
 
 class PIDcontroller:
