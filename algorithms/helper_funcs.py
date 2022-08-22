@@ -1,6 +1,6 @@
 #
 # Mars Rover Design Team
-# clamp.py
+# helper_funcs.py
 #
 # Created on Aug 21, 2022
 # Updated on Aug 21, 2022

@@ -9,7 +9,7 @@
 import time
 import logging
 
-from algorithms.clamp import clamp
+from algorithms.helper_funcs import clamp
 
 
 class PIDcontroller:

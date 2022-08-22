@@ -10,7 +10,7 @@ import logging
 
 import interfaces
 
-from algorithms.clamp import clamp
+from algorithms.helper_funcs import clamp
 
 from algorithms.pid_controller import PIDcontroller
 
