@@ -15,3 +15,4 @@ from algorithms import pid_controller as PID_controller
 from algorithms import obstacle_detector as obstacle_detector
 from algorithms import obstacle_avoider as obstacle_avoider
 from algorithms import ar_tag as ar_tag
+from algorithms import clamp as clamp

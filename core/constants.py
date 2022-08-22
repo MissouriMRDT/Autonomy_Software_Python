@@ -66,25 +66,3 @@ class OperationState(IntEnum):
     TELEOP = 0
     AUTONOMY = 1
     REACHED_MARKER = 2
-
-
-class GPSData:
-    def __int__(self, goal, start, leg="POSITION"):
-        self.goal = goal
-        self.start = start
-        self.leg_type = leg
-
-    def data(self):
-        return self.goal, self.start, self.leg_type
-
-
-def clamp(x, minimum, maximum):
-    """
-    Clamps the x value between the min and max values
-
-    :param x: value to clamp
-    :param minimum: min value
-    :param maximum: max value
-    :return: val - the clamped value
-    """
-    return max(minimum, min(x, maximum))
