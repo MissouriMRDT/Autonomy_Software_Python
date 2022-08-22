@@ -62,10 +62,7 @@ class NavBoard:
         self._location = Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        (
-            self._distToGround,
-            self._lidarQuality,
-        ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
+        self._distToGround, self._lidarQuality = packet.data
 
     def pitch(self) -> float:
         return self._pitch
