@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# map_test.py
+#
+# Created on Jul 06, 2020
+# Updated on Aug 21, 2022
+#
+
 import interfaces
 import core
 import algorithms
