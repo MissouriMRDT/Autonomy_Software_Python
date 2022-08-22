@@ -24,7 +24,7 @@ def pytest_sessionstart(session) -> None:
     # Setup our interfaces
     interfaces.setup()
 
-    yaml_conf = yaml.safe_load(open("core/logging.yaml", "r").read())
+    yaml_conf = yaml.safe_load(open("resources/logging/logging.yaml", "r").read())
     logging.config.dictConfig(yaml_conf)
 
 
