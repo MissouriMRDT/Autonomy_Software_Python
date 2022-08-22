@@ -47,8 +47,9 @@ into dev, release/testing, or release/competition to ensure the code quality mat
 6. To run the autonomy main code:
 
 ```
-python run.py --file <file to run (you can ignore this if you want to run main autonomy)> --vision <change this to WEBCAM or NONE if you are running this on personal computer>
+python run.py --file <file to run (you can ignore this if you want to run main autonomy)>
 ```
+<!-- --vision <change this to WEBCAM or NONE if you are running this on personal computer>->>
 
 Any of the ZED (our chosen Stereo Cam) specific code will require
 the [ZED SDK](https://www.stereolabs.com/developers/release/), though you won't be able to run most code without an
