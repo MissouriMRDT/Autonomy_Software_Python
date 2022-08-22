@@ -82,7 +82,7 @@ class Tag:
         print(output.format(id=self.id, detected=self.detected))
 
 
-cap = cv2.imread(r'../../resources/artags.png')
+cap = cv2.imread('./resources/artags.png')
 frame_found = False
 FRAMES_DETECTED = 5
 detected_tags = []
@@ -137,7 +137,7 @@ def add_tag(tag, corner):
 
 while True:
     # Webcam Frame
-    ret, reg_img = cap.read()
+    reg_img = cap
 
     # Frame Adjustments
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
