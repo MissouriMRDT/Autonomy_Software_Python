@@ -12,6 +12,7 @@ import interfaces
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
 import core
+from core.constants import WAYPOINT_DISTANCE_THRESHOLD
 
 
 def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_THRESHOLD):
