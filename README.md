@@ -1,105 +1,31 @@
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/MissouriMRDT/Autonomy_Software?style=flat-square)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/MissouriMRDT/Autonomy_Software?style=flat-square)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Flake8%20Linter/dev?label=flake8%20linter&style=flat-square)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Unit%20Tests/dev?label=unit%20tests&style=flat-square)
-
 # Autonomy Software
 
-This repo contains the Autonomy software stack for the current iteration of the MRDT Rover designed to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/MissouriMRDT/Autonomy_Software?style=flat)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/MissouriMRDT/Autonomy_Software?style=flat)
+![GitHub issues](https://img.shields.io/github/issues/MissouriMRDT/Autonomy_Software)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Flake8%20Linter/dev?label=flake8%20linter&style=flat)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Unit%20Tests/dev?label=unit%20tests&style=flat)
 
-## Getting Set Up
+This repo contains the Autonomy software stack for the current iteration of the Mars Rover Design Team's Rover designed
+to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
+
+## Getting Setup:
 
 There are a couple of simple steps in order to get started writing software for the Autonomy system.
-
-1. Clone the repo in an appropriate place. Standard practice is to clone it inside a directory such as RoverSoftware.
-
-```
-git clone --recurse-submodules https://github.com/MissouriMRDT/Autonomy_Software.git
-```
-
-2. Install Python 3.8 or higher, and then install pipenv using pip
-
-```
-pip install pipenv
-```
-
-3. Configure your python virtual environment (using pipenv) to install the required dev packages
-
-```
-pipenv install -d
-```
-
-4. Now that you have configured the virtual environment, if you want to run python code for the autonomy repo make sure to always do one of the following:
-
-```
-pipenv run <file you want to run>
-```
-
-or the preferred option which will spawn a shell subprocess with which you can start running commands within the environment:
-
-```
-pipenv shell
-```
-
-5. You should now be set up (bar any issues), so go ahead and run our unit tests or linter using the following commands:
-
-```
-pytest --cov # unit tests and coverage
-
-flake8 # linter used for code quality
-```
-
-These packages will be run by default for any push to dev, release/testing, or release/competition and any pull request into dev, release/testing, or release/competition to ensure the code quality matches our standards.
-
-6. To run the autonomy main code:
-
-```
-python run.py --file <file to run (you can ignore this if you want to run main autonomy)> --vision <change this to WEBCAM or NONE if you are running this on personal computer>
-```
-
-Any of the ZED (our chosen Stereo Cam) specific code will require the [ZED SDK](https://www.stereolabs.com/developers/release/), though you won't be able to run most code without an NVIDIA GPU. So use the --vision parameter if you don't have a camera or are using a webcam.
-
-7. If you want to try running autonomy code in a simulator, check out [this repo](https://github.com/MissouriMRDT/Autonomy_Simulator) and associated documentation.
+View [getting_setup.md](docs/readme_resources/getting_setup.md) for the full instructions.
 
 ## Recommended Tools:
 
-IDE:
-
-[Visual Studio Code](https://code.visualstudio.com/) w/ Python extension installed.
-Use the settings.json located in .vscode/settings.json or at least mimic some of the settings (the linting/formatting will help greatly!)
-
-Version Control:
-
-1. [Github Desktop](https://desktop.github.com/)
-2. [Git Bash](https://git-scm.com/downloads) & [Tortoise Git](https://tortoisegit.org/) (integration tips can be found [here](https://medium.com/@adriangodong/windows-git-bash-tortoisegit-1a866fbde27e))
+There are a couple tools that we recommend installing before you start to contribute to the code base.
+View [recommended_tools.md](docs/readme_resources/recommended_tools.md) for the full guide.
 
 ## Architecture
-
-The architecture is broken up into four categories:
-
-1. Core - Contains all the core infrastructure of the Autonomy system, including the state machine, logging and networking with RoveComm.
-2. Interfaces - Objects who wrap functionality of various components of the rover.
-3. Algorithms - Core pieces of logic that perform the various computational tasks that Autonomy requires, such as Haversine math, PID controls and Search pattern.
-4. Tests - Broken into two subcategories: Unit and Integration tests. Unit tests are designed to test the basic functionality of any algorithm developed within the Autonomy system. These should be designed to easily test any changes made to an algorithm and should serve as a way to verify if changes broke functionality. Integration tests are designed to test various integration points with hardware accessories and other rover functionality.
-
-![Architecture Diagram](docs/architecture.png)
+To learn more about the architecture of Autonomy view [architecture.md](./docs/readme_resources/architecture.md).
 
 ## Contributing
+To learn more about contributing to Autonomy view [contributing.md](./docs/readme_resources/contributing.md).
 
-Dev serves as the development branch throughout the school year. So if you want to start developing a feature or improvement create a branch based off of dev:
-
-```
-git pull
-git checkout dev
-git branch -b feature/<your feature name>
-```
-
-Every branch should contain the naming pattern feature/<feature_name>. Once the feature has been developed and tested, create a Pull Request to merge your branches changes into dev. You can use the GitHub web interface for this.
-
-Once ready to test multiple new features together create a pull request from dev to release/testing. When the software package for the year is complete create a pull request from release/testing into release/competition.
-
-Pull requests will not be accepted if they cause unit tests to break or have syntactical errors. If you are adding a new algorithm, make sure to add a corresponding unit test, or it will most likely not be accepted.
-
+<!--
 ## Known Issues
 
 To properly install pyyaml:
@@ -115,3 +41,4 @@ To properly install python-pcl:
 ```
 pip install python-pcl
 ```
+-->
