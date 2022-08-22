@@ -6,4 +6,4 @@ import algorithms.marker_search as marker_search
 import algorithms.PID_controller as PID_controller
 import algorithms.obstacle_detector as obstacle_detector
 import algorithms.obstacle_avoider as obstacle_avoider
-import algorithms.AR_tag as AR_tag
+import algorithms.ar_tag as ar_tag

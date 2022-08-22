@@ -1,6 +1,11 @@
-from asyncio.log import logger
-from collections import namedtuple
-from math import dist
+#
+# Mars Rover Design Team
+# ar_tag.py
+#
+# Created on Oct 22, 2020
+# Updated on Aug 21, 2022
+#
+
 import cv2
 from cv2 import aruco
 import logging
@@ -16,14 +21,11 @@ class Tag:
     def __init__(self, tag, gps, center):
         """
         Creates an object of Tag
-        Parameters:
-        -----------
-            tag - the id that was found
-            gps - the coordinates of the tag (lat, long)
-            center - the center points of the tag
-        Returns:
-        --------
-            None
+
+        :param tag: the id that was found
+        :param gps: the coordinates of the tag (lat, long)
+        :param center: the center points of the tag
+        :return: None
         """
 
         self.id = tag
@@ -36,13 +38,10 @@ class Tag:
     def check_tag(self, tag, gps):
         """
         Checks to see if the tag that was spotted has already been added to the array.
-        Parameters:
-        -----------
-            tag - the id that is being checked
-            gps - the coordinates of the tag (lat, long)
-        Returns:
-        --------
-            bool - True if detected, False if not detected
+
+        :param tag: the id that is being checked
+        :param gps: the coordinates of the tag (lat, long)
+        :return: bool - True if detected, False if not detected
         """
 
         if self.id == tag:
@@ -54,12 +53,9 @@ class Tag:
     def tag_spotted(self, gps):
         """
         Increments the detected variable and updates GPS
-        Parameters:
-        -----------
-            gps - the coordinates of the tag (lat, long)
-        Returns:
-        --------
-            None
+
+        :param gps: the coordinates of the tag (lat, long)
+        :return: None
         """
 
         self.detected += 1
@@ -71,12 +67,6 @@ class Tag:
     def reset_spotted(self):
         """
         Resets the tags detected counter
-        Parameters:
-        -----------
-            None
-        Returns:
-        --------
-            None
         """
 
         self.detected = 0
@@ -84,12 +74,6 @@ class Tag:
     def print(self):
         """
         Prints the id and the number of times it was detected
-        Parameters:
-        -----------
-            None
-        Returns:
-        --------
-            None
         """
 
         print(output.format(id=self.id, detected=self.detected))
@@ -103,13 +87,9 @@ output = "Ids: {id:02d}   |   Detected: {detected:02d}"
 def get_gps():
     """
     Finds the GPS Coordinates for the Aruco Tag
-    Parameters:
-    -----------
-        None
-    Returns:
-    --------
-        latitude - the latitude of the tag
-        longitude - the longitude of the tag
+
+    :return: latitude - the latitude of the tag
+             longitude - the longitude of the tag
     """
 
     latitude = interfaces.nav_board.location()[0]
@@ -121,13 +101,10 @@ def get_gps():
 def add_tag(tag, corner):
     """
     Creates a new Object of Tag in the detected_tags list
-    Parameters:
-    -----------
-        tag - the id of the aruco tag
-        corner - the four corner points of the aruco tag for distance calculations
-    Returns:
-    --------
-        None
+
+    :param tag: the id of the aruco tag
+    :param corner: the four corner points of the aruco tag for distance calculations
+    :return: None
     """
 
     latitude, longitude = get_gps()
@@ -147,13 +124,10 @@ def add_tag(tag, corner):
 def detect_ar_tag(reg_img):
     """
     Detects an AR Tag in the provided color image.
-    Parameters:
-    -----------
-        reg_img - the provided image we are looking at to find an ar tag
-    Returns:
-    --------
-        tags - a list of Tags (class) that contain the (id, gps, cX and cY) of the detected AR tags
-        reg_img - the image with detected AR Tags drawn on top of it
+
+    :param reg_img: the provided image we are looking at to find an ar tag
+    :return: tags - a list of Tags (class) that contain the (id, gps, cX and cY) of the detected AR tags
+             reg_img - the image with detected AR Tags drawn on top of it
     """
 
     # Frame Adjustments
@@ -207,14 +181,9 @@ def detect_ar_tag(reg_img):
 def track_ar_tag(center):
     """
     Track the distance and angle of the AR Tag from the perspective of the Rover.
-    Parameters:
-    -----------
-        center - the X, Y of the center pixels of the AR Tag
-    Returns:
-    --------
-        distance - the distance in meters to the AR Tag
-        angle - the angle in degrees from the rover to the AR Tag. Left is negative,
-        right is positive
+    :param center: the X, Y of the center pixels of the AR Tag
+    :return: distance - the distance in meters to the AR Tag
+             angle - the angle in degrees from the rover to the AR Tag. Left is negative, right is positive
     """
 
     logger = logging.getLogger(__name__)

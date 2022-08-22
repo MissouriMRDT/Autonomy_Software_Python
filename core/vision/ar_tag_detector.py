@@ -1,7 +1,7 @@
 import asyncio
 from collections import namedtuple
 from typing import List
-from algorithms.AR_tag import Tag
+from algorithms.ar_tag import Tag
 import core
 import algorithms
 import logging
@@ -20,7 +20,7 @@ async def async_ar_tag_detector():
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
 
-        tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        tags, reg_img = algorithms.ar_tag.detect_ar_tag(reg_img)
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
         ids = []
