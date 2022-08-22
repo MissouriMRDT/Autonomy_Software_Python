@@ -82,7 +82,7 @@ class Tag:
         print(output.format(id=self.id, detected=self.detected))
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.imread(r'../../resources/artags.png')
 frame_found = False
 FRAMES_DETECTED = 5
 detected_tags = []
