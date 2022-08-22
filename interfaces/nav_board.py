@@ -7,6 +7,7 @@
 #
 
 import core
+from core.constants import Coordinate
 import time
 import logging
 
@@ -22,9 +23,9 @@ class NavBoard:
         self._pitch: float = 0
         self._roll: float = 0
         self._heading: float = 0
-        self._location: core.Coordinate = core.Coordinate(0, 0)
+        self._location: Coordinate = Coordinate(0, 0)
         self._distToGround: int = 0
-        self._lidarQuality = 0  # int 5 for brand new data, counts down 1 every 50ms, should never go below 3.
+        self._lidarQuality = 0  # int 5 for brand-new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
 
         # Set up RoveComm and Logger
@@ -58,7 +59,7 @@ class NavBoard:
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
-        self._location = core.Coordinate(lat, lon)
+        self._location = Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
         (
@@ -75,5 +76,5 @@ class NavBoard:
     def heading(self) -> float:
         return self._heading
 
-    def location(self) -> core.Coordinate:
+    def location(self) -> Coordinate:
         return self._location
