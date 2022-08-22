@@ -36,9 +36,9 @@ class NavBoard:
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
-        core.rovecomm_node.set_callback(
-            core.manifest["Nav"]["Telemetry"]["LidarData"]["dataId"], self.process_lidar_data
-        )
+        # core.rovecomm_node.set_callback(
+        #     core.manifest["Nav"]["Telemetry"]["LidarData"]["dataId"], self.process_lidar_data
+        # )
 
     def process_imu_data(self, packet):
         """
@@ -62,7 +62,10 @@ class NavBoard:
         self._location = Coordinate(lat, lon)
 
     def process_lidar_data(self, packet):
-        self._distToGround, self._lidarQuality = packet.data
+        (
+            self._distToGround,
+            self._lidarQuality,
+        ) = packet.data  # LiDAR still needs to be implemented on NavBoard, don't use it on Autonomy
 
     def pitch(self) -> float:
         return self._pitch
