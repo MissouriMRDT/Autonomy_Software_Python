@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "da3ad1bade0e3974a49f2a26439d2625ec469313df98228099b159541e76f05c"
+            "sha256": "0821b5e0c557bcfb4f34b6cde3dfefd7ad9d04c2c8ecda3e6d91db626b30e5b3"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -96,7 +96,7 @@
                 "sha256:27f503220e6845d9db954fb212b95b0362d8b7e6c1b2326a87061c3de93594b1",
                 "sha256:d7bc01b1c2a43b259570bb307f057abc578786ea734ba2b87b836c5efc5bd443"
             ],
-            "markers": "python_version < '4' and python_full_version >= '3.6.2'",
+            "markers": "python_version < '4.0' and python_full_version >= '3.6.2'",
             "version": "==1.0.2"
         },
         "kiwisolver": {
@@ -410,7 +410,7 @@
                 "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983",
                 "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"
             ],
-            "markers": "python_version >= '3.7' and python_version < '4'",
+            "markers": "python_version >= '3.7' and python_version < '4.0'",
             "version": "==2.28.1"
         },
         "rich": {
@@ -534,18 +534,11 @@
                 "sha256:3fa96cf423e6987997fc326ae8df396db2a8b7c667747d47ddd8ecba91f4a74e",
                 "sha256:b930dd878d5a8afb066a637fbb35144fe7901e3b209d1cd4f524bd0e9deee997"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4.0'",
             "version": "==1.26.12"
         }
     },
     "develop": {
-        "atomicwrites": {
-            "hashes": [
-                "sha256:81b2c9071a49367a7f770170e5eec8cb66567cfbbc8c73d20ce5ca4a8d71cf11"
-            ],
-            "markers": "sys_platform == 'win32'",
-            "version": "==1.4.1"
-        },
         "attrs": {
             "hashes": [
                 "sha256:29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6",
@@ -553,14 +546,6 @@
             ],
             "markers": "python_version >= '3.5'",
             "version": "==22.1.0"
-        },
-        "colorama": {
-            "hashes": [
-                "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da",
-                "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"
-            ],
-            "markers": "sys_platform == 'win32'",
-            "version": "==0.4.5"
         },
         "coverage": {
             "extras": [
