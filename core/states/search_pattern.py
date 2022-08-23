@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# search_pattern.py
+#
+# Created on Dec 02, 2020
+# Updated on Aug 21, 2022
+#
+
 import core
 import algorithms
 import interfaces
@@ -12,16 +20,27 @@ class SearchPattern(RoverState):
     """
 
     def start(self):
+        """
+        Schedule Search Pattern
+        """
+
         pass
 
     def exit(self):
-        # Cancel all state specific tasks
+        """
+        Cancel all state specific tasks
+        """
+
         pass
 
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
+
+        :param event:
+        :return: RoverState
         """
+
         state: RoverState = None
 
         if event == core.AutonomyEvents.MARKER_SEEN:
@@ -53,7 +72,10 @@ class SearchPattern(RoverState):
     async def run(self) -> RoverState:
         """
         Defines regular rover operation when under this state
+
+        :return: RoverState
         """
+
         gps_data = core.waypoint_handler.get_waypoint()
 
         goal, start, leg_type = gps_data.data()

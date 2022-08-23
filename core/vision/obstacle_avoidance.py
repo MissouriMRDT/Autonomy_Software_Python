@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# obstacle_avoidance.py
+#
+# Created on Feb 15, 2021
+# Updated on Aug 21, 2022
+#
+
 import logging
 import core
 import algorithms
@@ -54,16 +62,27 @@ def is_obstacle():
     """
     Returns whether there is an obstacle
 
-    Returns:
-    -------------
-        detect (bool) - whether or not something was detected
+    :return: detect (bool) - whether something was detected
     """
+
     return obstacle_dict["detected"]
 
 
 def get_angle():
+    """
+    Returns angle
+
+    :return: angle of obstacle
+    """
+
     return obstacle_dict["angle"]
 
 
 def get_distance():
+    """
+    Returns distance
+
+    :return: distance of obstacle
+    """
+
     return obstacle_dict["distance"]

@@ -1,28 +1,31 @@
-import algorithms
+#
+# Mars Rover Design Team
+# obstacle_detector.py
+#
+# Created on Jan 18, 2021
+# Updated on Aug 21, 2022
+#
+
 import numpy as np
 import cv2
-import core
-import math
 import heapq
+
+import core
 
 
 def get_floor_mask(reg_img, dimX, dimY):
     """
-    Returns a cv2 mask that indentifies the floor in the provided reg_img of dimensions dimX, dimY.
-    This currently works through determing the color of the lower 15th of the image and generating
+    Returns a cv2 mask that identifies the floor in the provided reg_img of dimensions dimX, dimY.
+    This currently works through determine the color of the lower 15th of the image and generating
     a color mask that removes those colors from the image.
     This can then be used to remove the floor from a corresponding depth map/color image.
 
-    Parameters:
-    -----------
-        reg_img - the color image where we will perform floor detection
-        dimX - width in pixels of desire mask (size of image to be applied to)
-        dimY - height in pixels of desire mask (size of image to be applied to)
-
-    Returns:
-    --------
-        mask - the mask of the floor
+    :param reg_img: the color image where we will perform floor detection
+    :param dimX: width in pixels of desire mask (size of image to be applied to)
+    :param dimY: height in pixels of desire mask (size of image to be applied to)
+    :return: mask - the mask of the floor
     """
+
     # Perform various blur operations on the image to enhance accuracy of color segmentation
     test_img = cv2.resize(reg_img.copy(), (dimX, dimY))
     test_img = cv2.blur(test_img, (5, 5))
@@ -51,18 +54,13 @@ def detect_obstacle(depth_matrix, min_depth, max_depth):
     into distinct segments of depth and then finding contours in that data. The contour with
     the biggest area is then used as the obstacle if it meets a certain size requirement.
 
-    Currently we look at the NUM_DEPTH_SEGMENTS busiest segments (most points) and check in order
-    of closeness whether or not they have
+    Currently, we look at the NUM_DEPTH_SEGMENTS the busiest segments (most points) and check in order
+    of closeness whether they have
 
-    Parameters:
-    -----------
-        depth_data - zed depth map
-        min_depth - the minimum depth to look at (in meters)
-        max_depth - the maximum depth to look at (in meters)
-
-    Returns:
-    --------
-        blob - the contour with greatest area, or [] if there were none of sufficent size
+    :param depth_matrix: zed depth map
+    :param min_depth: the minimum depth to look at (in meters)
+    :param max_depth: the maximum depth to look at (in meters)
+    :return: blob - the contour with the greatest area, or [] if there were none of sufficient size
     """
     width, height = core.vision.camera_handler.get_depth_res()
 
@@ -112,23 +110,16 @@ def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=Fals
     Tracks the provided contour, returning angle, distance and center and also optionally
     annotates the provided image with the info and outlined obstacle
 
-    Parameters:
-    -----------
-        depth_data - zed depth map
-        obstacle - the contour detected as an obstacle
-        annotate (bool) - whether or not to also annotate the provided image with the
-        contour/centroid/etc
-        reg_img - the color image from the ZED
-        rect - whether or not we should draw a rectangle bounding box or use the exact
-        contour shape
-
-    Returns:
-    --------
-        angle - the angle of the obstacle in relation to the left ZED camera
-        distance - the distance of the center of the obstacle from the ZED
-        center (x, y) - the coordinates (pixels) of the center of the obstacle
-
+    :param depth_data - zed depth map
+    :param obstacle - the contour detected as an obstacle
+    :param annotate (bool) - whether to also annotate the provided image with the contour/centroid/etc.
+    :param reg_img - the color image from the ZED
+    :param rect - whether we should draw a rectangle bounding box or use the exact contour shape
+    :return: angle - the angle of the obstacle in relation to the left ZED camera,
+            distance - the distance of the center of the obstacle from the ZED,
+            center (x, y) - the coordinates (pixels) of the center of the obstacle
     """
+
     # Find center of contour and mark it on image
     M = cv2.moments(obstacle)
     cX = int(M["m10"] / M["m00"])

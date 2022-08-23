@@ -1,9 +1,13 @@
+#
+# Mars Rover Design Team
+# avoidance.py
+#
+# Created on Feb 24, 2020
+# Updated on Aug 21, 2022
+#
+
 import time
-import cv2
-from algorithms import obstacle_avoider, obstacle_detector
-import asyncio
-from core.vision import obstacle_avoidance
-from core.waypoints import WaypointHandler
+from algorithms import obstacle_avoider
 import core
 import interfaces
 import algorithms
@@ -16,16 +20,27 @@ class Avoidance(RoverState):
     """
 
     def start(self):
+        """
+        Schedule avoidance
+        """
+
         pass
 
     def exit(self):
-        # Cancel all state specific coroutines
+        """
+        Cancel all state specific coroutines
+        """
+
         pass
 
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
+
+        :param event:
+        :return: RoverState
         """
+
         state: RoverState = None
 
         if event == core.AutonomyEvents.START:
@@ -51,6 +66,8 @@ class Avoidance(RoverState):
     async def run(self) -> RoverState:
         """
         Defines regular rover operation when under this state
+
+        :return: RoverState
         """
 
         # Finding the obstacle
