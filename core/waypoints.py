@@ -1,14 +1,32 @@
+#
+# Mars Rover Design Team
+# waypoints.py
+#
+# Created on Oct 23, 2020
+# Updated on Aug 21, 2022
+#
+
 import logging
 import core
 from collections import deque
 import interfaces
 
 
+class GPSData:
+    def __int__(self, goal, start, leg="POSITION"):
+        self.goal = goal
+        self.start = start
+        self.leg_type = leg
+
+    def data(self):
+        return self.goal, self.start, self.leg_type
+
+
 class WaypointHandler:
     def __init__(self):
         # Class variables
         self.waypoints: deque = deque()
-        self.gps_data: core.GPSData = None
+        self.gps_data: GPSData = None
 
         core.rovecomm_node.set_callback(
             core.manifest["Autonomy"]["Commands"]["AddPositionLeg"]["dataId"], self.add_position_waypoint
@@ -29,7 +47,11 @@ class WaypointHandler:
         """
         Adds the data from the packet (expects lat, lon) to the waypoints deque
         as a marker
+
+        :param packet:
+        :return: None
         """
+
         latitude, longitude = packet.data
         waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(("MARKER", waypoint))
@@ -39,7 +61,11 @@ class WaypointHandler:
         """
         Adds the data from the packet (expects lat, lon) to the waypoints deque
         as a gate
+
+        :param packet:
+        :return: None
         """
+
         latitude, longitude = packet.data
         waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(("GATE", waypoint))
@@ -49,7 +75,11 @@ class WaypointHandler:
         """
         Adds the data from the packet (expects lat, lon) to the waypoints deque
         as a gate
+
+        :param packet:
+        :return: None
         """
+
         latitude, longitude = packet.data
         waypoint = core.Coordinate(latitude, longitude)
         self.waypoints.append(("POSITION", waypoint))
@@ -58,15 +88,22 @@ class WaypointHandler:
     def clear_waypoints(self, packet) -> None:
         """
         Clears the deque of waypoints
+
+        :param packet:
+        :return: None
         """
+
         self.waypoints.clear()
         self.logger.info("Cleared all waypoints")
 
-    def get_waypoint(self) -> core.GPSData:
+    def get_waypoint(self) -> GPSData:
         """
         Gets the current waypoint, pops a new from the deque if we haven't grabbed a
         waypoint from the deque yet
+
+        :return: GPSData
         """
+
         # Pop off a waypoint from the queue if there is currently none
         if self.gps_data is None:
             return self.get_new_waypoint()
@@ -76,31 +113,45 @@ class WaypointHandler:
     def set_goal(self, goal):
         """
         Sets the goal of the current waypoint
+
+        :param goal:
+        :return: None
         """
+
         # Set the goal to the passed in goal
         self.gps_data.goal = goal
 
     def set_start(self, start):
         """
         Sets the starting location of the current waypoint
+
+        :param start:
+        :return: None
         """
+
         self.gps_data.start = start
 
     def is_empty(self) -> bool:
         """
         Returns true if there are more waypoints in the deque
+
+        :return: If waypoints is empty
         """
+
         if self.waypoints:
             return False
         else:
             return True
 
-    def get_new_waypoint(self) -> core.GPSData:
+    def get_new_waypoint(self) -> GPSData:
         """
         Grabs a new waypoint from the queue, goal being the data in the deque and start
         being the current perceived location of the rover
+
+        :return: GPSData
         """
-        self.gps_data = core.GPSData()
+
+        self.gps_data = GPSData()
         self.gps_data.start = interfaces.nav_board.location()
 
         try:

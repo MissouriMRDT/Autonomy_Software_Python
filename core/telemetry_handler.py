@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# telemetry_handler.py
+#
+# Created on Oct 27, 2020
+# Updated on Aug 21, 2022
+#
+
 import core
 from core.rovecomm_module.rovecomm import RoveCommPacket
 import logging
@@ -7,10 +15,13 @@ def telemetry_handler(event, value, log_msg):
     """
     Sends some numerical data over the socket
 
-    Returns:
-        success (int): An integer, either 0 or 1 depending on whether or not
-            an exception occured during writing
+    :param event:
+    :param value:
+    :param log_msg:
+    :return: success (int): An integer, either 0 or 1 depending on whether
+            an exception occurred during writing
     """
+
     logger = logging.getLogger(__name__)
 
     # Matches log 'event' to event from predefined dict

@@ -1,11 +1,16 @@
+#
+# Mars Rover Design Team
+# floor_pathfinder.py
+#
+# Created on Feb 25, 2021
+# Updated on Aug 21, 2022
+#
+
 import time
 import core.vision
 import logging
 import cv2
-import algorithms
 import numpy as np
-import pyzed.sl as sl
-import math
 
 DISPLAY = True
 

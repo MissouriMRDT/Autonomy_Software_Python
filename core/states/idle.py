@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# idle.py
+#
+# Created on Nov 20, 2020
+# Updated on Aug 21, 2022
+#
+
 import core
 from core.states import RoverState
 
@@ -12,6 +20,9 @@ class Idle(RoverState):
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
+
+        :param event:
+        :return: RoverState
         """
         state: RoverState = None
         if event == core.AutonomyEvents.START:
