@@ -1,3 +1,0 @@
-[submodule "core/rovecomm_python"]
-	path = core/rovecomm_python
-	url = https://github.com/MissouriMRDT/RoveComm_Python.git
