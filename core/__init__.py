@@ -1,12 +1,20 @@
+#
+# Mars Rover Design Team
+# __init__.py
+#
+# Created on Jul 08, 2020
+# Updated on Aug 21, 2022
+#
+
+import sys
+
+from core import states
+from core import vision
 from core.constants import *
 from core.states.state_machine import StateMachine
 from core.rovecomm_module.rovecomm import RoveComm, RoveCommPacket, get_manifest
 from core.waypoints import WaypointHandler
-import core.states as states
 from core.states import AutonomyEvents
-import core.vision as vision
-import json
-import sys
 
 # reference to self
 this = sys.modules[__name__]
@@ -21,6 +29,8 @@ waypoint_handler: WaypointHandler
 def setup(type="REGULAR"):
     """
     Sets up any core handlers
+
+    :param type: REGULAR or SIM mode being run
     """
     # load the manifest
     this.manifest = get_manifest()
