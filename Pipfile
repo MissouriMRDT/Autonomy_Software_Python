@@ -1,3 +1,6 @@
+[requires]
+python_version = "3.8"
+
 [[source]]
 name = "pypi"
 url = "https://pypi.org/simple"
@@ -15,9 +18,10 @@ snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
+opencv-python = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
-opencv-contrib-python = "*"
 pytest = "*"
 flake8 = "*"
 pytest-cov = "*"
