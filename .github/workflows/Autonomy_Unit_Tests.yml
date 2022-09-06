@@ -2,7 +2,7 @@ name: Autonomy Unit Tests
 
 on:
   push:
-    branches:
+    branches-ignore:
       - dev
       - release/testing
       - release/competition
