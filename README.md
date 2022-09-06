@@ -85,7 +85,7 @@ greatly!)
 
 ### Version Control:
 
-Just like development environments there are lots of options for version control, it is recommended that you use on
+Just like development environments there are lots of options for version control, it is recommended that you use one
 listed below.
 
 1. [Github Desktop](https://desktop.github.com/)
