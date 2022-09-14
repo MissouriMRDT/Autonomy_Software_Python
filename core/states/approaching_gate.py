@@ -65,17 +65,9 @@ class ApproachingGate(RoverState):
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
-                # depending where the rover is facing, this is computed differently
-                if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
-                    larger = min(tags[0].angle, tags[1].angle)
-                    smaller = max(tags[0].angle, tags[1].angle)
-                    combinedAngle = abs(larger) - abs(smaller)
-                elif tags[0].angle >= 0 and tags[1].angle >= 0:  # both tags on the left
-                    larger = max(tags[0].angle, tags[1].angle)
-                    smaller = min(tags[0].angle, tags[1].angle)
-                    combinedAngle = larger - smaller
-                else:  # one tag on left, one on right
-                    combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
+                higher = max(tags[0].angle, tags[1].angle)
+                lower = min(tags[0].angle, tags[1].angle)
+                combinedAngle = higher - lower
                 # Calculate bearing and distance for the midpoint between the two tags
                 # use law of cosines to get the distance between the tags, midpoint will be halfway between them
                 gateWidth = math.sqrt(
@@ -110,13 +102,8 @@ class ApproachingGate(RoverState):
                 )
                 self.logger.info(f"Calculated Distance to gate: {distToMidpoint}")
 
-                # Last step to get angle to the midpoint, depending on where tags are relative to rover
-                if tags[0].angle < 0 and tags[1].angle < 0:
-                    angleToMidpoint = (interfaces.nav_board.heading() - (abs(larger) - (combinedAngle / 2))) % 360
-                elif tags[0].angle >= 0 and tags[1].angle >= 0:
-                    angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
-                else:
-                    angleToMidpoint = (interfaces.nav_board.heading() + ((tags[0].angle + tags[1].angle) / 2)) % 360
+                # Last step to get angle to the midpoint
+                angleToMidpoint = (interfaces.nav_board.heading() + ((tags[0].angle + tags[1].angle) / 2)) % 360
 
                 self.logger.info(f"Calculated Angle to gate: {angleToMidpoint}")
 
