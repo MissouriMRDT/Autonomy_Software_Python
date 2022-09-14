@@ -1,11 +1,20 @@
-from collections import namedtuple
-from math import dist
+#
+# Mars Rover Design Team
+# ar_tag.py
+#
+# Created on Oct 22, 2020
+# Updated on Aug 21, 2022
+#
+
 import cv2
 import logging
-from numpy.core.numeric import NaN
 import itertools
-import core
 import numpy as np
+
+import core
+
+from numpy.core.numeric import NaN
+from collections import namedtuple
 
 tag_cascade = cv2.CascadeClassifier("resources/tag_detection/cascade30.xml")
 
@@ -14,16 +23,10 @@ Tag = namedtuple("Tag", ["cX", "cY", "distance", "angle"])
 
 def detect_ar_tag(reg_img):
     """
-    Detects an AR Tag in the provided color image.
+    Detects an AR Tag in the provided color image
 
-    Parameters:
-    -----------
-        reg_img - the provided image we are looking at to find an ar tag
-
-    Returns:
-    --------
-        tags - a list of Tags (named tuple) that contain the (cX, cY, distance, angle) of the detected AR tags
-        reg_img - the image with detected AR Tags drawn on top of it
+    :param reg_img: color image to locate ar tags in
+    :return: tags, reg_img
     """
 
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
@@ -47,15 +50,8 @@ def track_ar_tag(center):
     """
     Track the distance and angle of the AR Tag from the perspective of the Rover.
 
-    Parameters:
-    -----------
-        center - the X, Y of the center pixels of the AR Tag
-
-    Returns:
-    --------
-        distance - the distance in meters to the AR Tag
-        angle - the angle in degrees from the rover to the AR Tag. Left is negative,
-        right is positive
+    :param center: the X, Y of the center pixels of the AR Tag
+    :return: distance (meters), angle (left is negative, right is positive)
     """
 
     logger = logging.getLogger(__name__)

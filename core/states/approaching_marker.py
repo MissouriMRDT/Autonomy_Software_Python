@@ -1,12 +1,16 @@
-import asyncio
-from core.vision.ar_tag_detector import is_marker
+#
+# Mars Rover Design Team
+# approaching_marker.py
+#
+# Created on Dec 30, 2020
+# Updated on Aug 21, 2022
+#
+
 import core
 import core.constants
 import interfaces
 import algorithms
 from core.states import RoverState
-import time
-import math
 
 
 class ApproachingMarker(RoverState):
@@ -15,18 +19,28 @@ class ApproachingMarker(RoverState):
     """
 
     def start(self):
-        # Schedule AR Tag detection
+        """
+        Schedule AR Tag detection
+        """
+
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
 
     def exit(self):
-        # Cancel all state specific coroutines
+        """
+        Cancel all state specific coroutines
+        """
+
         pass
 
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
+
+        :param event:
+        :return: RoverState
         """
+
         state: RoverState = None
 
         if event == core.AutonomyEvents.REACHED_MARKER:
@@ -53,6 +67,11 @@ class ApproachingMarker(RoverState):
         return state
 
     async def run(self) -> RoverState:
+        """
+        Asynchronous state machine loop
+
+        :return: RoverState
+        """
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_marker():

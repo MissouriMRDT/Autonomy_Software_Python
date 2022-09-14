@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# logging_test.py
+#
+# Created on Oct 16, 2020
+# Updated on Aug 21, 2022
+#
+
 import logging
 import core
 from core.telemetry_handler import telemetry_handler

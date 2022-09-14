@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# constants.py
+#
+# Created on Jul 08, 2020
+# Updated on Aug 21, 2022
+#
+
 from enum import IntEnum, Enum
 import collections
 import math
@@ -15,10 +23,10 @@ SCALING_FACTOR = 10.0  # pixel-meters
 WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 MAX_DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
-MIN_DRIVE_POWER = 50
+MIN_DRIVE_POWER = 50  # -1000 to 1000, normally 50
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 0.008
+SEARCH_DISTANCE = 20  # meters
 DELTA_THETA = math.pi / 4
 
 # Vision Parameters
@@ -28,7 +36,7 @@ MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
 
 # Range at which we switch from GPS to optical tracking
-VISION_RANGE = 0.007  # kilometers
+VISION_RANGE = 0.007  # meters
 MIN_OBSTACLE_PIXEL_AREA = 400  # minimum contour area in pixels of detected obstacle
 DEPTH_STEP_SIZE = 0.5  # Depth in meters that each segment of obstacle detection will run on
 NUM_DEPTH_SEGMENTS = 3  # Number of segments of depth map to actually run contour detection on
@@ -58,13 +66,3 @@ class OperationState(IntEnum):
     TELEOP = 0
     AUTONOMY = 1
     REACHED_MARKER = 2
-
-
-class GPSData:
-    def __int__(self, goal, start, leg="POSITION"):
-        self.goal = goal
-        self.start = start
-        self.leg_type = leg
-
-    def data(self):
-        return self.goal, self.start, self.leg_type

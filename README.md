@@ -9,15 +9,6 @@
 This repo contains the Autonomy software stack for the current iteration of the Mars Rover Design Team's Rover designed
 to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
 
-## Getting Set Up
-
-There are a couple of simple steps in order to get started writing software for the Autonomy system.
-
-1. Clone the repo in an appropriate place. Standard practice is to clone it inside a directory such as RoverSoftware.
-
-```
-git clone --recurse-submodules https://github.com/MissouriMRDT/Autonomy_Software.git
-```
 
 2. Install Python 3.8, and then install pipenv using pip
 
@@ -114,6 +105,7 @@ The architecture is broken up into four categories:
 ![State Machine Diagram](docs/state_machine.png)
 
 ## Contributing
+To learn more about contributing to Autonomy view [contributing.md](./docs/readme_resources/contributing.md).
 
 Dev serves as the development branch throughout the school year. So if you want to start developing a feature or
 improvement create a branch based off of dev:
@@ -149,7 +141,6 @@ sudo apt-get install python3.8-dev  # for python3.8 installs
 ```
 
 To properly install python-pcl:
-1. sudo apt install python3-pcl
 
 2. copy over pcl/and egg files from usr/lib/python3/dist-packages to .local/share/virtualenvs/Autonomy_Software/lib/python3.8/site-packages/
 

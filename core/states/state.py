@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# state.py
+#
+# Created on Dec 16, 2020
+# Updated on Aug 21, 2022
+#
+
 import logging
 
 
@@ -13,15 +21,36 @@ class RoverState:
         self.start()
 
     async def run(self):
+        """
+        Defines regular rover operation when under this state
+
+        :return: RoverState
+        """
+
         pass
 
     def on_event(self, event):
+        """
+        Defines all transitions between states based on events
+
+        :param event:
+        :return: RoverState
+        """
+
         pass
 
     def start(self):
+        """
+        Schedule State
+        """
+
         pass
 
     def exit(self):
+        """
+        Cancel all state specific tasks
+        """
+
         pass
 
     def __str__(self):

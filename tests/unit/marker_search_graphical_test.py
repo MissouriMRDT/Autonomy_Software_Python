@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# marker_search_graphical_test.py
+#
+# Created on Sep 02, 2020
+# Updated on Aug 21, 2022
+#
+
 import matplotlib.testing.compare as plt_tst
 import matplotlib.pyplot as plt
 import algorithms.marker_search as marker_search
