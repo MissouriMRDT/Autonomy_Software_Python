@@ -37,7 +37,7 @@ def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_
     return core.ApproachState.APPROACHING
 
 
-def calculate_move(goal, location, start, speed=150):
+def calculate_move(goal, location, start, speed=0.6*core.MAX_DRIVE_POWER):
     """
     Calculates the necessary left and right speeds to keep the rover on course for goal location
 
@@ -55,7 +55,7 @@ def calculate_move(goal, location, start, speed=150):
     logger.debug(f"Target distance: {target_distance}")
 
     if target_distance < 0.01:
-        speed = 100
+        speed = 0.4*core.MAX_DRIVE_POWER
 
     goal_heading = target_heading
     logger.debug(f"Current heading: {interfaces.nav_board.heading()}, Goal: {goal_heading}")

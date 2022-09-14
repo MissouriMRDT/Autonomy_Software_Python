@@ -90,7 +90,7 @@ class Avoidance(RoverState):
                         core.Coordinate(new_lat, new_lon),
                         interfaces.nav_board.location(),
                         previous_loc,
-                        250,
+                        core.MAX_DRIVE_POWER,
                     )
 
                     self.logger.debug(f"Navigating: Driving at ({left}, {right})")
