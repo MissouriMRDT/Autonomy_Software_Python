@@ -12,11 +12,12 @@ import interfaces
 import algorithms.geomath as geomath
 import algorithms.heading_hold as hh
 import core
-import core.constants
-#from core.constants import WAYPOINT_DISTANCE_THRESHOLD
+#import core.constants
+from core.constants import MAX_DRIVE_POWER
+from core.constants import WAYPOINT_DISTANCE_THRESHOLD
 
 
-def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_THRESHOLD):
+def get_approach_status(goal, location, start, tolerance=WAYPOINT_DISTANCE_THRESHOLD):
     """
     Calculates the current approach status of the rover in reference to goal and starting location
 
@@ -49,7 +50,7 @@ def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_
     return core.ApproachState.APPROACHING
 
 
-def calculate_move(goal, location, start, speed=0.6*core.MAX_DRIVE_POWER):
+def calculate_move(goal, location, start, speed=0.6*MAX_DRIVE_POWER):
     """
     Calculates the necessary left and right speeds to keep the rover on course for goal location
 
@@ -67,7 +68,7 @@ def calculate_move(goal, location, start, speed=0.6*core.MAX_DRIVE_POWER):
     logger.debug(f"Target distance: {target_distance}")
 
     if target_distance < 0.01:
-        speed = 0.4*core.MAX_DRIVE_POWER
+        speed = 0.4*MAX_DRIVE_POWER
 
     goal_heading = target_heading
     logger.debug(f"Current heading: {interfaces.nav_board.heading()}, Goal: {goal_heading}")
