@@ -5,6 +5,7 @@ import asyncio
 from core.vision import obstacle_avoidance
 from core.waypoints import WaypointHandler
 import core
+import core.constants
 import interfaces
 import algorithms
 from core.states import RoverState
