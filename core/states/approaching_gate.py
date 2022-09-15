@@ -7,6 +7,7 @@
 #
 
 import core
+import core.constants
 import interfaces
 import algorithms
 from core.states import RoverState
@@ -173,7 +174,7 @@ class ApproachingGate(RoverState):
                             core.Coordinate(point[0], point[1]),
                             interfaces.nav_board.location(),
                             start,
-                            250,
+                            core.MAX_DRIVE_POWER,
                         )
 
                         self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")

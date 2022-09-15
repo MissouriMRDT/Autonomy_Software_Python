@@ -9,6 +9,7 @@
 import time
 from algorithms import obstacle_avoider
 import core
+import core.constants
 import interfaces
 import algorithms
 from core.states import RoverState
@@ -107,7 +108,7 @@ class Avoidance(RoverState):
                         core.Coordinate(new_lat, new_lon),
                         interfaces.nav_board.location(),
                         previous_loc,
-                        250,
+                        core.MAX_DRIVE_POWER,
                     )
 
                     self.logger.debug(f"Navigating: Driving at ({left}, {right})")
