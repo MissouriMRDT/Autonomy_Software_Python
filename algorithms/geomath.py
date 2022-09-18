@@ -45,3 +45,49 @@ def haversine(lat1, lon1, lat2, lon2):
     bearing = (bearing + 360) % 360
 
     return bearing, distance
+
+# Source by David M:
+# https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing
+def reverse_haversine(heading, distance, lat1, lon1):
+    """
+    Calculate the latitude and longitude of the location a specified
+    distance in front of the rover. Assumes a perfectly spherical earth,
+    so take the results with a grain of salt.
+
+    Parameters:
+    -----------
+        bearing : float
+            bearing to target as degrees clockwise from due north
+        distance : float (meters)
+            distance to target in meters
+
+    Returns
+    -------
+        lat1 : float
+            latitude of destmation that meets the parameters
+        lon1 : float
+            longitude of destmation that meets the parameters
+    """
+
+    R = 6378.1 # Radius of the Earth; DIFFERNT FROM HAVERSINE CONST; matches with google search
+    bearing = (360 - heading + 90) % 360 # Convert heading (relative to north moving clockwise) to bearing (relative to east moving counter-clockwise)
+    bearing = math.radians(bearing) # degrees to radians 
+    distance = distance / 1000 # Distance in km
+
+    # test for heading = 0, distance = 15000, lat1 = 52,20472, lon1 = 0.14056
+    # lat2  52.20444 - the lat result I'm hoping for
+    # lon2  0.36056 - the long result I'm hoping for.
+
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+
+    lat2 = math.asin( math.sin(lat1)*math.cos(distance/R) +
+           math.cos(lat1)*math.sin(distance/R)*math.cos(bearing))
+
+    lon2 = lon1 + math.atan2(math.sin(bearing)*math.sin(distance/R)*math.cos(lat1),
+           math.cos(distance/R)-math.sin(lat1)*math.sin(lat2))
+
+    lat2 = math.degrees(lat2)
+    lon2 = math.degrees(lon2)
+
+    return lat2, lon2

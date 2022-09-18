@@ -26,6 +26,8 @@ def get_approach_status(goal, location, start, tolerance=core.WAYPOINT_DISTANCE_
     bearing_diff = (s_bearing - c_bearing) % 360.0
     past_goal = 180 - core.BEARING_FLIP_THRESHOLD <= bearing_diff <= 180 + core.BEARING_FLIP_THRESHOLD
 
+    print(distanceMeters)
+
     if past_goal:
         logger.info("PAST GOAL")
         return core.ApproachState.PAST_GOAL

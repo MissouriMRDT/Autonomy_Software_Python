@@ -21,6 +21,10 @@ MIN_DRIVE_POWER = 50
 SEARCH_DISTANCE = 0.008
 DELTA_THETA = math.pi / 4
 
+# AR Tag Clearance Parameters
+BACKUP_DISTANCE = 2 # meters
+FORWARD_DISTANCE = 2 # meters
+
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
 
