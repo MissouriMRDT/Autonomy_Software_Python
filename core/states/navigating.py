@@ -73,12 +73,16 @@ class Navigating(RoverState):
         bearing, distance = geomath.haversine(current[0],current[1],goal[0],goal[1])
         
         # move to approaching marker if 1 ar tag is spotted during marker leg type
-        if core.waypoint_handler.gps_data.leg_type == "MARKER" and core.vision.ar_tag_detector.is_marker() and distance < 10:
-             return core.states.GateSearch()
+        is_marker_leg: bool = core.waypoint_handler.gps_data.leg_type == "MARKER"
+        is_marker_tag: bool = core.vision.ar_tag_detector.is_marker()
+        is_nearby: bool = distance < 10
+        if is_marker_leg and is_marker_tag and is_nearby:
+            return core.states.GateSearch()
 
-        
-        if core.waypoint_handler.gps_data.leg_type == ("MARKER" or "GATE") and core.vision.ar_tag_detector.is_gate() and distance < 10:
-             return core.states.ApproachingGate()
+        is_gate_leg: bool = is_marker_leg or core.waypoint_handler.gps_data.leg_type == "GATE"
+        is_gate_tag: bool = core.vision.ar_tag_detector.is_gate()
+        if is_gate_leg and is_gate_tag and is_nearby:
+            return core.states.ApproachingGate()
 
         last_leg_type = core.waypoint_handler.last_leg_type
 
