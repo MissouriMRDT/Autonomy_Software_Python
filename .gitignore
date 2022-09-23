@@ -1,12 +1,16 @@
+#
+# Mars Rover Design Team
+# .gitignore
+#
+# Created on Feb 06, 2017
+# Updated on Aug 21, 2022
+#
+
 # PyCharm files
 .idea/
 
-#Pytest files
+# Pytest files
 .pytest_cache/
-
-#pipenv lock file
-.lock
-Pipfile.lock
 
 # Mac Temp Files
 .DS_Store
@@ -14,15 +18,18 @@ Pipfile.lock
 # Python temp files
 *.pyc
 
-#Our Log Files
+# Autonomy Log Files
 */logs/
 logs/
 *.log
 *.avi
 
-#Output files from unit tests
+# Output files from unit tests
 resources/tests/output/* 
 !resources/tests/output/.keep 
 
-#Coverage files
+# Coverage Files
 *.coverage
+
+# Web Output Files
+*.html

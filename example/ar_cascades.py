@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# ar_cascades.py
+#
+# Created on Jan 16, 2021
+# Updated on Aug 21, 2022
+#
+
 import algorithms
 import core.vision
 import logging
@@ -16,7 +24,7 @@ def main() -> None:
         reg_img = core.vision.camera_handler.grab_regular()
 
         # Detect some AR Tags
-        tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        tags, reg_img = algorithms.ar_tag.detect_ar_tag(reg_img)
 
         core.vision.feed_handler.handle_frame("artag", reg_img)
 

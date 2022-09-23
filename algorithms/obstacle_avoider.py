@@ -1,6 +1,15 @@
-import interfaces
+#
+# Mars Rover Design Team
+# obstacle_avoider.py
+#
+# Created on Feb 04, 2021
+# Updated on Aug 21, 2022
+#
+
 from geopy import Point
 from geopy.distance import VincentyDistance
+
+import interfaces
 from algorithms import geomath
 
 
@@ -9,17 +18,12 @@ def plan_avoidance_route(angle, distance, obstacle_lat, obstacle_lon, type="Rect
     Plans a series of GPS coordinates around an obstacle, that can be used to navigate
     around it and avoid hazardous conditions for the rover
 
-    Parameters:
-    -----------
-        angle - the angle of the obstacle
-        distance - the distance from the rover to the obstacle
-        obstalce_lat - The latitude of the given obstacle to avoid
-        obstacle_lon - The longitude of the given obstacle to avoid
-        type - the type of avoidance route, can be "Circle" or "Rectangle" (default)
-
-    Returns:
-    --------
-        A list of points around the obstacle that provide a safe path of traversal
+    :param angle: the angle of the obstacle
+    :param distance: the distance from the rover to the obstacle
+    :param obstacle_lat: The latitude of the given obstacle to avoid
+    :param obstacle_lon: The longitude of the given obstacle to avoid
+    :param type: the type of avoidance route, can be "Circle" or "Rectangle" (default)
+    :return: A list of points around the obstacle that provide a safe path of traversal
 
     """
     if type == "Rectangle":
@@ -70,16 +74,11 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
     """
     Calculates the lat and lon coords of the obstacle given the current position
 
-    Parameters:
-    -----------
-        distMeters - the distance from the current position to the obstacle
-        lat1 - the latitude of the current position
-        lon1 - the longitude of the current position
-        bearing - the angle from the current position to the obstacle
-
-    Returns:
-    --------
-        The coords of the obstacle
+    :param distMeters: the distance from the current position to the obstacle
+    :param lat1: the latitude of the current position
+    :param lon1: the longitude of the current position
+    :param bearing: the angle from the current position to the obstacle
+    :return: The coords of the obstacle
     """
     destination = VincentyDistance(meters=distMeters).destination(Point(lat1, lon1), bearing)
     lat2, lon2 = destination.latitude, destination.longitude

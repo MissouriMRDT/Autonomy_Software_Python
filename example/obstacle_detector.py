@@ -1,19 +1,24 @@
+#
+# Mars Rover Design Team
+# obstacle_detector.py
+#
+# Created on Jan 16, 2021
+# Updated on Aug 21, 2022
+#
+
 import cv2
 import core
 import algorithms
 import time
 
-# Define depth img/data so we can use them for OpenCV window callbacks
-depth_img = None
+# Define depth img/data, so we can use them for OpenCV window callbacks
 depth_matrix = None
 
 DISPLAY = True
 
 
 def click_print_depth(event, x, y, flags, param):
-    global depth_img, depth_data
     if event == cv2.EVENT_LBUTTONDOWN:
-        print(depth_img[y][x])
         print(depth_matrix[y][x])
 
 
@@ -22,15 +27,14 @@ def main():
 
     # Enable callbacks on depth window, can be used to display the depth at pixel clicked on
     if DISPLAY:
-        cv2.namedWindow("depth")
-        cv2.setMouseCallback("depth", click_print_depth)
+        cv2.namedWindow("reg")
+        cv2.setMouseCallback("reg", click_print_depth)
     else:
         core.vision.feed_handler.add_feed(2, "regular", stream_video=core.vision.STREAM_FLAG)
 
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
         depth_matrix = core.vision.camera_handler.grab_depth_data()
-        depth_img = core.vision.camera_handler.grab_depth()
         mask, lower = algorithms.obstacle_detector.get_floor_mask(
             reg_img, int(reg_img.shape[1] / 2), int(reg_img.shape[0] / 2)
         )
@@ -43,16 +47,16 @@ def main():
         reg_img = cv2.resize(reg_img, (depth_img_x, depth_img_y))
 
         if obstacle != []:
-            print("Obstacle")
             # Track the obstacle in the depth matrix
             angle, distance, _ = algorithms.obstacle_detector.track_obstacle(
-                depth_matrix, obstacle, True, reg_img, True
+                depth_matrix, obstacle, True, reg_img, False
             )
 
         # Display the camera frames we just grabbed (should show us if potential issues occur)
         if DISPLAY:
-            cv2.imshow("depth", depth_img)
             cv2.imshow("reg", reg_img)
+            cv2.imshow("mask", mask)
+            cv2.imshow("lower", lower)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break

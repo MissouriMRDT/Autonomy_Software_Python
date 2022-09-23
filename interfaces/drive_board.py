@@ -1,27 +1,36 @@
+#
+# Mars Rover Design Team
+# drive_board.py
+#
+# Created on Jul 19, 2020
+# Updated on Aug 21, 2022
+#
+
 from typing import Tuple
 import core
+from algorithms.helper_funcs import clamp
 import logging
 
 
-def clamp(n, min_n, max_n):
-    return max(min(max_n, n), min_n)
-
-MIN_SPEED = 60
-
 class DriveBoard:
     """
-    The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the drive board on the rover,
-    as well as calculate motor speeds for a desired vector.
+    The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the
+    drive board on the rover, as well as calculate motor speeds for a desired vector.
     """
 
     def __init__(self):
-        self._targetSpdLeft = 0
-        self._targetSpdRight = 0
-        self.logger = logging.getLogger(__name__)
+        self._targetSpdLeft: int = 0
+        self._targetSpdRight: int = 0
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
-    def calculate_move(self, speed, angle) -> Tuple[int, int]:
-        """Speed: -1000 to 1000
-        Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right"""
+    def calculate_move(self, speed: float, angle: float) -> Tuple[int, int]:
+        """
+        Calculates the drives speeds given the vector (speed, angle)
+
+        :param speed: -1000 to 1000
+        :param angle: -360 = turn in place left, 0 = straight, 360 = turn in place right
+        :return: Tuple[int, int]
+        """
 
         speed_left = speed_right = speed
 
@@ -30,31 +39,21 @@ class DriveBoard:
         elif angle < 0:
             speed_left = speed_left * (1 + (angle / 180.0))
 
-        self._targetSpdLeft = int(clamp(speed_left, -core.DRIVE_POWER, core.DRIVE_POWER))
-        self._targetSpdRight = int(clamp(speed_right, -core.DRIVE_POWER, core.DRIVE_POWER))
-
-        if self._targetSpdLeft < MIN_SPEED and self._targetSpdLeft > 0:
-            self._targetSpdLeft = MIN_SPEED
-        elif self._targetSpdLeft > -MIN_SPEED and self._targetSpdLeft < 0:
-            self._targetSpdLeft = -MIN_SPEED
-        elif self._targetSpdRight < MIN_SPEED and self._targetSpdRight > 0:
-            self._targetSpdRight = MIN_SPEED
-        elif self._targetSpdRight > -MIN_SPEED and self._targetSpdRight < 0:
-            self._targetSpdRight = -MIN_SPEED
-
+        self._targetSpdLeft: int = int(clamp(speed_left, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
+        self._targetSpdRight: int = int(clamp(speed_right, core.MIN_DRIVE_POWER, core.MAX_DRIVE_POWER))
 
         self.logger.debug(f"Driving at ({self._targetSpdLeft}, {self._targetSpdRight})")
 
         return self._targetSpdLeft, self._targetSpdRight
 
-    def send_drive(self, target_left, target_right):
+    def send_drive(self, target_left: int, target_right: int) -> None:
         """
         Sends a rovecomm packet with the specified drive speed
 
-        Parameters:
-            target_left (int16) - the speed to drive left motors
-            target_right (int16) - the speed to drive right motors
+        :param target_left: (int16) - the speed to drive left motors
+        :param target_right: (int16) - the speed to drive right motors
         """
+
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
@@ -67,10 +66,11 @@ class DriveBoard:
             False,
         )
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Sends a rovecomm packet with a 0, 0 to indicate full stop
         """
+
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
             core.RoveCommPacket(

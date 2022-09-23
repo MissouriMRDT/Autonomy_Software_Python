@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# webcam_runner.py
+#
+# Created on Nov 30, 2020
+# Updated on Aug 21, 2022
+#
+
 import time
 import core.vision
 import logging

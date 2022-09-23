@@ -1,5 +1,11 @@
-import time
-from typing import Tuple
+#
+# Mars Rover Design Team
+# zed_handler.py
+#
+# Created on Jan 17, 2021
+# Updated on Aug 21, 2022
+#
+
 import pyzed.sl as sl
 import logging
 from core.vision import feed_handler
@@ -33,7 +39,7 @@ class ZedCam(Camera):
         self.input_type = sl.InputType()
         self.init = sl.InitParameters(input_t=self.input_type)
         self.init.camera_resolution = sl.RESOLUTION.HD720
-        self.init.depth_mode = sl.DEPTH_MODE.QUALITY
+        self.init.depth_mode = sl.DEPTH_MODE.ULTRA
         self.init.coordinate_units = sl.UNIT.MILLIMETER
         self.init.camera_fps = self.fps
         self.init.depth_minimum_distance = 1

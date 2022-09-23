@@ -1,3 +1,6 @@
+[requires]
+python_version = "3.8"
+
 [[source]]
 name = "pypi"
 url = "https://pypi.org/simple"
@@ -10,16 +13,17 @@ serial = "*"
 matplotlib = "*"
 pyfakewebcam = "*"
 pyyaml = ">=5.4"
-numpy = "==1.19.3"
+numpy = "==1.22.0"
 snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
+gmplot = "*"
+opencv-python = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
-opencv-contrib-python = "*"
 pytest = "*"
 flake8 = "*"
 pytest-cov = "*"
 mypy = "*"
 pandas = "*"
-
