@@ -128,53 +128,53 @@ class Navigating(RoverState):
             algorithms.gps_navigate.get_approach_status(
                 goal, current, start, 0.75 if (leg_type == "POSITION") else core.WAYPOINT_DISTANCE_THRESHOLD
             )
-            != core.ApproachState.APPROACHING
+            == core.ApproachState.APPROACHING
         ):
-            self.logger.info(
-                f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
+            left, right = algorithms.gps_navigate.calculate_move(
+                goal, interfaces.nav_board.location(), start, core.MAX_DRIVE_POWER
             )
 
-            # If there are more points, set the new one and start from top
-            if not core.waypoint_handler.is_empty():
-                gps_data = core.waypoint_handler.get_new_waypoint()
-                self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
-                return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
+            self.logger.debug(f"Navigating: Driving at ({left}, {right})")
+            interfaces.drive_board.send_drive(left, right)
+            return self
 
-            # Otherwise Trigger Next State
-            else:
-                # Stop all movement
-                interfaces.drive_board.stop()
-
-                # Set goal and start to current location
-                core.waypoint_handler.set_goal(interfaces.nav_board.location())
-                core.waypoint_handler.set_start(interfaces.nav_board.location())
-
-                if leg_type == "POST":
-                    self.logger.info("Reached Marker")
-
-                    # Transmit that we have reached the marker
-                    core.rovecomm_node.write(
-                        core.RoveCommPacket(
-                            core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                            "B",
-                            (1,),
-                        ),
-                        False,
-                    )
-
-                    # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                    interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-                elif leg_type == "POSITION":
-                    self.logger.info("Reached position waypoint")
-                    return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-                else:
-                    return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
-
-        left, right = algorithms.gps_navigate.calculate_move(
-            goal, interfaces.nav_board.location(), start, core.MAX_DRIVE_POWER
+        self.logger.info(
+            f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
         )
 
-        self.logger.debug(f"Navigating: Driving at ({left}, {right})")
-        interfaces.drive_board.send_drive(left, right)
-        return self
+        # If there are more points, set the new one and start from top
+        if not core.waypoint_handler.is_empty():
+            gps_data = core.waypoint_handler.get_new_waypoint()
+            self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
+            return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
+
+        # Otherwise Trigger Next State
+
+        # Stop all movement
+        interfaces.drive_board.stop()
+
+        # Set goal and start to current location
+        core.waypoint_handler.set_goal(interfaces.nav_board.location())
+        core.waypoint_handler.set_start(interfaces.nav_board.location())
+
+        if leg_type == "POST":
+            self.logger.info("Reached Marker")
+
+            # Transmit that we have reached the marker
+            core.rovecomm_node.write(
+                core.RoveCommPacket(
+                    core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                    "B",
+                    (1,),
+                ),
+                False,
+            )
+
+            # Tell multimedia board to flash our LED matrix green to indicate reached marker
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+            return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+        elif leg_type == "POSITION":
+            self.logger.info("Reached position waypoint")
+            return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+        else:
+            return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
