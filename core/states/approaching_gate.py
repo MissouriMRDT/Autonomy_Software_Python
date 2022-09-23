@@ -56,72 +56,7 @@ class ApproachingGate(RoverState):
     async def run(self) -> RoverState:
 
         # Call AR Tag tracking code to find position and size of AR Tag
-        if core.vision.ar_tag_detector.is_gate():
-            # Use get_tags to create an array of the 2 gate posts
-            # (named tuples containing the distance and relative angle from the camera)
-            tags = core.vision.ar_tag_detector.get_tags()
-            gps_data = core.waypoint_handler.get_waypoint()
-            orig_goal, orig_start, leg_type = gps_data.data()
-
-            # If we've seen at least 5 frames of 2 tags, assume it's a gate
-            if len(tags) == 2 and self.gate_detection_attempts >= 5:
-                self.logger.info("Gate detected, beginning navigation")
-
-                # Get
-                post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
-                post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
-
-                targetBeforeGate, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
-
-                start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
-
-                points = [targetBeforeGate, midpoint, targetPastGate]
-
-                # Approach the gate using GPS drive
-                for point in points:
-                    while (
-                        algorithms.gps_navigate.get_approach_status(
-                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
-                        )
-                        == core.ApproachState.APPROACHING
-                    ):
-                        self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
-                        left, right = algorithms.gps_navigate.calculate_move(
-                            core.Coordinate(point[0], point[1]),
-                            interfaces.nav_board.location(),
-                            start,
-                            250,
-                        )
-
-                        self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
-
-                        interfaces.drive_board.send_drive(left, right)
-                        time.sleep(0.01)
-                    interfaces.drive_board.stop()
-
-                self.logger.info("Reached Gate")
-
-                # Transmit that we have reached the gate
-                core.rovecomm_node.write(
-                    core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                        "B",
-                        (1,),
-                    ),
-                    False,
-                )
-
-                # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-
-                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-
-            # If we grabbed more than one, see if it's a gate
-            elif len(tags) > 1:
-                self.gate_detection_attempts += 1
-                self.logger.info(f"2 Markers in frame, count:{self.gate_detection_attempts}")
-
-        else:
+        if not core.vision.ar_tag_detector.is_gate():
             self.num_detection_attempts += 1
             self.gate_detection_attempts = 0
 
@@ -131,7 +66,75 @@ class ApproachingGate(RoverState):
                 self.logger.info("Lost sign of gate, returning to Search Pattern")
                 return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 
-        return self
+            return self
+
+        # Use get_tags to create an array of the 2 gate posts
+        # (named tuples containing the distance and relative angle from the camera)
+        tags = core.vision.ar_tag_detector.get_tags()
+        gps_data = core.waypoint_handler.get_waypoint()
+        orig_goal, orig_start, leg_type = gps_data.data()
+
+        # If we've seen at least 5 frames of 2 tags, assume it's a gate
+        found_gate: bool = len(tags) == 2 and self.gate_detection_attempts >= 5
+
+        if not found_gate:
+            # If we grabbed more than one, see if it's a gate
+            if len(tags) > 1:
+                self.gate_detection_attempts += 1
+                self.logger.info(f"2 Markers in frame, count:{self.gate_detection_attempts}")
+
+            return self
+
+        self.logger.info("Gate detected, beginning navigation")
+
+        # Get
+        post_1_coord = (tags[0].distance, math.radians(tags[0].angle))
+        post_2_coord = (tags[1].distance, math.radians(tags[1].angle))
+
+        targetBeforeGate, midpoint, targetPastGate = find_gate_path(post_1_coord, post_2_coord)
+
+        start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+
+        points = [targetBeforeGate, midpoint, targetPastGate]
+
+        # Approach the gate using GPS drive
+        for point in points:
+            while (
+                algorithms.gps_navigate.get_approach_status(
+                    core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                )
+                == core.ApproachState.APPROACHING
+            ):
+                self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
+                left, right = algorithms.gps_navigate.calculate_move(
+                    core.Coordinate(point[0], point[1]),
+                    interfaces.nav_board.location(),
+                    start,
+                    250,
+                )
+
+                self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
+
+                interfaces.drive_board.send_drive(left, right)
+                time.sleep(0.01)
+            interfaces.drive_board.stop()
+
+        self.logger.info("Reached Gate")
+
+        # Transmit that we have reached the gate
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                "B",
+                (1,),
+            ),
+            False,
+        )
+
+        # Tell multimedia board to flash our LED matrix green to indicate reached marker
+        interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+
+        return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
 
 def find_gate_path(polar_p1, polar_p2):
