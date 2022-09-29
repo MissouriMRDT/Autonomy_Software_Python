@@ -54,43 +54,7 @@ class ApproachingMarker(RoverState):
     async def run(self) -> RoverState:
 
         # Call AR Tag tracking code to find position and size of AR Tag
-        if core.vision.ar_tag_detector.is_marker():
-            # Grab the AR tags
-            tags = core.vision.ar_tag_detector.get_tags()
-            gps_data = core.waypoint_handler.get_waypoint()
-            orig_goal, orig_start, leg_type = gps_data.data()
-
-            # Currently only orienting based on one AR Tag
-            distance = tags[0].distance
-            angle = tags[0].angle
-
-            left, right = algorithms.follow_marker.drive_to_marker(100, angle)
-
-            self.logger.info("Marker in frame")
-            self.num_detection_attempts = 0
-
-            if distance < 1.25:
-                interfaces.drive_board.stop()
-
-                self.logger.info("Reached Marker")
-
-                # Transmit that we have reached the marker
-                core.rovecomm_node.write(
-                    core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                        "B",
-                        (1,),
-                    ),
-                    False,
-                )
-
-                # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-            else:
-                self.logger.info(f"Driving to target with speeds: ({left}, {right})")
-                interfaces.drive_board.send_drive(left, right)
-        else:
+        if not core.vision.ar_tag_detector.is_marker():
             self.num_detection_attempts += 1
             self.gate_detection_attempts = 0
 
@@ -100,4 +64,41 @@ class ApproachingMarker(RoverState):
                 self.logger.info("Lost sign of marker, returning to Search Pattern")
                 return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 
-        return self
+            return self
+
+        # Grab the AR tags
+        tags = core.vision.ar_tag_detector.get_tags()
+        gps_data = core.waypoint_handler.get_waypoint()
+        orig_goal, orig_start, leg_type = gps_data.data()
+
+        # Currently only orienting based on one AR Tag
+        distance = tags[0].distance
+        angle = tags[0].angle
+
+        left, right = algorithms.follow_marker.drive_to_marker(100, angle)
+
+        self.logger.info("Marker in frame")
+        self.num_detection_attempts = 0
+
+        if distance >= 1.25:
+            self.logger.info(f"Driving to target with speeds: ({left}, {right})")
+            interfaces.drive_board.send_drive(left, right)
+            return self
+
+        interfaces.drive_board.stop()
+
+        self.logger.info("Reached Marker")
+
+        # Transmit that we have reached the marker
+        core.rovecomm_node.write(
+            core.RoveCommPacket(
+                core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                "B",
+                (1,),
+            ),
+            False,
+        )
+
+        # Tell multimedia board to flash our LED matrix green to indicate reached marker
+        interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+        return self.on_event(core.AutonomyEvents.REACHED_MARKER)
