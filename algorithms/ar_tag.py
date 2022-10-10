@@ -3,7 +3,7 @@
 # ar_tag.py
 #
 # Created on Oct 22, 2020
-# Updated on Aug 21, 2022
+# Updated on Sep 19, 2022
 #
 
 import cv2
@@ -33,26 +33,11 @@ class Tag:
         self.cX, self.cY = center
         self.detected = 1
         self.empty = 0
-        self.distance, self.angle = NaN
-
-    def check_tag(self, tag, gps):
-        """
-        Checks to see if the tag that was spotted has already been added to the array.
-
-        :param tag: the id that is being checked
-        :param gps: the coordinates of the tag (lat, long)
-        :return: bool - True if detected, False if not detected
-        """
-
-        if self.id == tag:
-            self.tag_spotted(gps)
-            return True
-        else:
-            return False
+        self.distance, self.angle = (NaN, NaN)
 
     def tag_spotted(self, gps):
         """
-        Increments the detected variable and updates GPS
+        Increments the detected variable and updates the GPS
 
         :param gps: the coordinates of the tag (lat, long)
         :return: None
@@ -64,12 +49,19 @@ class Tag:
         if self.detected >= FRAMES_DETECTED:
             self.distance, self.angle = track_ar_tag((self.cX, self.cY))
 
-    def reset_spotted(self):
+    def tag_not_spotted(self):
         """
-        Resets the tags detected counter
+        Increments empty and checks if the frame is a blank frame
+
+        :params: None
+        :return: None
         """
 
-        self.detected = 0
+        self.empty += 1
+        # if the frame is blank clear it's empty count and detected count
+        if self.empty >= FRAMES_DETECTED:
+            self.empty = 0
+            self.detected = 0
 
     def print(self):
         """
@@ -77,6 +69,15 @@ class Tag:
         """
 
         print(output.format(id=self.id, detected=self.detected))
+
+    def is_same_tag(self, tag) -> bool:
+        """
+           Returns if the given tag and this tag are the same
+        """
+        if self.id == tag:
+            return True
+        else:
+            return False
 
 
 detected_tags = []
@@ -109,10 +110,10 @@ def add_tag(tag, corner):
 
     latitude, longitude = get_gps()
 
-    x1 = corner[0][0][0][0]  # top left x coord
-    y1 = corner[0][0][0][1]  # top left y coord
-    x2 = corner[0][0][1][0]  # top right x coord
-    y2 = corner[0][0][3][1]  # bottom left y coord
+    x1 = corner[3][0]  # top left x coord
+    y1 = corner[3][1]  # top left y coord
+    x2 = corner[2][0]  # top right x coord
+    y2 = corner[0][1]  # bottom left y coord
 
     # Calculate the center points of the AR Tag
     cX = (x1 + x2) / 2
@@ -129,52 +130,45 @@ def detect_ar_tag(reg_img):
     :return: tags - a list of Tags (class) that contain the (id, gps, cX and cY) of the detected AR tags
              reg_img - the image with detected AR Tags drawn on top of it
     """
-
     # Frame Adjustments
-    gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
+    grayscale_img = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
-    parameters.markerBoarderBits = 1
+    parameters.markerBorderBits = 1
     parameters.errorCorrectionRate = 1
 
     # Capture Tags
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    (corners, ids, rejectedImgPoints) = aruco.detectMarkers(grayscale_img, aruco_dict, parameters=parameters)
 
-    # Add Tags to Tag Class Object
     if ids is not None:
+        # Image with borders drawn around ArucoTags
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
+        corners_stripped = corners[0][0].tolist()
 
-        # Create a list of all ids seen in frame
-        frameTags = []
+        # Changes the list of ids from 2-dim to 1-dim
+        tagIdsInFrame = []
         for i in ids:
-            for j in i:
-                frameTags.append(j)
+            tagIdsInFrame.append(i[0])
 
-        # Loops through ids found and checks adds them to the list accordingly.
-        for i in ids:
-            for j in i:
-                if len(detected_tags) == 0:
-                    add_tag(j, corners)
-                else:
-                    found = False
-                    for t in detected_tags:
-                        if t.checkTag(j, get_gps()):
-                            found = True
-                    if not found:
-                        add_tag(j, corners)
+        # Goes through each previously detected tag
+        # and checks if it was spotted in the most recent frame
+        for detected_tag in detected_tags:
+            if detected_tag.id in tagIdsInFrame:
+                i = tagIdsInFrame.index(detected_tag.id)
+                tagIdsInFrame.pop(i)
+                corners_stripped.pop(i)
+                detected_tag.tag_spotted(get_gps())
+            else:
+                detected_tag.tag_not_spotted()
 
-        # Loops through ids found on current leg and checks if they were in current frame.
-        for t in detected_tags:
-            if t.id not in frameTags:
-                t.empty += 1
+        # Add all tags to the detected_tags list that haven't been detected
+        for i, tagIdInFrame in enumerate(tagIdsInFrame):
+            add_tag(tagIdInFrame, corners_stripped)
 
-    # Checks for Blank Frames and resets counter if >= FRAMES_DETECTED
     else:
-        for t in detected_tags:
-            t.empty += 1
-            # if t.empty >= FRAMES_DETECTED:
-            #     t.resetSpotted()
-
+        # No tags were identified in the frame
+        for detected_tag in detected_tags:
+            detected_tag.tag_not_spotted()
     return detected_tags, reg_img
 
 
@@ -206,9 +200,8 @@ def track_ar_tag(center):
     index = 0
 
     while not np.isfinite(distance) and index < len(perm):
-        if index < len(perm):
-            distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
-            index += 1
+        distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
+        index += 1
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000

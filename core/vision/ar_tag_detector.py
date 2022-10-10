@@ -1,5 +1,4 @@
 import asyncio
-from collections import namedtuple
 from typing import List
 from algorithms.ar_tag import Tag
 import core
@@ -29,7 +28,7 @@ async def async_ar_tag_detector():
             ar_tags.clear()
 
             for t in tags:
-                if t.dectected >= FRAMES_DETECTED:
+                if t.detected >= FRAMES_DETECTED:
                     ids.append(t.id)
                     ar_tags.append(t)
         else:
