@@ -8,7 +8,9 @@ import algorithms
 from core.states import RoverState
 import time
 import math
-
+from typing import Tuple
+from typing import NamedTuple
+from typing import Union
 
 class ApproachingGate(RoverState):
     """
@@ -100,10 +102,10 @@ class ApproachingGate(RoverState):
         # Approach the gate using GPS drive
         for point in points:
             while (
-                algorithms.gps_navigate.get_approach_status(
-                    core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
-                )
-                == core.ApproachState.APPROACHING
+                    algorithms.gps_navigate.get_approach_status(
+                        core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                    )
+                    == core.ApproachState.APPROACHING
             ):
                 self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                 left, right = algorithms.gps_navigate.calculate_move(
@@ -137,10 +139,10 @@ class ApproachingGate(RoverState):
         return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
 
-def find_gate_path(polar_p1, polar_p2):
-
+def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float]) \
+        -> Tuple[core.Coordinate, core.Coordinate, core.Coordinate]:
     # This function finds two points that the rover can use to pass through a gate.
-    # It does this by finding a line perpinduclar to the gate that passes through the midpoint.
+    # It does this by finding a line perpendicular to the gate that passes through the midpoint.
     # It then finds the points on that line that are exactly "distance" away from the midpoint.
     #
     # Parameters:
@@ -149,67 +151,68 @@ def find_gate_path(polar_p1, polar_p2):
     #               (distance, angle_from_heading) -- (meters) -- angle must be passed as RADIANS.
     #
     # Returns:
-    #   two core.Coordinate objects with the GPS coordinates of each point that the rover needs to
+    #   Three core.Coordinate objects with the GPS coordinates of each point that the rover needs to
     #   drive through the gate.
     #
     #   The first object is the point closest to the rover.
 
     # Distance each point will be from the gate (meters)
-    distance = 10
+    distance: float = 2.0
+
+    class Vector2(NamedTuple):
+        x: float
+        y: float
+
+        def angle(self) -> float:
+            return math.atan2(self.y, self.x)
+
+    def polar_to_rect(length: float, angle: float) -> Vector2:
+        x: float = length * math.cos(angle)
+        y: float = length * math.sin(angle)
+        return Vector2(x, y)
 
     # Convert Polar coordinate input to rectangular coordinates
-    p1 = (polar_p1[0] * math.cos(polar_p1[1]), polar_p1[0] * math.sin(polar_p1[1]))
-    p2 = (polar_p2[0] * math.cos(polar_p2[1]), polar_p2[0] * math.sin(polar_p2[1]))
+    p1: Vector2 = polar_to_rect(*polar_p1)
+    p2: Vector2 = polar_to_rect(*polar_p2)
 
-    # Compute the midpoint of point_1 and point_2
-    midpoint = ((p2[0] + p1[0]) / 2, (p2[1] + p1[1]) / 2)
+    # Compute the midpoint of p1 and p2
+    midpoint: Vector2 = Vector2((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
 
-    # Compute the slope and the y_intercept of the line that passes through the gate
-    slope = -(p2[0] - p1[0]) / (p2[1] - p1[1])
-    y_intercept = midpoint[1] + ((p2[0] - p1[0]) * (p2[0] + p1[0])) / (2 * (p2[1] - p1[1]))
+    # Compute the difference between p1 and p2
+    diff: Vector2 = Vector2(p1.x - p2.x, p1.y - p2.y)
 
-    # x points for where exactly distance from the midpoint -- NEED TO EXPLAIN THIS A LITTLE BETTER
-    pos_c = distance / (math.sqrt(1 + ((p2[0] - p1[0]) ** 2 / (p2[1] - p1[1]) ** 2))) + midpoint[0]
-    neg_c = -distance / (math.sqrt(1 + ((p2[0] - p1[0]) ** 2 / (p2[1] - p1[1]) ** 2))) + midpoint[0]
+    # Get the vector perpendicular to diff
+    perp_diff: Vector2 = Vector2(-diff.y, diff.x)
+    # Adjust the length to be equal to distance
+    distance_mult: float = distance / math.hypot(*perp_diff)
+    perp_diff.x *= distance_mult
+    perp_diff.y *= distance_mult
 
-    # xy points that the rover will use to drive through the gate
-    ret_point_1 = (pos_c, pos_c * slope + y_intercept)
-    ret_point_2 = (neg_c, neg_c * slope + y_intercept)
+    # Get new points on the line between p1 and p2 distance from midpoint
+    result_p1: Vector2 = Vector2(midpoint.x + perp_diff.x, midpoint.y + perp_diff.y)
+    result_p2: Vector2 = Vector2(midpoint.x - perp_diff.x, midpoint.y - perp_diff.y)
 
-    # Distance to those points
-    p1_distance = math.sqrt(ret_point_1[0] ** 2 + ret_point_1[1] ** 2)
-    p2_distance = math.sqrt(ret_point_2[0] ** 2 + ret_point_2[1] ** 2)
-    midpoint_distance = math.sqrt(midpoint[0] ** 2 + midpoint[1] ** 2)
+    # Get distances from rover
+    result_distance1: float = math.hypot(*result_p1)
+    result_distance2: float = math.hypot(*result_p2)
 
-    # Compute angle to those points
-    if ret_point_1[0] < 0:
-        p1_angle = math.pi / 2 - math.asin(ret_point_1[1] / p1_distance)
-    else:
-        p1_angle = math.asin(ret_point_1[1] / p1_distance)
+    coord1 = camera_point_to_gps_coord(
+        result_distance1, math.degrees(result_p1.angle()), interfaces.nav_board.heading()
+    )
+    coord2 = camera_point_to_gps_coord(
+        result_distance2, math.degrees(result_p2.angle()), interfaces.nav_board.heading()
+    )
+    mid_coord = camera_point_to_gps_coord(
+        math.hypot(*midpoint), math.degrees(midpoint.angle()), interfaces.nav_board.heading()
+    )
 
-    if ret_point_2[0] < 0:
-        p2_angle = math.pi / 2 - math.asin(ret_point_2[1] / p2_distance)
-    else:
-        p2_angle = math.asin(ret_point_2[1] / p2_distance)
+    if result_distance2 < result_distance2:
+        coord1, coord2 = coord2, coord1
 
-    # Compute angle of midpoint
-    if midpoint[0] < 0:
-        mid_angle = math.pi / 2 - math.asin(midpoint[1] / midpoint_distance)
-    else:
-        mid_angle = math.asin(midpoint[1] / midpoint_distance)
-
-    coord_1 = camera_point_to_gps_coord(p1_distance, math.degrees(p1_angle), interfaces.nav_board.heading())
-    coord_2 = camera_point_to_gps_coord(p2_distance, math.degrees(p2_angle), interfaces.nav_board.heading())
-    mid_coord = camera_point_to_gps_coord(midpoint_distance, math.degrees(mid_angle), interfaces.nav_board.heading())
-
-    if p2_distance < p1_distance:
-        return coord_2, mid_coord, coord_1
-    else:
-        return coord_1, mid_coord, coord_2
+    return coord1, mid_coord, coord2
 
 
 def camera_point_to_gps_coord(distance, angle, heading):
-
     bearing = heading + angle
     lat, long = obstacle_avoider.coords_obstacle(
         distance, interfaces.nav_board.location()[0], interfaces.nav_board.location()[1], bearing
