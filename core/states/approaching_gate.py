@@ -205,7 +205,7 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
         math.hypot(*midpoint), math.degrees(midpoint.angle()), interfaces.nav_board.heading()
     )
 
-    if result_distance2 < result_distance2:
+    if result_distance2 < result_distance1:
         coord1, coord2 = coord2, coord1
 
     return coord1, mid_coord, coord2
