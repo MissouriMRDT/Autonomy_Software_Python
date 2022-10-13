@@ -9,7 +9,7 @@ from core.states import RoverState
 import time
 import math
 from typing import Tuple
-from typing import NamedTuple
+from dataclasses import dataclass
 
 class ApproachingGate(RoverState):
     """
@@ -158,21 +158,28 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
     # Distance each point will be from the gate (meters)
     distance: float = 2.0
 
-    class Vector2(NamedTuple):
+    @dataclass
+    class Vector2:
         x: float
         y: float
 
+        @classmethod
+        def from_polar(cls, length: float, angle: float) -> 'Vector2':
+            x: float = length * math.cos(angle)
+            y: float = length * math.sin(angle)
+            return cls(x, y)
+
+        @property
+        def length(self) -> float:
+            return math.hypot(self.x, self.y)
+
+        @property
         def angle(self) -> float:
             return math.atan2(self.y, self.x)
 
-    def polar_to_rect(length: float, angle: float) -> Vector2:
-        x: float = length * math.cos(angle)
-        y: float = length * math.sin(angle)
-        return Vector2(x, y)
-
     # Convert Polar coordinate input to rectangular coordinates
-    p1: Vector2 = polar_to_rect(*polar_p1)
-    p2: Vector2 = polar_to_rect(*polar_p2)
+    p1: Vector2 = Vector2.from_polar(*polar_p1)
+    p2: Vector2 = Vector2.from_polar(*polar_p2)
 
     # Compute the midpoint of p1 and p2
     midpoint: Vector2 = Vector2((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
@@ -183,7 +190,7 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
     # Get the vector perpendicular to diff
     perp_diff: Vector2 = Vector2(-diff.y, diff.x)
     # Adjust the length to be equal to distance
-    distance_mult: float = distance / math.hypot(*perp_diff)
+    distance_mult: float = distance / perp_diff.length
     perp_diff.x *= distance_mult
     perp_diff.y *= distance_mult
 
@@ -191,21 +198,19 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
     result_p1: Vector2 = Vector2(midpoint.x + perp_diff.x, midpoint.y + perp_diff.y)
     result_p2: Vector2 = Vector2(midpoint.x - perp_diff.x, midpoint.y - perp_diff.y)
 
-    # Get distances from rover
-    result_distance1: float = math.hypot(*result_p1)
-    result_distance2: float = math.hypot(*result_p2)
 
     coord1 = camera_point_to_gps_coord(
-        result_distance1, math.degrees(result_p1.angle()), interfaces.nav_board.heading()
+        result_p1.length, math.degrees(result_p1.angle), interfaces.nav_board.heading()
     )
     coord2 = camera_point_to_gps_coord(
-        result_distance2, math.degrees(result_p2.angle()), interfaces.nav_board.heading()
+        result_p2.length, math.degrees(result_p2.angle), interfaces.nav_board.heading()
     )
     mid_coord = camera_point_to_gps_coord(
-        math.hypot(*midpoint), math.degrees(midpoint.angle()), interfaces.nav_board.heading()
+        midpoint.length, math.degrees(midpoint.angle), interfaces.nav_board.heading()
     )
 
-    if result_distance2 < result_distance1:
+    # Ensure that coord1 is closer to the rover
+    if result_p2.length < result_p1.length:
         coord1, coord2 = coord2, coord1
 
     return coord1, mid_coord, coord2
