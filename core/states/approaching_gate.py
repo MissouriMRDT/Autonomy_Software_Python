@@ -10,7 +10,6 @@ import time
 import math
 from typing import Tuple
 from typing import NamedTuple
-from typing import Union
 
 class ApproachingGate(RoverState):
     """
