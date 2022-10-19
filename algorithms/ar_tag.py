@@ -85,6 +85,37 @@ blank_frames = 0
 output = "Ids: {id:02d}   |   Detected: {detected:02d}"
 
 
+class TagCorners:
+    def __init__(self, corners):
+        self.corners = corners
+
+    def bottom_left(self):
+        return tuple(self.corners[0])
+
+    def bottom_right(self):
+        return tuple(self.corners[1])
+
+    def top_right(self):
+        return tuple(self.corners[2])
+
+    def top_left(self):
+        return tuple(self.corners[3])
+
+    def __str__(self):
+        return f"BL: {self.bottom_left()}\nBR: {self.bottom_right()}\n" \
+               f"TR: {self.top_right()}\nTL: {self.top_left()}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+def parse_corners(group_of_tag_corners):
+    tag_corners_list = []
+    for tag_corners in group_of_tag_corners:
+        tag_corners_list.append(TagCorners(tag_corners[0]))
+    return tag_corners_list
+
+
 def get_gps():
     """
     Finds the GPS Coordinates for the Aruco Tag
@@ -99,7 +130,7 @@ def get_gps():
     return latitude, longitude
 
 
-def add_tag(tag, corner):
+def add_tag(tag, tag_corners):
     """
     Creates a new Object of Tag in the detected_tags list
 
@@ -107,13 +138,11 @@ def add_tag(tag, corner):
     :param corner: the four corner points of the aruco tag for distance calculations
     :return: None
     """
-
     latitude, longitude = get_gps()
-
-    x1 = corner[3][0]  # top left x coord
-    y1 = corner[3][1]  # top left y coord
-    x2 = corner[2][0]  # top right x coord
-    y2 = corner[0][1]  # bottom left y coord
+    x1 = tag_corners.top_left()[0]  # top left x coord
+    y1 = tag_corners.top_left()[1]  # top left y coord
+    x2 = tag_corners.top_right()[0]  # top right x coord
+    y2 = tag_corners.bottom_left()[1]  # bottom left y coord
 
     # Calculate the center points of the AR Tag
     cX = (x1 + x2) / 2
@@ -131,39 +160,37 @@ def detect_ar_tag(reg_img):
              reg_img - the image with detected AR Tags drawn on top of it
     """
     # Frame Adjustments
+
+    logger = logging.getLogger(__name__)
     grayscale_img = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
     parameters.markerBorderBits = 1
     parameters.errorCorrectionRate = 1
-
     # Capture Tags
     (corners, ids, rejectedImgPoints) = aruco.detectMarkers(grayscale_img, aruco_dict, parameters=parameters)
-
+    tag_corners_list = parse_corners(corners)
     if ids is not None:
         # Image with borders drawn around ArucoTags
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
-        corners_stripped = corners[0][0].tolist()
-
         # Changes the list of ids from 2-dim to 1-dim
         tagIdsInFrame = []
         for i in ids:
             tagIdsInFrame.append(i[0])
-
         # Goes through each previously detected tag
         # and checks if it was spotted in the most recent frame
         for detected_tag in detected_tags:
             if detected_tag.id in tagIdsInFrame:
                 i = tagIdsInFrame.index(detected_tag.id)
                 tagIdsInFrame.pop(i)
-                corners_stripped.pop(i)
+                tag_corners_list.pop(i)
                 detected_tag.tag_spotted(get_gps())
             else:
                 detected_tag.tag_not_spotted()
 
         # Add all tags to the detected_tags list that haven't been detected
         for i, tagIdInFrame in enumerate(tagIdsInFrame):
-            add_tag(tagIdInFrame, corners_stripped)
+            add_tag(tagIdInFrame, tag_corners_list[i])
 
     else:
         # No tags were identified in the frame
