@@ -86,9 +86,16 @@ output = "Ids: {id:02d}   |   Detected: {detected:02d}"
 
 
 class TagCorners:
+    """
+    This class stores the four corners for each detected
+    aruco tag
+    """
     def __init__(self, corners):
         self.corners = corners
 
+    # The Aruco Tag Corners are sent in a counter-clockwise
+    # fashion such that it starts in the bottom-left and
+    # works its way to the top left
     def bottom_left(self):
         return tuple(self.corners[0])
 
@@ -160,13 +167,13 @@ def detect_ar_tag(reg_img):
              reg_img - the image with detected AR Tags drawn on top of it
     """
     # Frame Adjustments
-
     logger = logging.getLogger(__name__)
     grayscale_img = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters_create()
     parameters.markerBorderBits = 1
     parameters.errorCorrectionRate = 1
+
     # Capture Tags
     (corners, ids, rejectedImgPoints) = aruco.detectMarkers(grayscale_img, aruco_dict, parameters=parameters)
     tag_corners_list = parse_corners(corners)
