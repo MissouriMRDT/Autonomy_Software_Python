@@ -138,7 +138,7 @@ class ApproachingGate(RoverState):
         return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
 
-def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float]) \
+def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float], debug_math: bool = False) \
         -> Tuple[core.Coordinate, core.Coordinate, core.Coordinate]:
     # This function finds two points that the rover can use to pass through a gate.
     # It does this by finding a line perpendicular to the gate that passes through the midpoint.
@@ -154,6 +154,8 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
     #   drive through the gate.
     #
     #   The first object is the point closest to the rover.
+
+    # Visualization: https://www.desmos.com/calculator/gqjnyr1lyn
 
     # Distance each point will be from the gate (meters)
     distance: float = 2.0
@@ -198,6 +200,31 @@ def find_gate_path(polar_p1: Tuple[float, float], polar_p2: Tuple[float, float])
     result_p1: Vector2 = Vector2(midpoint.x + perp_diff.x, midpoint.y + perp_diff.y)
     result_p2: Vector2 = Vector2(midpoint.x - perp_diff.x, midpoint.y - perp_diff.y)
 
+    # Code to test if the math of this function is correct
+    # Example (run in python3 command line):
+    # from math import tau
+    # from random import random
+    # from core.states.approaching_gate import find_gate_path
+    # find_gate_path((20.0 * random(), tau * random()), (20.0 * random(), tau * random()), debug_math=True)
+    if debug_math:
+        distances = [
+            math.hypot(result_p1.x - p1.x, result_p1.y - p1.y),
+            math.hypot(result_p1.x - p2.x, result_p1.y - p2.y),
+            math.hypot(result_p2.x - p1.x, result_p2.y - p1.y),
+            math.hypot(result_p2.x - p2.x, result_p2.y - p2.y),
+        ]
+
+        distance_range = max(distances) - min(distances)
+
+        print("Distances between gate posts and gate path endpoints (should all be equal):")
+        print(f"\t{' '.join(f'{distance:.8f}' for distance in distances)} Range: {distance_range}")
+
+        path_length = math.hypot(result_p1.x - result_p2.x, result_p1.y - result_p2.y)
+
+        print(f"Path length (should be {2 * distance}): {path_length}")
+        print()
+
+        return None
 
     coord1 = camera_point_to_gps_coord(
         result_p1.length, math.degrees(result_p1.angle), interfaces.nav_board.heading()
