@@ -3,7 +3,7 @@
 # ar_tag.py
 #
 # Created on Oct 22, 2020
-# Updated on Sep 19, 2022
+# Updated on Dec 1, 2022
 #
 
 import cv2
@@ -11,11 +11,14 @@ from cv2 import aruco
 import logging
 from numpy.core.numeric import NaN
 import itertools
+
+from typing import Tuple, List
+
 import core
 import numpy as np
 import interfaces
 from core.constants import FRAMES_DETECTED
-
+from matplotlib import pyplot as plt
 
 class Tag:
     def __init__(self, tag, gps, center):
@@ -35,7 +38,7 @@ class Tag:
         self.empty = 0
         self.distance, self.angle = (NaN, NaN)
 
-    def tag_spotted(self, gps):
+    def tag_spotted(self, gps, detected_center):
         """
         Increments the detected variable and updates the GPS
 
@@ -45,6 +48,7 @@ class Tag:
 
         self.detected += 1
         self.lat, self.long = gps
+        self.cX, self.cY = detected_center
 
         if self.detected >= FRAMES_DETECTED:
             self.distance, self.angle = track_ar_tag((self.cX, self.cY))
@@ -90,23 +94,31 @@ class TagCorners:
     This class stores the four corners for each detected
     aruco tag
     """
+
+    Coordinates = Tuple[float, float]
+
     def __init__(self, corners):
         self.corners = corners
 
     # The Aruco Tag Corners are sent in a counter-clockwise
     # fashion such that it starts in the bottom-left and
     # works its way to the top left
-    def bottom_left(self):
+    def bottom_left(self) -> Coordinates:
         return tuple(self.corners[0])
 
-    def bottom_right(self):
+    def bottom_right(self) -> Coordinates:
         return tuple(self.corners[1])
 
-    def top_right(self):
+    def top_right(self) -> Coordinates:
         return tuple(self.corners[2])
 
-    def top_left(self):
+    def top_left(self) -> Coordinates:
         return tuple(self.corners[3])
+
+    def location_of_center(self) -> Coordinates:
+        cX = (self.top_left()[0]+self.top_right()[0]) / 2
+        cY = (self.top_left()[1] + self.bottom_left()[1]) / 2
+        return cX, cY
 
     def __str__(self):
         return f"BL: {self.bottom_left()}\nBR: {self.bottom_right()}\n" \
@@ -116,9 +128,13 @@ class TagCorners:
         return self.__str__()
 
 
-def parse_corners(group_of_tag_corners):
+def parse_corners(detected_corners) -> List[TagCorners]:
+    """
+    Built for converting coordinates from the aruco.detectMarkers function
+    into a list of TagCorners
+    """
     tag_corners_list = []
-    for tag_corners in group_of_tag_corners:
+    for tag_corners in detected_corners:
         tag_corners_list.append(TagCorners(tag_corners[0]))
     return tag_corners_list
 
@@ -146,19 +162,13 @@ def add_tag(tag, tag_corners):
     :return: None
     """
     latitude, longitude = get_gps()
-    x1 = tag_corners.top_left()[0]  # top left x coord
-    y1 = tag_corners.top_left()[1]  # top left y coord
-    x2 = tag_corners.top_right()[0]  # top right x coord
-    y2 = tag_corners.bottom_left()[1]  # bottom left y coord
 
-    # Calculate the center points of the AR Tag
-    cX = (x1 + x2) / 2
-    cY = (y1 + y2) / 2
+    c_x, c_y = tag_corners.location_of_center()
 
-    detected_tags.append(Tag(tag, (latitude, longitude), (cX, cY)))
-
+    detected_tags.append(Tag(tag, (latitude, longitude), (c_x, c_y)))
 
 def detect_ar_tag(reg_img):
+    "Searching"
     """
     Detects an AR Tag in the provided color image.
 
@@ -181,22 +191,21 @@ def detect_ar_tag(reg_img):
         # Image with borders drawn around ArucoTags
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
         # Changes the list of ids from 2-dim to 1-dim
-        tagIdsInFrame = []
+        tag_ids_in_frame = []
         for i in ids:
-            tagIdsInFrame.append(i[0])
+            tag_ids_in_frame.append(i[0])
         # Goes through each previously detected tag
         # and checks if it was spotted in the most recent frame
         for detected_tag in detected_tags:
-            if detected_tag.id in tagIdsInFrame:
-                i = tagIdsInFrame.index(detected_tag.id)
-                tagIdsInFrame.pop(i)
-                tag_corners_list.pop(i)
-                detected_tag.tag_spotted(get_gps())
+            if detected_tag.id in tag_ids_in_frame:
+                i = tag_ids_in_frame.index(detected_tag.id)
+                tag_ids_in_frame.pop(i)
+                detected_tag.tag_spotted(get_gps(), tag_corners_list.pop(i).location_of_center())
             else:
                 detected_tag.tag_not_spotted()
 
         # Add all tags to the detected_tags list that haven't been detected
-        for i, tagIdInFrame in enumerate(tagIdsInFrame):
+        for i, tagIdInFrame in enumerate(tag_ids_in_frame):
             add_tag(tagIdInFrame, tag_corners_list[i])
 
     else:
@@ -217,11 +226,11 @@ def track_ar_tag(center):
     logger = logging.getLogger(__name__)
 
     # Center coordinates
-    cX, cY = center
+    c_x, c_y = center
 
     # Depth image is at half resolution
-    cX = int(cX / 2)
-    cY = int(cY / 2)
+    c_x = int(c_x / 2)
+    c_y = int(c_y / 2)
 
     # Grab the distance from the depth map
     distance = NaN
@@ -234,7 +243,7 @@ def track_ar_tag(center):
     index = 0
 
     while not np.isfinite(distance) and index < len(perm):
-        distance = core.vision.camera_handler.grab_depth_data()[cY + perm[index][1]][cX + perm[index][0]]
+        distance = core.vision.camera_handler.grab_depth_data()[c_y + perm[index][1]][c_x + perm[index][0]]
         index += 1
 
     # Vision system reports depth in mm, we want in meters
@@ -246,9 +255,7 @@ def track_ar_tag(center):
 
     # Calculate the angle of the object using camera params
     angle_per_pixel = hfov / img_res_x
-    pixel_offset = cX - (img_res_x / 2)
+    pixel_offset = c_x - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
 
-    logger.info(f"Distance to marker: {distance} at pixel ({cX}, {cY})")
-    logger.info(f"Angle to marker: {angle}")
     return distance, angle
