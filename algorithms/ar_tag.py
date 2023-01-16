@@ -169,59 +169,25 @@ def add_tag(tag, corner, index):
 def detect_ar_tag(reg_img):
     """
     Detects an AR Tag in the provided color image
-
     :param reg_img: color image to locate ar tags in
     :return: tags, reg_img
     """
 
-    # Frame Adjustments
     gray = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-    parameters = aruco.DetectorParameters_create()
-    parameters.markerBorderBits = 1
-    parameters.errorCorrectionRate = 1
+    tags_coords = tag_cascade.detectMultiScale(gray, 1.3, 5)
 
-    # Capture Tags
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    tags = []
+    for (x, y, w, h) in tags_coords:
+        reg_img = cv2.rectangle(reg_img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-    # Add Tags to Tag Class Object
-    if ids is not None:
-        # reg_img = aruco.drawDetectedMarkers(reg_img, corners)
-        index_counter = 0
+        # Calculate the center points of the AR Tag
+        cX = x + (w / 2)
+        cY = y + (h / 2)
+        # Find the distance/angle of said center pixels
+        distance, angle = track_ar_tag((cX, cY))
+        tags.append(Tag(cX, cY, distance, angle))
 
-        # Create a list of all ids seen in frame
-        frameTags = []
-        for i in ids:
-            for j in i:
-                frameTags.append(j)
-
-        # Loops through ids found and checks adds them to the list accordingly.
-        for i in frameTags:
-            if len(detected_tags) == 0:
-                add_tag(i, corners, index_counter)
-            else:
-                found = False
-                for t in detected_tags:
-                    if t.check_tag(i, get_gps(), corners, index_counter):
-                        found = True
-                if not found:
-                    add_tag(i, corners, index_counter)
-
-            index_counter += 1
-
-        # Loops through ids found on current leg and checks if they were in current frame.
-        for t in detected_tags:
-            if t.id not in frameTags:
-                t.empty += 1
-
-    # Checks for Blank Frames and resets counter if >= FRAMES_DETECTED
-    else:
-        for t in detected_tags:
-            t.empty += 1
-            # if t.empty >= FRAMES_DETECTED:
-            #     t.resetSpotted()
-
-    return detected_tags, reg_img
+    return tags, reg_img
 
 
 def track_ar_tag(center):

@@ -1,6 +1,6 @@
 import asyncio
 from turtle import distance
-from algorithms import AR_tag
+from algorithms import ar_tag
 import algorithms.geomath as geomath
 import algorithms.small_movements as small_movements
 import algorithms.obstacle_avoider as obs_avoid

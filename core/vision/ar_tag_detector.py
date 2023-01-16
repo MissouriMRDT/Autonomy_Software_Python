@@ -16,7 +16,7 @@ import algorithms
 import logging
 from core.constants import FRAMES_DETECTED
 from core.states import RoverState
-from algorithms.AR_tag import detected_tags
+from algorithms.ar_tag import detected_tags
 
 # Dict to hold the obstacle info
 ar_tags = []

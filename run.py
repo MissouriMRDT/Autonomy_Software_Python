@@ -14,12 +14,10 @@ import os
 import sys
 import time
 import yaml
-import rich
 import core
+import rich
 import interfaces
 from logging import config
-from rich import logging
-
 
 def setup_logger(level) -> logging.Logger:
     """
