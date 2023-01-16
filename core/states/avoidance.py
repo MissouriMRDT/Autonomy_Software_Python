@@ -1,7 +1,5 @@
 import time
-import cv2
 from algorithms import obstacle_avoider
-import asyncio
 from core.waypoints import WaypointHandler
 import matplotlib.pyplot as plt
 import core

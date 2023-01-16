@@ -1,12 +1,10 @@
+[requires]
+python_version = "3.8"
+
 [[source]]
 name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[[source]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/cu117"
-verify_ssl = false
 
 [packages]
 simplejson = "*"
@@ -15,22 +13,13 @@ serial = "*"
 matplotlib = "*"
 pyfakewebcam = "*"
 pyyaml = ">=5.4"
+numpy = "==1.22.0"
 snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
-open3d = "==0.15.1"
-scikit-learn = "*"
-cython = "*"
-pyopengl = "*"
-numpy = "*"
-seaborn = "*"
-utm = "*"
 opencv-python = "*"
 opencv-contrib-python = "*"
-tqdm = "*"
-torch = "*"
-torchvision = "*"
 
 [dev-packages]
 pytest = "*"

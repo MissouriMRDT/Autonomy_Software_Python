@@ -1,5 +1,11 @@
+#
+# Mars Rover Design Team
+# camera.py
+#
+# Created on Apr 16, 2021
+# Updated on Aug 21, 2022
+#
 from typing import Tuple
-
 
 class Camera:
     def __init__(self):
@@ -42,10 +48,8 @@ class Camera:
         """
         Returns the resolution for the regular images
 
-        Returns:
-        --------
-            reg_res_x - the resolution of the width of the image
-            reg_res_y - the resolution of the height of the image
+        :return: reg_res_x - the resolution of the width of the image
+                 reg_res_y - the resolution of the height of the image
         """
         return self.reg_res_x, self.reg_res_y
 
@@ -53,10 +57,8 @@ class Camera:
         """
         Returns the resolution for the depth images
 
-        Returns:
-        --------
-            reg_res_x - the resolution of the width of the image
-            reg_res_y - the resolution of the height of the image
+        :return: reg_res_x - the resolution of the width of the image
+                 reg_res_y - the resolution of the height of the image
         """
         return self.depth_res_x, self.depth_res_y
 
@@ -64,10 +66,8 @@ class Camera:
         """
         Returns the resolution for the point cloud.
 
-        Returns:
-        --------
-            reg_res_x - the resolution of the width of the image
-            reg_res_y - the resolution of the height of the image
+        :returns:   point_cloud_res_x - the resolution of the width of the point cloud image.
+                    point_cloud_res_y - the resolution of the height of the point cloud image.
         """
         return self.point_cloud_res_x, self.point_cloud_res_y
 

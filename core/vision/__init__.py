@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# __init__.py
+#
+# Created on Jan 09, 2021
+# Updated on Aug 21, 2022
+#
+
 from core.vision.feed_handler import FeedHandler
 from core.vision.camera import Camera
 import core.vision.obstacle_avoidance as obstacle_avoidance
@@ -15,7 +23,9 @@ feed_handler = FeedHandler()
 
 # Flag to indicate whether or not we are streaming
 STREAM_FLAG = True
+# Flag to indicate whether or not we want to enable avoidance.
 AVOIDANCE_FLAG = False
+# Flag that specifys what YOLO classes we want to enable.
 YOLO_CLASSES = None
 
 
@@ -23,8 +33,8 @@ def setup(type="ZED", stream="Y", avoidance="DISABLE", yolo_classes=None):
     """
     Sets up the vision system and camera/feed handlers
 
-    Parameters:
-        type (str) - Currently supports "ZED" and "SIM", specifies the type of camera to init
+    :param type: (str) Currently supports "ZED" and "SIM", specifies the type of camera to init
+    :param stream:
     """
     if type == "ZED":
         from core.vision.zed_handler import ZedHandler
@@ -59,6 +69,8 @@ def setup(type="ZED", stream="Y", avoidance="DISABLE", yolo_classes=None):
 def close(type="ZED"):
     """
     Closes any handlers initialized in the vision subsystem
+
+    :param type: (str) Currently supports "ZED" and "SIM", specifies the type of camera to init
     """
     if type == "ZED" or type == "SIM":
         this.camera_handler.close()

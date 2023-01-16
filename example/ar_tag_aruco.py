@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# ar_tag_aruco.py
+#
+# Created on Dec 04, 2020
+# Updated on Aug 21, 2022
+#
+
 import logging
 import cv2
 import numpy as np
