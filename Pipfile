@@ -3,6 +3,11 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[[source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = false
+
 [packages]
 simplejson = "*"
 pynmea2 = "*"
@@ -15,17 +20,17 @@ geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
 open3d = "==0.15.1"
-sklearn = "*"
+scikit-learn = "*"
 cython = "*"
 pyopengl = "*"
 numpy = "*"
-torch = "*"
-torchvision = "*"
 seaborn = "*"
 utm = "*"
 opencv-python = "*"
 opencv-contrib-python = "*"
 tqdm = "*"
+torch = "*"
+torchvision = "*"
 
 [dev-packages]
 pytest = "*"
