@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# search_pattern.py
-#
-# Created on Dec 02, 2020
-# Updated on Aug 21, 2022
-#
-
 import core
 import algorithms
 import interfaces
@@ -13,34 +5,23 @@ import asyncio
 from core.states import RoverState
 
 
-class SearchPattern(RoverState):
+class SearchPatternGPS(RoverState):
     """
     The searching state’s goal is to drive the rover in an ever expanding Archimedean spiral, searching for the AR Tag.
     The spiral type was chosen because of it’s fixed distance between each rotation’s path.
     """
 
     def start(self):
-        """
-        Schedule Search Pattern
-        """
-
         pass
 
     def exit(self):
-        """
-        Cancel all state specific tasks
-        """
-
+        # Cancel all state specific tasks
         pass
 
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
-
-        :param event:
-        :return: RoverState
         """
-
         state: RoverState = None
 
         if event == core.AutonomyEvents.MARKER_SEEN:
@@ -70,11 +51,9 @@ class SearchPattern(RoverState):
         return state
 
     async def run(self) -> RoverState:
-        """
+        '''
         Defines regular rover operation when under this state
-
-        :return: RoverState
-        """
+        '''
 
         gps_data = core.waypoint_handler.get_waypoint()
 
@@ -87,7 +66,8 @@ class SearchPattern(RoverState):
 
         # Check to see if gate or marker was detected
         # If so, immediately stop all movement to ensure that we don't lose sight of the AR tag(s)
-        if core.vision.ar_tag_detector.is_gate() and leg_type == "GATE":
+        if core.vision.ar_tag_detector.is_gate():
+            core.waypoint_handler.gps_data.leg_type = "GATE"
             interfaces.drive_board.stop()
 
             # Sleep for a brief second
@@ -104,7 +84,7 @@ class SearchPattern(RoverState):
 
             self.logger.info("Search Pattern: Marker seen")
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
-
+        
         if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
             interfaces.drive_board.stop()
 
@@ -114,12 +94,12 @@ class SearchPattern(RoverState):
             # Find and set the next goal in the search pattern
             goal = algorithms.marker_search.calculate_next_coordinate(start, goal)
             core.waypoint_handler.set_goal(goal)
-
+            
             self.logger.info(f"Search Pattern: Adding New Waypoint ({goal[0]}, {goal[1]}")
-
+        
         left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
 
-        self.logger.debug(f"Search Pattern: Driving at ({left}, {right})")
+        self.logger.info(f"Search Pattern: Driving at ({left}, {right})")
         interfaces.drive_board.send_drive(left, right)
-
+        
         return self

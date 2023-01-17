@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# reached_marker_test.py
-#
-# Created on May 19, 2021
-# Updated on Aug 21, 2022
-#
-
 import core
 import interfaces
 import logging

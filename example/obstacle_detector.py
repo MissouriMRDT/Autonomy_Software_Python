@@ -1,10 +1,3 @@
-#
-# Mars Rover Design Team
-# obstacle_detector.py
-#
-# Created on Jan 16, 2021
-# Updated on Aug 21, 2022
-#
 import cv2
 import core
 import numpy as np

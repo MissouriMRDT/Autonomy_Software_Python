@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# zed_handler.py
-#
-# Created on Jan 17, 2021
-# Updated on Aug 21, 2022
-#
-
 import time
 import pyzed.sl as sl
 import logging

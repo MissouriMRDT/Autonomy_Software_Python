@@ -1,34 +1,31 @@
-#
-# Mars Rover Design Team
-# run.py
-#
-# Created on Sep 22, 2020
-# Updated on Aug 21, 2022
-#
-
 import argparse
-import asyncio
-import importlib
 import logging
-import os
-import sys
-import time
+import logging.config
 import yaml
 import core
 import rich
 import interfaces
-from logging import config
+import importlib
+import os
+import sys
+import time
+import asyncio
+from core.states import state
+
 
 def setup_logger(level) -> logging.Logger:
     """
-    Sets up the logger used for the autonomy codebase with
-    appropriate handlers and formatting
+    Sets up the logger used in the autonomy project with appropriate
+    handlers and formatting
 
-    :param level: logging level to be used
-    :return: logging.Logger
+    Returns
+    -------
+
+        Logger: root set up for console and file logging
     """
 
-    yaml_conf = yaml.safe_load(open("resources/logging/logging.yaml", "r").read())
+    # logging file
+    yaml_conf = yaml.safe_load(open("core/logging.yaml", "r").read())
     logging.config.dictConfig(yaml_conf)
 
     for handler in logging.getLogger().handlers:
@@ -39,54 +36,31 @@ def setup_logger(level) -> logging.Logger:
 
 
 def main() -> None:
-    """
-    Sets up autonomy by parsing arguments and getting core
-    systems enabled
-
-    :return: None
-    """
-
-    # Parse arguments for autonomy
     parser = argparse.ArgumentParser()
 
-    # Optional: Maps the file name to a known module if found
+    # Maps the passed in file name to a known module and main() (if it is known)
     parser.add_argument(
         "--file",
         help="Specify the name of the custom module to be run",
-        default="autonomy.py"
+        default="autonomy.py",
     )
 
-    # Optional: Sets the logging level for autonomy
+    # Optional parameter to set logging level
     parser.add_argument(
         "--level",
-        help="Specify the logging level to be used",
         choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
-        default="INFO"
+        default="INFO",
     )
 
-    # Optional: Sets the vision system to be used
-    parser.add_argument(
-        "--vision",
-        help="Specify the vision system for autonomy",
-        choices=["ZED", "SIM"],
-        default="ZED"
-    )
+    # Optional parameter to set the vision system to use
+    parser.add_argument("--vision", choices=["ZED", "NONE", "SIM", "WEBCAM"], default="ZED")
 
-    # Optional: Sets whether we are streaming or not
-    parser.add_argument(
-        "--stream",
-        help="Specify if we are streaming",
-        choices=["Y", "N"],
-        default="N"
-    )
+    # Optional parameter specify whether we are streaming or not
+    parser.add_argument("--stream", choices=["Y", "N"], default="N")
 
-    # Optional: Sets the mode of operation
-    parser.add_argument(
-        "--mode",
-        help="Sets if we are running on rover or on sim",
-        choices=["REGULAR", "SIM"],
-        default="REGULAR"
-    )
+    # Optional parameter to set the mode of operation:
+    # Regular (on rover) or Sim (using the autonomy simulator)
+    parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
 
     # Optional parameter to determine whether the rover backs up after start autonomy
     parser.add_argument("--reverse", choices=["STRAIGHT", "LEFT", "RIGHT", "NO"], default="NO")
@@ -114,17 +88,17 @@ def main() -> None:
         parser.print_help()
         exit(1)
 
-    # SIM mode defaults vision subsystem to also originate from simulator
+    # Sim mode defaults vision subsystem to also originate from simulator
     if args.mode == "SIM":
         args.vision = "SIM"
 
-    # Add the examples' folder to our path, so we can run example files
+    # Add the examples folder to our path so we can run example files
     sys.path.insert(0, "example/")
 
-    # Add the unit test folder to our path, so we can run tests
+    # Add the unit test folder to our path so we can run tests
     sys.path.insert(0, "tests/unit/")
 
-    # Enable the logger, also pass-in optional logging level for console output
+    # Setup the logger, also pass-in optional logging level for console output
     logger = setup_logger(level)
 
     # Initialize the rovecomm node

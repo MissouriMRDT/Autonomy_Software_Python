@@ -1,36 +1,20 @@
-#
-# Mars Rover Design Team
-# run.py
-#
-# Created on Oct 23, 2016
-# Updated on Aug 21, 2022
-#
-
 import core
 import logging
 import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(loop, context):
-    """
-    Autonomy Exception Handler
-
-    :return: None
-    """
-
     print(context)
     loop.stop()
 
 
 def main() -> None:
     """
-    Main Autonomy Loop
-
-    :return: None
+    Main autonomy loop
     """
-
     logger.info("Entering main autonomy loop")
 
     # Setting up the asyncio loop
@@ -52,12 +36,6 @@ def main() -> None:
 
 
 async def autonomy_state_loop():
-    """
-    Asynchronous autonomy state machine loop
-
-    :return: None
-    """
-
     while True:
         # Run the current state in the state machine (and handle enable/disable)
         await core.states.state_machine.run()
@@ -75,8 +53,8 @@ async def autonomy_state_loop():
             False,
         )
 
-        # Core state machine runs every X ms, to prevent unnecessarily fast computation.
-        # Sensor data is processed separately, as that is the bulk of processing time
+        # Core state machine runs every X ms, to prevent unecessarily fast computation.
+        # Sensor data is processed seperately, as that is the bulk of processing time
         await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
 

@@ -1,10 +1,3 @@
-#
-# Mars Rover Design Team
-# obstacle_avoidance_example.py
-#
-# Created on Feb 04, 2021
-# Updated on Aug 21, 2022
-#
 import time
 import algorithms
 import core

@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# constants.py
-#
-# Created on Jul 08, 2020
-# Updated on Aug 21, 2022
-#
-
 from enum import IntEnum, Enum
 import collections
 import math
@@ -36,7 +28,7 @@ SP_LEFT_MIN = 240
 LOWER_RATE_OF_CHANGE = 0.0123
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 20  # meters
+SEARCH_DISTANCE = 0.002
 DELTA_THETA = math.pi / 4
 
 # Vision Parameters
@@ -46,7 +38,7 @@ MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
 
 # Range at which we switch from GPS to optical tracking
-VISION_RANGE = 0.007  # meters
+VISION_RANGE = 0.007  # kilometers
 MIN_OBSTACLE_PIXEL_AREA = 400  # minimum contour area in pixels of detected obstacle
 DEPTH_STEP_SIZE = 0.5  # Depth in meters that each segment of obstacle detection will run on
 NUM_DEPTH_SEGMENTS = 3  # Number of segments of depth map to actually run contour detection on
@@ -79,3 +71,13 @@ class OperationState(IntEnum):
     TELEOP = 0
     AUTONOMY = 1
     REACHED_MARKER = 2
+
+
+class GPSData:
+    def __int__(self, goal, start, leg="POSITION"):
+        self.goal = goal
+        self.start = start
+        self.leg_type = leg
+
+    def data(self):
+        return self.goal, self.start, self.leg_type

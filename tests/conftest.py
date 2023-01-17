@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# conftest.py
-#
-# Created on Oct 15, 2020
-# Updated on Aug 21, 2022
-#
-
 import pytest
 import core
 import interfaces
@@ -24,7 +16,7 @@ def pytest_sessionstart(session) -> None:
     # Setup our interfaces
     interfaces.setup()
 
-    yaml_conf = yaml.safe_load(open("resources/logging/logging.yaml", "r").read())
+    yaml_conf = yaml.safe_load(open("core/logging.yaml", "r").read())
     logging.config.dictConfig(yaml_conf)
 
 

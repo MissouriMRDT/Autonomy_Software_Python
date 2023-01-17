@@ -2,15 +2,13 @@ name: Autonomy Unit Tests
 
 on:
   push:
-    branches-ignore:
+    branches:
       - dev
-      - release/testing
-      - release/competition
+      - master
   pull_request:
     branches:
       - dev
-      - release/testing
-      - release/competition
+      - master
 
 
 jobs:

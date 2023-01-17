@@ -1,14 +1,6 @@
-/* 
- * Mars Rover Design Team
- * cascade-classifier.md
- * 
- * Created on Jan 07, 2021
- * Updated on Aug 21, 2022
- */
-
 # Process of training opencv classifier for own data set
 
-Download opencv files from https://sourceforge.net/projects/opencvlibrary/files/3.4.13/ (the first .exe if on Windows)
+Download opencv files from https://sourceforge.net/projects/opencvlibrary/files/3.4.13/ (the first .exe if on windows)
 
 Resources:
 https://docs.opencv.org/2.4/doc/user_guide/ug_traincascade.html

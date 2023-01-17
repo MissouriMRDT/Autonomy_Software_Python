@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# __init__.py
-#
-# Created on Dec 02, 2020
-# Updated on Aug 21, 2022
-#
-
 from core.states.state import RoverState
 from core.states.state_machine import StateMachine
 from core.states.idle import Idle

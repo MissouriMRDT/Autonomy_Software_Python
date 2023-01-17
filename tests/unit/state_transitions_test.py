@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# state_transitions_test.py
-#
-# Created on Jan 03, 2021
-# Updated on Aug 21, 2022
-#
-
 from math import nan
 import pandas as pd
 import core.states

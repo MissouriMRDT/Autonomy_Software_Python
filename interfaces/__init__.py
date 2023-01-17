@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# __init_.py
-#
-# Created on Jul 19, 2020
-# Updated on Aug 21, 2022
-#
-
 from interfaces.drive_board import DriveBoard
 from interfaces.nav_board import NavBoard
 from interfaces.multimedia_board import MultiMedia
@@ -24,7 +16,7 @@ multimedia_board: MultiMedia
 
 def setup():
     """
-    Sets up all the interfaces
+    Sets up all of the interfaces
     """
     this.nav_board = NavBoard()
     this.drive_board = DriveBoard()

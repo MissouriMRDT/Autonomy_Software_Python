@@ -1,11 +1,3 @@
-#
-# Mars Rover Design Team
-# read_logs.py
-#
-# Created on Nov 05, 2020
-# Updated on Aug 21, 2022
-#
-
 import logging
 import csv
 from datetime import datetime
