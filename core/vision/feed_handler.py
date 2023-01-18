@@ -12,12 +12,9 @@ import sys
 import multiprocessing as mp
 import os
 
-# Pyfakewebcam requires linux
-from pyfakewebcam import FakeWebcam
-
 if sys.platform == "linux":
-    import pyfakewebcam
-
+    # Pyfakewebcam requires linux
+    from pyfakewebcam import FakeWebcam
 
 def feed_process(
     pipe,
