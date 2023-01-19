@@ -1,10 +1,16 @@
-from asyncio import constants
+#
+# Mars Rover Design Team
+# obstacle_detector.py
+#
+# Created on Dec 23, 2021
+# Updated on Jan 18, 2023
+#
+import asyncio
 import logging
 import numpy as np
 import torch
 import pyzed.sl as sl
 import torch.backends.cudnn as cudnn
-from numpy.core.numeric import NaN
 import platform
 import core.constants
 import core
@@ -27,19 +33,14 @@ def img_preprocess(img, device, half, net_size):
     Prepares the image from the camera by reformatting it and converting the numpy array to a torch/tensor object
     depending on the current device selected.
 
-    Parameters:
-    -----------
-        img - The numpy array containing the camera image.
-        device - The device type the array should be optimized for. (CPU or NVIDIA CUDA)
-        half - Boolean determining if all the numbers in the array are converted from 32-bit to 16-bit.
-        net_size - Tuple containing the size of the image.
+    :params img: The numpy array containing the camera image.
+    :params device: The device type the array should be optimized for. (CPU or NVIDIA CUDA)
+    :params half: Boolean determining if all the numbers in the array are converted from 32-bit to 16-bit.
+    :params net_size: Tuple containing the size of the image.
 
-    Returns:
-    --------
-        img - The converted, optimized, and normalized image.
-        ratio - Tuple containing the width and height ratios.
-        pad - Tuple containing width and height padding for the image.
-
+    :returns img: The converted, optimized, and normalized image.
+    :returns ratio: Tuple containing the width and height ratios.
+    :returns pad: Tuple containing width and height padding for the image.
     """
     net_image, ratio, pad = letterbox(img[:, :, :3], net_size, auto=False)
     net_image = net_image.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
@@ -59,14 +60,10 @@ def xywh2abcd(xywh, im_shape):
     Given the x and y center point, and the width and height of a rectangle. This method calculates the four
     corners of the rectangle in the image and returns those corners in a 2d array.
 
-    Parameters:
-    -----------
-        xywh - 1d array containing the x, y, width, height of the rectangle in terms of image pixels.
-        im_shape - 1d array containing the shape/resolution of the image.
+    :params xywh: 1d array containing the x, y, width, height of the rectangle in terms of image pixels.
+    :params im_shape: 1d array containing the shape/resolution of the image.
 
-    Returns:
-    --------
-        output - A 2d array containing the box points of the rectangle.
+    :returns output: A 2d array containing the box corner points of the rectangle.
     """
     output = np.zeros((4, 2))
 
@@ -122,7 +119,6 @@ def detections_to_custom_box(detections, img, reg_img):
                 obj.append(False)
                 output.append(obj)
     return output
-
 
 def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_thres=0.2, iou_thres=0.45):
     """
@@ -201,7 +197,7 @@ class YOLOObstacleDetector:
         self.sim_active = False
         self.objects = None
         self.obj_param = None
-        self.names = None
+        self.names = []
         self.predictions = None
         self.object_summary = ""
         self.inference_time = 0
@@ -278,11 +274,10 @@ class YOLOObstacleDetector:
 
         return self.objects, self.predictions
 
-    def track_obstacle(self, zed_point_cloud, reg_img, label_img=True):
+    def track_obstacle(self, reg_img, label_img=True):
         """
         Tracks the closest object and display it on screen. All of the others objects are also labeled.
 
-        :params zed_point_cloud: The point cloud array returned from the zed api.
         :params reg_img: Zed left eye camera image.
         :params label_img: Toggle for drawing inferences on screen.
 
@@ -354,7 +349,7 @@ class YOLOObstacleDetector:
                 if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
                     object_locations.append((angle, current_distance / 1000))
 
-                # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALL ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
                 if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
                     # Store the closest distance, angle, and point in image.
                     object_distance = current_distance
@@ -371,5 +366,5 @@ class YOLOObstacleDetector:
                     thickness=-1,
                 )
 
-        # return angle, distance
+        # Return angle, distance
         return object_angle, object_distance, self.object_summary, self.inference_time, object_locations

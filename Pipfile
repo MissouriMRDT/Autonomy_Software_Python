@@ -6,6 +6,11 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[[source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = false
+
 [packages]
 simplejson = "*"
 pynmea2 = "*"
@@ -20,6 +25,8 @@ rich = "*"
 gmplot = "*"
 opencv-python = "*"
 opencv-contrib-python = "*"
+torch = "*"
+torchvision = "*"
 
 [dev-packages]
 pytest = "*"
