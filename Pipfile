@@ -3,12 +3,7 @@ python_version = "3.8"
 
 [[source]]
 name = "pypi"
-url = "https://pypi.org/simple"
-verify_ssl = true
-
-[[source]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/cu117"
+url = "https://pypi.org/simple"   
 verify_ssl = false
 
 [packages]
@@ -27,6 +22,10 @@ opencv-python = "*"
 opencv-contrib-python = "*"
 torch = "*"
 torchvision = "*"
+pandas = "*"
+tdqm = "*"
+seaborn = "*"
+utm = "*"
 
 [dev-packages]
 pytest = "*"

@@ -9,10 +9,8 @@
 import logging
 import core
 import algorithms
-import constants
-import cv2
+import core.constants
 import os
-import asyncio
 
 # Dict to hold the obstacle info
 obstacle_dict = {"detected": False, "angle": None, "distance": None, "object_summary": None, "inference_time": -1, "obstacle_list": None}
@@ -34,7 +32,7 @@ async def async_obstacle_detector():
     )
 
     # Create new feed for obstacle detection viewing.
-    core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
+    # core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
 
     while True:
         # Create instance variables.

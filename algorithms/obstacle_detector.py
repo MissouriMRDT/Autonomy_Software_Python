@@ -19,6 +19,7 @@ import os
 import cv2
 import multiprocessing as mp
 import time
+from pickle import UnpicklingError
 
 # Import yolov5 tools.
 from core.vision.yolov5.models.common import DetectMultiBackend
@@ -141,46 +142,51 @@ def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_th
     print("Intializing Neural Network...")
     # Create the device and model objects. (load model)
     device = select_device()
-    model = DetectMultiBackend(
-        weights,
-        device=device,
-        dnn=False,
-        data=os.path.dirname(__file__) + "/../core/vision/yolov5/data/coco128.yaml",
-    )
-    cudnn.benchmark = True
+    # Catch error if model path is wrong.
+    try:
+        model = DetectMultiBackend(
+            weights,
+            device=device,
+            dnn=False,
+            data=os.path.dirname(__file__) + "/../core/vision/yolov5/data/coco128.yaml",
+        )
+        cudnn.benchmark = True
 
-    # Load model
-    stride, names, pt, jit, onnx, engine = model.stride, model.names, model.pt, model.jit, model.onnx, model.engine
-    imgsz = check_img_size(imgsz, s=stride)  # check image size
+        # Load model
+        stride, names, pt, jit, onnx, engine = model.stride, model.names, model.pt, model.jit, model.onnx, model.engine
+        imgsz = check_img_size(imgsz, s=stride)  # check image size
 
-    # Half
-    half &= (pt or jit or engine) and device.type != "cpu"  # half precision only supported by PyTorch on CUDA
-    if pt or jit:
-        model.model.half() if half else model.model.float()
+        # Half
+        half &= (pt or jit or engine) and device.type != "cpu"  # half precision only supported by PyTorch on CUDA
+        if pt or jit:
+            model.model.half() if half else model.model.float()
 
-    # Warmup/Optimize
-    model.warmup(imgsz=(1, 3, *imgsz))
-    while True:
-        # Get image from queue.
-        image_net = img_queue.get()
+        # Warmup/Optimize
+        model.warmup(imgsz=(1, 3, *imgsz))
+        while True:
+            # Get image from queue.
+            image_net = img_queue.get()
 
-        # Record start time.
-        s = time.time()
-        # Reformat and convert the image to something the model can read.
-        img, ratio, pad = img_preprocess(image_net, device, half, imgsz)
-        # Run inference on the image using the model.
-        pred = model(img)
-        # Get/filter the model detection results.
-        # # Select classes that we want track. For corresponding object labels check the order of classes in your
-        # .yaml file for your dataset.
-        predictions = non_max_suppression(pred, conf_thres, iou_thres, classes)
-        # ZED CustomBox format (with inverse letterboxing tf applied)
-        detections = detections_to_custom_box(predictions, img, image_net)
-        inference_time = time.time() - s
+            # Record start time.
+            s = time.time()
+            # Reformat and convert the image to something the model can read.
+            img, ratio, pad = img_preprocess(image_net, device, half, imgsz)
+            # Run inference on the image using the model.
+            pred = model(img)
+            # Get/filter the model detection results.
+            # # Select classes that we want track. For corresponding object labels check the order of classes in your
+            # .yaml file for your dataset.
+            predictions = non_max_suppression(pred, conf_thres, iou_thres, classes)
+            # ZED CustomBox format (with inverse letterboxing tf applied)
+            detections = detections_to_custom_box(predictions, img, image_net)
+            inference_time = time.time() - s
 
-        # Put results into queue.
-        result_queue.put([predictions, detections, names, inference_time])
-
+            # Put results into queue.
+            result_queue.put([predictions, detections, names, inference_time])
+    except FileNotFoundError:
+        logging.error(msg="Unable to open YOLO model file. Make sure directory is correct and model exists.")
+    except UnpicklingError:
+        logging.error(msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty.")
 
 class YOLOObstacleDetector:
     def __init__(self, weights, model_image_size, min_confidence, classes=None):

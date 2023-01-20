@@ -88,6 +88,21 @@ def main() -> None:
         default="REGULAR"
     )
 
+     # Optional argument for obstacle avoidance toggle.
+    parser.add_argument(
+        "--obstacle-avoidance", 
+        choices=["ENABLE", "DISABLE"], 
+        default="DISABLE"
+    )
+    
+    # Add optional argument for selecting yolo classes.
+    parser.add_argument(
+        "--yolo-classes",
+        nargs="+",
+        type=int,
+        help="filter by class(corresponds to order of classes in dataset .yaml file): --classes 0, or --classes 0 2 3",
+    )
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -113,7 +128,7 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream)
+    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes)
 
     # Initialize the Interfaces
     interfaces.setup()

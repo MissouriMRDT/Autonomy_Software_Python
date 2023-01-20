@@ -43,7 +43,9 @@ def main() -> None:
 
     # Create our two detection tasks
     loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
-    loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
+    # Only start obstacle detection if flag was enabled.
+    if core.vision.AVOIDANCE_FLAG:
+        loop.create_task(core.vision.obstacle_avoidance.async_obstacle_detector())
 
     # Run core autonomy state machine loop
     loop.run_until_complete(autonomy_state_loop())
