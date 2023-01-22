@@ -99,7 +99,7 @@ class Navigating(RoverState):
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()
-            and core.vision.obstacle_avoidance.get_distance() < 1.5
+            and core.vision.obstacle_avoidance.get_distance() < 4.0
             and core.vision.obstacle_avoidance.get_distance()
             < (
                 algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000

@@ -7,7 +7,9 @@
 #
 
 import logging
+import asyncio
 import core
+import cv2
 import algorithms
 import core.constants
 import os
@@ -31,9 +33,6 @@ async def async_obstacle_detector():
         classes=core.vision.YOLO_CLASSES,
     )
 
-    # Create new feed for obstacle detection viewing.
-    # core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
-
     while True:
         # Create instance variables.
         object_summary = ""
@@ -44,27 +43,41 @@ async def async_obstacle_detector():
 
         # Detect obstacles.
         objects, pred = ObstacleIgnorance.detect_obstacles(reg_img)
+        print(objects)
 
         # Track a specific obstacle. (closest one)
-        angle, distance, object_summary, inference_time, object_locations = ObstacleIgnorance.track_obstacle(reg_img)
+        # angle, distance, object_summary, inference_time, object_locations = ObstacleIgnorance.track_obstacle(reg_img)
 
-        # If obstacle has been detected store its info.
-        if distance > -1:
-            # Update the current obstacle info
-            obstacle_dict["detected"] = True
-            obstacle_dict["angle"] = angle
-            obstacle_dict["distance"] = distance / 1000
-            obstacle_dict["object_summary"] = object_summary
-            obstacle_dict["inference_time"] = inference_time
-            obstacle_dict["obstacle_list"] = object_locations
-        else:
-            # Update the current obstacle info
-            obstacle_dict["detected"] = False
-            obstacle_dict["angle"] = None
-            obstacle_dict["distance"] = None
-            obstacle_dict["object_summary"] = object_summary
-            obstacle_dict["inference_time"] = inference_time
-            obstacle_dict["obstacle_list"] = None
+        # # If obstacle has been detected store its info.
+        # if distance > -1:
+        #     # Update the current obstacle info
+        #     obstacle_dict["detected"] = True
+        #     obstacle_dict["angle"] = angle
+        #     obstacle_dict["distance"] = distance / 1000
+        #     obstacle_dict["object_summary"] = object_summary
+        #     obstacle_dict["inference_time"] = inference_time
+        #     obstacle_dict["obstacle_list"] = object_locations
+        # else:
+        #     # Update the current obstacle info
+        #     obstacle_dict["detected"] = False
+        #     obstacle_dict["angle"] = None
+        #     obstacle_dict["distance"] = None
+        #     obstacle_dict["object_summary"] = object_summary
+        #     obstacle_dict["inference_time"] = inference_time
+        #     obstacle_dict["obstacle_list"] = None
+
+        # # Give frame with detections overlay to feed handler.
+        # core.vision.feed_handler.handle_frame("obstacle", reg_img)
+        # # Show detections window if DISPLAY constant is set.
+        # if core.constants.DISPLAY_TEST_MODE:
+        #     cv2.imshow("Obstacle Detections", reg_img)
+
+        # Print detected objects for user.
+        if obstacle_dict["detected"]:
+            logger.info(f"Object tracked at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!\nTotal Objects Detected: {object_summary}Done. ({inference_time:.3f}s)")
+
+        # Must await async process or the code will pause here.
+        await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 def is_obstacle():
     """

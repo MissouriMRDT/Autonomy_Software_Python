@@ -21,40 +21,28 @@ class Avoidance(RoverState):
     The goal of this state is to navigate around a detected obstacle
     """
 
-    def __init__(self):
-        """
-        Create state variables and objects.
-        """
-        self.astar = obstacle_avoider.ASTAR_AVOIDER()
-
     def start(self):
-        """
-        Schedule avoidance
-        """
-
-        pass
+        # Create state specific variable.
+        self.astar = obstacle_avoider.ASTAR_AVOIDER()
+        self.path = []
+        self.next_lat = None
+        self.next_lon = None
+        self.previous_loc = interfaces.nav_board.location()
+        self.last_point = False
+        self.path_start_time = 0.0
 
     def exit(self):
-        """
-        Cancel all state specific coroutines
-        """
-
-        pass
+        # Cancel all state specific coroutines and reset state variables.
+        self.path.clear()
 
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
-
-        :param event:
-        :return: RoverState
         """
-
-        state: RoverState = None
+        state: RoverState = core.states.Idle()
 
         if event == core.AutonomyEvents.START:
             state = self
-            # Destroy and recreate astar algorithm object. (not necessary, but doing for safety)
-            self.astar = obstacle_avoider.ASTAR_AVOIDER()
 
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
@@ -76,8 +64,6 @@ class Avoidance(RoverState):
     async def run(self) -> RoverState:
         """
         Defines regular rover operation when under this state
-
-        :return: RoverState
         """
         # Create instance variables.
         path_expiration = 10.0

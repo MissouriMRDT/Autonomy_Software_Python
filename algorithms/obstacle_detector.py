@@ -139,7 +139,10 @@ def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_th
     imgsz = (img_size, img_size)
     half = False
 
-    print("Intializing Neural Network...")
+    # Setup logger.
+    logger = logging.getLogger(__name__)
+
+    logger.info("Intializing Neural Network...")
     # Create the device and model objects. (load model)
     device = select_device()
     # Catch error if model path is wrong.
@@ -174,7 +177,7 @@ def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_th
             # Run inference on the image using the model.
             pred = model(img)
             # Get/filter the model detection results.
-            # # Select classes that we want track. For corresponding object labels check the order of classes in your
+            # Select classes that we want track. For corresponding object labels check the order of classes in your
             # .yaml file for your dataset.
             predictions = non_max_suppression(pred, conf_thres, iou_thres, classes)
             # ZED CustomBox format (with inverse letterboxing tf applied)
