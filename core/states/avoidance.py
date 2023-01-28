@@ -66,7 +66,7 @@ class Avoidance(RoverState):
         Defines regular rover operation when under this state
         """
         # Create instance variables.
-        path_expiration = 10.0
+        path_expiration = core.constants.AVOIDANCE_PATH_EXPIRATION_SECONDS
 
         # Get boolean toggle for if one or more obstacles have been detected.
         is_obstacle = core.vision.obstacle_avoidance.is_obstacle()
@@ -80,15 +80,15 @@ class Avoidance(RoverState):
             self.astar.update_obstacles(
                 object_locations,
                 min_object_distance=1.0,
-                max_object_distance=5.0,
-                min_object_angle=-20,
-                max_object_angle=20,
+                max_object_distance=7.0,
+                min_object_angle=-40,
+                max_object_angle=40,
             )
 
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=1.5)
+            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=2.0)
 
             # If path was generated successfully, then overwrite current path with new one.
             if path is not None:
@@ -97,7 +97,6 @@ class Avoidance(RoverState):
                 #########################################################
                 # Get Obstacle Coordinates
                 obstacle_coords = self.astar.get_obstacle_coords()
-                print("Obstacle Coords Length:", len(obstacle_coords))
                 # Append obstacle coords to path.
                 all_points = path + obstacle_coords
                 # Split XY array to X and Y arrays.
@@ -168,8 +167,10 @@ class Avoidance(RoverState):
             print(len(self.path))
 
         # Condition for moving out of avoidance state.
-        if (len(self.path) <= 1 and not self.last_point) or self.astar.get_distance_from_goal() <= 8.0:
-            # Cleat matplotlib plt object.
+        if (
+            len(self.path) <= 1 and not self.last_point
+        ) or self.astar.get_distance_from_goal() <= core.constants.AVOIDANCE_ENABLE_DISTANCE_THRESHOLD:
+            # Clear matplotlib plt object.
             plt.clf()
             # Move states.
             return self.on_event(core.AutonomyEvents.END_OBSTACLE_AVOIDANCE)

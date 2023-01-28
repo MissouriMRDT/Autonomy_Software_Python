@@ -9,6 +9,7 @@
 import core
 import logging
 import asyncio
+import interfaces.nav_board
 
 logger = logging.getLogger(__name__)
 

@@ -3,11 +3,11 @@ import math
 import interfaces
 from geopy import Point
 from geopy.distance import VincentyDistance
-from algorithms import geomath
 import heapq
 import logging
 import utm
 import core
+from core import constants
 
 # Create logger for file.
 logger = logging.getLogger(__name__)
@@ -15,11 +15,12 @@ logger = logging.getLogger(__name__)
 
 class Node:
     """
-    This class serves as an easy way to create 'nodes' within a path. Each node is created as a seperate object 
+    This class serves as an easy way to create 'nodes' within a path. Each node is created as a seperate object
     and contains a 'pointer' or reference to its parent node which is a completely seperate object.
     Each node also stores its own location, distance, heuristic, and total code withing the path. These values
     are not autocalculated and must be determined by the programmer.
     """
+
     def __init__(self, parent=None, position=None):
         """
         Initializes the Node class.
@@ -110,6 +111,7 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
     lat2, lon2 = destination.latitude, destination.longitude
     return (lat2, lon2)
 
+
 class ASTAR_AVOIDER:
     def __init__(self):
         """
@@ -121,7 +123,14 @@ class ASTAR_AVOIDER:
         self.start = Node()
         self.end = Node()
 
-    def update_obstacles(self, object_locations, min_object_distance=1.0, max_object_distance=15.0, min_object_angle=-40, max_object_angle=40):
+    def update_obstacles(
+        self,
+        object_locations,
+        min_object_distance=1.0,
+        max_object_distance=15.0,
+        min_object_angle=-40,
+        max_object_angle=40,
+    ):
         """
         Loops through the given array of obstacle angles and distances and calculate their GPS->UTM position.
 
@@ -248,7 +257,7 @@ class ASTAR_AVOIDER:
         # Define movement search pattern. In this case check in a grid pattern
         # 0.5 meters away from current position.
         ####################################################################
-        offset = 0.3
+        offset = constants.AVOIDANCE_PATH_NODE_INCREMENT
         adjacent_movements = (
             (0.0, -offset),
             (0.0, offset),
@@ -310,18 +319,19 @@ class ASTAR_AVOIDER:
                         math.pow(current_utm_pos[0] - child_node_pos[0], 2)
                         + math.pow(current_utm_pos[1] - child_node_pos[1], 2)
                     )
-                    # Calculate the straight-line distance from the obstacle.
-                    distance = math.sqrt(
+                    # Calculate the straight-line distance of the new node from the obstacle.
+                    node_distance_from_obstacle = math.sqrt(
                         math.pow(coord[0] - child_node_pos[0], 2) + math.pow(coord[1] - child_node_pos[1], 2)
                     )
                     # Check if we are getting closer to the obstacle.
-                    if distance <= near_object_threshold:
+                    if node_distance_from_obstacle <= near_object_threshold:
                         coord_to_close = True
-                    # Check if the robot is within circle and pick the point that will move us away from it.
-                    if robot_distance_from_obstacle < near_object_threshold and not (
-                        distance - robot_distance_from_obstacle > offset / 1.5
-                    ):
-                        coord_to_close = False
+                    # # Check if the robot is within circle radius of obstacle and pick the point that will move us away from it.
+                    # if (
+                    #     robot_distance_from_obstacle < near_object_threshold
+                    #     and node_distance_from_obstacle > robot_distance_from_obstacle
+                    # ):
+                    #     coord_to_close = False
                 # If the current child node is too close to the object skip it.
                 if coord_to_close:
                     continue
