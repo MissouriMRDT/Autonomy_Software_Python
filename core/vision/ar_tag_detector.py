@@ -12,6 +12,7 @@ from algorithms.ar_tag import Tag
 import core
 import algorithms
 import logging
+import traceback
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -37,8 +38,8 @@ async def async_ar_tag_detector():
                 ar_tags.clear()
 
             logger.debug("Running AR Tag async")
-        except Exception as e:
-            logger.info(msg=f"AR_TAG_ERROR: {e}")
+        except Exception:
+            logger.critical(msg=traceback.format_exc())
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 

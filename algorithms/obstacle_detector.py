@@ -121,6 +121,7 @@ def detections_to_custom_box(detections, img, reg_img):
                 output.append(obj)
     return output
 
+
 def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_thres=0.2, iou_thres=0.45):
     """
     This method runs in a seperate python process and uses shared queues to pass data back and forth with its
@@ -189,7 +190,10 @@ def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_th
     except FileNotFoundError:
         logging.error(msg="Unable to open YOLO model file. Make sure directory is correct and model exists.")
     except UnpicklingError:
-        logging.error(msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty.")
+        logging.error(
+            msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty."
+        )
+
 
 class YOLOObstacleDetector:
     def __init__(self, weights, model_image_size, min_confidence, classes=None):
@@ -234,9 +238,7 @@ class YOLOObstacleDetector:
             # Setup object detection on zed camera.
             self.obj_param = core.vision.camera_handler.enable_camera_detection_module(enable_tracking=True)
         except Exception:
-            self.logger.info(
-                "Unable to invoke zed specific methods. object_detector.py is assuming the SIM is active."
-            )
+            self.logger.info("Unable to invoke zed specific methods. object_detector.py is assuming the SIM is active.")
             self.sim_active = True
 
         # Create seperate process for running inference.
@@ -283,11 +285,12 @@ class YOLOObstacleDetector:
 
         return self.objects, self.predictions
 
-    def track_obstacle(self, reg_img, label_img=True):
+    def track_obstacle(self, zed_point_cloud, reg_img, label_img=True):
         """
         Tracks the closest object and display it on screen. All of the others objects are also labeled.
 
         :params reg_img: Zed left eye camera image.
+        :params zed_point_cloud: The point cloud image from the ZED.
         :params label_img: Toggle for drawing inferences on screen.
 
         :returns angle: The angle of the obstacle in relation to the left ZED camera
@@ -329,51 +332,98 @@ class YOLOObstacleDetector:
 
         # Check if we have any objects.
         if self.objects is not None:
-            # Loop through the object array and get info about each object.
-            closest_point = None
-            for i, obj in enumerate(self.objects):
-                # Use the bounding box info to get the center point of the object in the point cloud
-                point = (
-                    int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
-                    int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
-                )
-                # Scale the object center in the screen to the point cloud res.
-                depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
-                img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
-                scaled_point = (
-                    int((point[0] * depth_res_y) / img_res_y),
-                    int((point[1] * depth_res_x) / img_res_x),
-                )
+            if not self.sim_active:
+                # Loop through the object array and get info about each object.
+                closest_point = None
+                for i, obj in enumerate(self.objects):
+                    # Use the bounding box info to get the center point of the object in the point cloud
+                    point = (
+                        int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
+                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
+                    )
+                    # Scale the object center in the screen to the point cloud res.
+                    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    scaled_point = (
+                        int((point[0] * depth_res_y) / img_res_y),
+                        int((point[1] * depth_res_x) / img_res_x),
+                    )
 
-                # Grab depth data from the zed.
-                depth = core.vision.camera_handler.grab_depth_data()
-                # Get distance of the object from the camera. Add zed offset from robot center.
-                current_distance = depth[scaled_point[0]][scaled_point[1]][0] + core.constants.ZED_Z_OFFSET
+                    # Grab depth data from the zed.
+                    depth = core.vision.camera_handler.grab_depth_data()
+                    # Get distance of the object from the camera. Add zed offset from robot center.
+                    current_distance = math.fabs(depth[scaled_point[0]][scaled_point[1]]) + core.constants.ZED_Z_OFFSET
 
-                # Calculate the angle of the object using camera params
-                angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
-                pixel_offset = point[1] - (img_res_x / 2)
-                angle = pixel_offset * angle_per_pixel
-                # If angle and distance make sense, then add the object info the the object location array.
-                if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
-                    object_locations.append((angle, current_distance / 1000))
+                    # Calculate the angle of the object using camera params
+                    angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                    pixel_offset = point[1] - (img_res_x / 2)
+                    angle = pixel_offset * angle_per_pixel
+                    # If angle and distance make sense, then add the object info the the object location array.
+                    if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                        object_locations.append((angle, current_distance / 1000))
 
-                # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
-                if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
-                    # Store the closest distance, angle, and point in image.
-                    object_distance = current_distance
-                    object_angle = angle
-                    closest_point = point
+                    # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                    if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
+                        # Store the closest distance, angle, and point in image.
+                        object_distance = current_distance
+                        object_angle = angle
+                        closest_point = point
 
-            # Draw circle of current tracked object.
-            if closest_point is not None:
-                reg_img = cv2.circle(
-                    reg_img,
-                    (closest_point[1], closest_point[0]),
-                    radius=5,
-                    color=(0, 0, 255),
-                    thickness=-1,
-                )
+                # Draw circle of current tracked object.
+                if closest_point is not None:
+                    reg_img = cv2.circle(
+                        reg_img,
+                        (closest_point[1], closest_point[0]),
+                        radius=5,
+                        color=(0, 0, 255),
+                        thickness=-1,
+                    )
+            else:
+                # Loop through the object array and get info about each object.
+                closest_point = None
+                for i, obj in enumerate(self.objects):
+                    # Use the bounding box info to get the center point of the object in the point cloud
+                    point = (
+                        int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
+                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
+                    )
+                    # Scale the object center in the screen to the point cloud res.
+                    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    scaled_point = (
+                        int((point[0] * depth_res_y) / img_res_y),
+                        int((point[1] * depth_res_x) / img_res_x),
+                    )
+
+                    # Grab depth data from the zed.
+                    depth = core.vision.camera_handler.grab_depth_data()
+                    # Get distance of the object from the camera. Add zed offset from robot center.
+                    current_distance = depth[scaled_point[0]][scaled_point[1]][0] + core.constants.ZED_Z_OFFSET
+
+                    # Calculate the angle of the object using camera params
+                    angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                    pixel_offset = point[1] - (img_res_x / 2)
+                    angle = pixel_offset * angle_per_pixel
+                    # If angle and distance make sense, then add the object info the the object location array.
+                    if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                        object_locations.append((angle, current_distance / 1000))
+
+                    # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                    if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
+                        # Store the closest distance, angle, and point in image.
+                        object_distance = current_distance
+                        object_angle = angle
+                        closest_point = point
+
+                # Draw circle of current tracked object.
+                if closest_point is not None:
+                    reg_img = cv2.circle(
+                        reg_img,
+                        (closest_point[1], closest_point[0]),
+                        radius=5,
+                        color=(0, 0, 255),
+                        thickness=-1,
+                    )
 
         # Return angle, distance
         return object_angle, object_distance, self.object_summary, self.inference_time, object_locations

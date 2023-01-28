@@ -13,6 +13,7 @@ import cv2
 import algorithms
 import core.constants
 import os
+import traceback
 
 # Dict to hold the obstacle info
 obstacle_dict = {
@@ -45,45 +46,58 @@ async def async_obstacle_detector():
         object_summary = ""
         inference_time = -1
 
-        # Get regular image from camera.
-        reg_img = core.vision.camera_handler.grab_regular()
+        # Maybe this is bad practice but it's helpful.
+        try:
+            # Get regular image from camera.
+            reg_img = core.vision.camera_handler.grab_regular()
+            zed_point_cloud = core.vision.camera_handler.grab_point_cloud()
 
-        # Detect obstacles.
-        objects, pred = ObstacleIgnorance.detect_obstacles(reg_img)
+            # Detect obstacles.
+            objects, pred = ObstacleIgnorance.detect_obstacles(reg_img)
 
-        # Track a specific obstacle. (closest one)
-        angle, distance, object_summary, inference_time, object_locations = ObstacleIgnorance.track_obstacle(reg_img)
-
-        # If obstacle has been detected store its info.
-        if distance > -1:
-            # Update the current obstacle info
-            obstacle_dict["detected"] = True
-            obstacle_dict["angle"] = angle
-            obstacle_dict["distance"] = distance / 1000
-            obstacle_dict["object_summary"] = object_summary
-            obstacle_dict["inference_time"] = inference_time
-            obstacle_dict["obstacle_list"] = object_locations
-        else:
-            # Update the current obstacle info
-            obstacle_dict["detected"] = False
-            obstacle_dict["angle"] = None
-            obstacle_dict["distance"] = None
-            obstacle_dict["object_summary"] = object_summary
-            obstacle_dict["inference_time"] = inference_time
-            obstacle_dict["obstacle_list"] = None
-
-        # Give frame with detections overlay to feed handler.
-        core.vision.feed_handler.handle_frame("obstacle", reg_img)
-        # Show detections window if DISPLAY constant is set.
-        if core.constants.DISPLAY_TEST_MODE:
-            cv2.imshow("Obstacle Detections", reg_img)
-
-        # Print detected objects for user.
-        if obstacle_dict["detected"]:
-            logger.info(
-                f"Object tracked at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!\nTotal Objects Detected: {object_summary}Done. ({inference_time:.3f}s)"
+            # Track a specific obstacle. (closest one)
+            angle, distance, object_summary, inference_time, object_locations = ObstacleIgnorance.track_obstacle(
+                zed_point_cloud, reg_img
             )
 
+            # If obstacle has been detected store its info.
+            if distance > -1:
+                # Update the current obstacle info
+                obstacle_dict["detected"] = True
+                obstacle_dict["angle"] = angle
+                obstacle_dict["distance"] = distance / 1000
+                obstacle_dict["object_summary"] = object_summary
+                obstacle_dict["inference_time"] = inference_time
+                obstacle_dict["obstacle_list"] = object_locations
+            else:
+                # Update the current obstacle info
+                obstacle_dict["detected"] = False
+                obstacle_dict["angle"] = None
+                obstacle_dict["distance"] = None
+                obstacle_dict["object_summary"] = object_summary
+                obstacle_dict["inference_time"] = inference_time
+                obstacle_dict["obstacle_list"] = None
+
+            # Give frame with detections overlay to feed handler.
+            core.vision.feed_handler.handle_frame("obstacle", reg_img)
+
+            # Show detections window if DISPLAY constant is set.
+            if core.constants.DISPLAY_TEST_MODE:
+                # Open window for detections viewing.
+                cv2.imshow("Obstacle Detections", cv2.resize(reg_img.copy(), (640, 480)))
+                # Must call waitkey or window won't display.
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    # If user tries to quit window, print instruction on how to properly disable.
+                    logging.warning(msg="To disable window output, edit core.vision.constants file.")
+
+            # Print detected objects for user.
+            if obstacle_dict["detected"]:
+                logger.info(
+                    f"Object tracked at a distance of {obstacle_dict['distance']} meters and {obstacle_dict['angle']} degrees from camera center!\nTotal Objects Detected: {object_summary}Done. ({inference_time:.3f}s)"
+                )
+        except Exception:
+            # Because we are using async functions, they don't print out helpful tracebacks. We must do this instead.
+            logger.critical(traceback.format_exc())
         # Must await async process or the code will pause here.
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
