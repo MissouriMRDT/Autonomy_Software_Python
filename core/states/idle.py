@@ -1,4 +1,5 @@
 import core
+import interfaces
 from core.states import RoverState
 
 
@@ -35,6 +36,9 @@ class Idle(RoverState):
         """
         Defines regular rover operation when under this state
         """
+        latitude = interfaces.nav_board.location()
+        print(latitude)
+
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
         return self

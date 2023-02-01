@@ -179,21 +179,24 @@ def detect_ar_tag(reg_img):
     # Frame Adjustments
     logger = logging.getLogger(__name__)
     grayscale_img = cv2.cvtColor(reg_img, cv2.COLOR_BGR2GRAY)
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
-    parameters = aruco.DetectorParameters_create()
+    aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
+    parameters = aruco.DetectorParameters()
+    detector = aruco.ArucoDetector(aruco_dict, parameters)
     parameters.markerBorderBits = 1
     parameters.errorCorrectionRate = 1
 
     # Capture Tags
-    (corners, ids, rejectedImgPoints) = aruco.detectMarkers(grayscale_img, aruco_dict, parameters=parameters)
+    (corners, ids, rejectedImgPoints) = detector.detectMarkers(grayscale_img)
     tag_corners_list = parse_corners(corners)
     if ids is not None:
         # Image with borders drawn around ArucoTags
         reg_img = aruco.drawDetectedMarkers(reg_img, corners)
         # Changes the list of ids from 2-dim to 1-dim
         tag_ids_in_frame = []
+
         for i in ids:
             tag_ids_in_frame.append(i[0])
+
         # Goes through each previously detected tag
         # and checks if it was spotted in the most recent frame
         for detected_tag in detected_tags:
@@ -212,6 +215,7 @@ def detect_ar_tag(reg_img):
         # No tags were identified in the frame
         for detected_tag in detected_tags:
             detected_tag.tag_not_spotted()
+            
     return detected_tags, reg_img
 
 
