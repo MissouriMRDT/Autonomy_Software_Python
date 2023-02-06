@@ -147,7 +147,6 @@ class ApproachingGate(RoverState):
                         )
                         == core.ApproachState.APPROACHING
                     ):
-                        #print("AS: ", algorithms.gps_navigate.get_approach_status( core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 1))
                         self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                         left, right = algorithms.gps_navigate.calculate_move(
                             core.Coordinate(point[0], point[1]),
