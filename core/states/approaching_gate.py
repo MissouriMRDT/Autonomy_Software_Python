@@ -136,16 +136,18 @@ class ApproachingGate(RoverState):
                     3, target[0], target[1], targetPastGateHeading
                 )
 
+                print(f'Before {targetBeforeGate}\nDuring {target}\nAfter {targetPastGate}')
                 points = [targetBeforeGate, target, targetPastGate]
 
                 # Approach the gate using GPS drive
                 for point in points:
                     while (
                         algorithms.gps_navigate.get_approach_status(
-                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 1
                         )
                         == core.ApproachState.APPROACHING
                     ):
+                        #print("AS: ", algorithms.gps_navigate.get_approach_status( core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 1))
                         self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
                         left, right = algorithms.gps_navigate.calculate_move(
                             core.Coordinate(point[0], point[1]),

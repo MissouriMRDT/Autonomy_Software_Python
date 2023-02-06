@@ -24,15 +24,15 @@ async def async_ar_tag_detector():
 
         ids = []
 
-        # if len(tags) > 0:
-        #     ar_tags.clear()
+        if len(tags) > 0:
+            ar_tags.clear()
 
-        #     for t in tags:
-        #         if t.detected >= FRAMES_DETECTED:
-        #             ids.append(t.id)
-        #             ar_tags.append(t)
-        # else:
-        #     ar_tags.clear()
+            for t in tags:
+                if t.detected >= FRAMES_DETECTED:
+                    ids.append(t.id)
+                    ar_tags.append(t)
+        else:
+            ar_tags.clear()
 
         logger.debug("Running AR Tag async")
 
@@ -60,6 +60,7 @@ def is_gate():
     -------------
         detect (bool) - whether or not something was detected
     """
+    print("Total tags: ", len(ar_tags))
     return len(ar_tags) > 1
 
 
