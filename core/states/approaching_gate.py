@@ -136,7 +136,6 @@ class ApproachingGate(RoverState):
                     3, target[0], target[1], targetPastGateHeading
                 )
 
-                print(f'Before {targetBeforeGate}\nDuring {target}\nAfter {targetPastGate}')
                 points = [targetBeforeGate, target, targetPastGate]
 
                 # Approach the gate using GPS drive
