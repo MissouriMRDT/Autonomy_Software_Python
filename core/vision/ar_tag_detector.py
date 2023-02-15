@@ -60,7 +60,6 @@ def is_gate():
     -------------
         detect (bool) - whether or not something was detected
     """
-    print("Total tags: ", len(ar_tags))
     return len(ar_tags) > 1
 
 
