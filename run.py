@@ -13,7 +13,6 @@ import logging
 import os
 import sys
 import time
-
 import yaml
 import rich
 
@@ -21,7 +20,6 @@ import core
 import interfaces
 
 from logging import config
-from rich import logging
 
 
 def setup_logger(level) -> logging.Logger:
@@ -55,42 +53,27 @@ def main() -> None:
     parser = argparse.ArgumentParser()
 
     # Optional: Maps the file name to a known module if found
-    parser.add_argument(
-        "--file",
-        help="Specify the name of the custom module to be run",
-        default="autonomy.py"
-    )
+    parser.add_argument("--file", help="Specify the name of the custom module to be run", default="autonomy.py")
 
     # Optional: Sets the logging level for autonomy
     parser.add_argument(
         "--level",
         help="Specify the logging level to be used",
         choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
-        default="INFO"
+        default="INFO",
     )
 
     # Optional: Sets the vision system to be used
     parser.add_argument(
-        "--vision",
-        help="Specify the vision system for autonomy",
-        choices=["ZED", "SIM"],
-        default="ZED"
+        "--vision", help="Specify the vision system for autonomy", choices=["ZED", "SIM"], default="ZED"
     )
 
     # Optional: Sets whether we are streaming or not
-    parser.add_argument(
-        "--stream",
-        help="Specify if we are streaming",
-        choices=["Y", "N"],
-        default="N"
-    )
+    parser.add_argument("--stream", help="Specify if we are streaming", choices=["Y", "N"], default="N")
 
     # Optional: Sets the mode of operation
     parser.add_argument(
-        "--mode",
-        help="Sets if we are running on rover or on sim",
-        choices=["REGULAR", "SIM"],
-        default="REGULAR"
+        "--mode", help="Sets if we are running on rover or on sim", choices=["REGULAR", "SIM"], default="REGULAR"
     )
 
     args = parser.parse_args()

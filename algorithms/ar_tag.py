@@ -234,8 +234,10 @@ def track_ar_tag(center):
     c_x, c_y = center
 
     # Depth image is at half resolution
-    c_x = int(c_x / 2)
-    c_y = int(c_y / 2)
+    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
+    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+    c_x = int((c_x * depth_res_x) / img_res_x)
+    c_y = int((c_y * depth_res_y) / img_res_y)
 
     # Grab the distance from the depth map
     distance = NaN

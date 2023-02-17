@@ -30,7 +30,7 @@ SEARCH_DISTANCE = 20  # meters
 DELTA_THETA = math.pi / 4
 
 # Vision Parameters
-MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
+MAX_DETECTION_ATTEMPTS = 1500  # This should be about 1 second
 
 # LiDAR maximum distance before we decide we would yeet off a cliff.
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
@@ -57,6 +57,7 @@ TCP_OUTGOING_PORT = 11111
 
 # ArUco Detection Occurrences
 FRAMES_DETECTED = 5
+
 
 class ApproachState(Enum):
     APPROACHING = 1
