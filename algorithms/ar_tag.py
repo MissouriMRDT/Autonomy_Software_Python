@@ -20,6 +20,7 @@ import interfaces
 from core.constants import FRAMES_DETECTED
 from matplotlib import pyplot as plt
 
+
 class Tag:
     def __init__(self, tag, gps, center):
         """
@@ -76,7 +77,7 @@ class Tag:
 
     def is_same_tag(self, tag) -> bool:
         """
-           Returns if the given tag and this tag are the same
+        Returns if the given tag and this tag are the same
         """
         if self.id == tag:
             return True
@@ -116,13 +117,12 @@ class TagCorners:
         return tuple(self.corners[3])
 
     def location_of_center(self) -> Coordinates:
-        cX = (self.top_left()[0]+self.top_right()[0]) / 2
+        cX = (self.top_left()[0] + self.top_right()[0]) / 2
         cY = (self.top_left()[1] + self.bottom_left()[1]) / 2
         return cX, cY
 
     def __str__(self):
-        return f"BL: {self.bottom_left()}\nBR: {self.bottom_right()}\n" \
-               f"TR: {self.top_right()}\nTL: {self.top_left()}"
+        return f"BL: {self.bottom_left()}\nBR: {self.bottom_right()}\n" f"TR: {self.top_right()}\nTL: {self.top_left()}"
 
     def __repr__(self):
         return self.__str__()
@@ -166,6 +166,7 @@ def add_tag(tag, tag_corners):
     c_x, c_y = tag_corners.location_of_center()
 
     detected_tags.append(Tag(tag, (latitude, longitude), (c_x, c_y)))
+
 
 def detect_ar_tag(reg_img):
     "Searching"
@@ -215,7 +216,7 @@ def detect_ar_tag(reg_img):
         # No tags were identified in the frame
         for detected_tag in detected_tags:
             detected_tag.tag_not_spotted()
-            
+
     return detected_tags, reg_img
 
 

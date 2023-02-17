@@ -1,25 +1,21 @@
+#
+# Mars Rover Design Team
+# drive_board.py
+#
+# Created on Jul 19, 2020
+# Updated on Aug 21, 2022
+#
+
 from typing import Tuple
 import core
+from algorithms.helper_funcs import clamp
 import logging
-
-
-def clamp(n, min_n, max_n):
-    """
-    Clamps value n between min_n and max_n
-
-    Parameters:
-    -----------
-        n - the value to be clamped
-        min_n - the minimum value it can be
-        max_n - the maximum value it can be
-    """
-    return max(min(max_n, n), min_n)
 
 
 class DriveBoard:
     """
-    The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the drive board on the rover,
-    as well as calculate motor speeds for a desired vector.
+    The drive board interface wraps all driving commands for the autonomy system. It will send drive commands to the
+    drive board on the rover, as well as calculate motor speeds for a desired vector.
     """
 
     def __init__(self):
@@ -31,10 +27,9 @@ class DriveBoard:
         """
         Calculates the drives speeds given the vector (speed, angle)
 
-        Parameters:
-        -----------
-            Speed: -1000 to 1000
-            Angle: -360 = turn in place left, 0 = straight, 360 = turn in place right
+        :param speed: -1000 to 1000
+        :param angle: -360 = turn in place left, 0 = straight, 360 = turn in place right
+        :return: Tuple[int, int]
         """
 
         speed_left = speed_right = speed
@@ -55,10 +50,8 @@ class DriveBoard:
         """
         Sends a rovecomm packet with the specified drive speed
 
-        Parameters:
-        -----------
-            target_left (int16) - the speed to drive left motors
-            target_right (int16) - the speed to drive right motors
+        :param target_left: (int16) - the speed to drive left motors
+        :param target_right: (int16) - the speed to drive right motors
         """
 
         # Write a drive packet (UDP)

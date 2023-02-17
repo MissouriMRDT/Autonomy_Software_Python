@@ -1,5 +1,11 @@
-import time
-from typing import Tuple
+#
+# Mars Rover Design Team
+# zed_handler.py
+#
+# Created on Jan 17, 2021
+# Updated on Aug 21, 2022
+#
+
 import pyzed.sl as sl
 import logging
 from core.vision import feed_handler
