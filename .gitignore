@@ -33,3 +33,6 @@ resources/tests/output/*
 
 # Web Output Files
 *.html
+
+# Don't push pipfile lock
+*.lock
