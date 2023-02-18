@@ -30,13 +30,13 @@ SEARCH_DISTANCE = 20  # meters
 DELTA_THETA = math.pi / 4
 
 # Obstacle Avoidance Parameters.
-AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 8.0  # Minimum distance rover must be from the waypoint before avoidance kicks in.
+AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 3.0  # Minimum distance rover must be from the waypoint before avoidance kicks in.
 AVOIDANCE_PATH_NODE_INCREMENT = 0.3  # The distance between each node. Path resolution in meters.
 AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
 
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
-DISPLAY_TEST_MODE = True  # This will enable opening of OpenCV windows for vision detection live viewing.
+DISPLAY_TEST_MODE = False  # This will enable opening of OpenCV windows for vision detection live viewing.
 ZED_X_OFFSET = 0.060325
 ZED_Z_OFFSET = 0.000
 
