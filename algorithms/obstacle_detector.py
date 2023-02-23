@@ -226,7 +226,7 @@ class YOLOObstacleDetector:
             # Print info.
             self.logger.info(f"Platform is {platform.system()}. Selecting spawn process method.")
         # Create queues for results.
-        self.detection_image_queue = self.ctx.Queue(maxsize=2)
+        self.detection_image_queue = self.ctx.Queue(maxsize=1)
         self.detection_result_queue = self.ctx.Queue()
 
         # Setup zed.
