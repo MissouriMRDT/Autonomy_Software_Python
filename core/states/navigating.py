@@ -10,6 +10,8 @@ import core
 import interfaces
 import algorithms
 from core.states import RoverState
+from algorithms import geomath
+from core.vision.ar_tag_detector import clear_tags
 from core import constants
 
 
@@ -97,6 +99,27 @@ class Navigating(RoverState):
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
         )
+
+        # Calculate distance from goal for checking for markers and gates.
+        bearing, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])
+        distance *= 1000  # convert from km to m
+        if distance > 25:
+            clear_tags()
+        # move to approaching marker if 1 ar tag is spotted during marker leg type
+        if (
+            core.waypoint_handler.gps_data.leg_type == "MARKER"
+            and core.vision.ar_tag_detector.is_marker()
+            and distance < constants.SEARCH_DISTANCE
+        ):
+            return core.states.ApproachingMarker()
+
+        if (
+            (core.waypoint_handler.gps_data.leg_type == "GATE" or core.waypoint_handler.gps_data.leg_type == "MARKER")
+            and core.vision.ar_tag_detector.is_gate()
+            and distance < constants.SEARCH_DISTANCE
+        ):
+            core.waypoint_handler.gps_data.leg_type = "GATE"
+            return core.states.ApproachingGate()
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()

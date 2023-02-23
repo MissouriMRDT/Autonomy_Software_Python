@@ -9,7 +9,6 @@ import asyncio
 import logging
 import numpy as np
 import torch
-import pyzed.sl as sl
 import torch.backends.cudnn as cudnn
 import platform
 import core.constants

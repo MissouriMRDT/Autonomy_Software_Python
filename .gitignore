@@ -33,3 +33,6 @@ resources/tests/output/*
 
 # Web Output Files
 *.html
+
+# Pip wheels
+*.whl

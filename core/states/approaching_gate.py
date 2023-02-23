@@ -9,6 +9,7 @@
 import core
 import core.constants
 import interfaces
+import logging
 import algorithms
 from core.states import RoverState
 import time
@@ -75,10 +76,12 @@ class ApproachingGate(RoverState):
 
         :return: RoverState
         """
+        # Create logger object.
+        logger = logging.getLogger(__name__)
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_gate():
-            # Use get_tags to create an array of the 2 gate posts 
+            # Use get_tags to create an array of the 2 gate posts
             # (named tuples containing the distance and relative angle from the camera)
             tags = core.vision.ar_tag_detector.get_tags()
             gps_data = core.waypoint_handler.get_waypoint()
@@ -86,7 +89,11 @@ class ApproachingGate(RoverState):
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
-                self.logger.info("Gate detected, beginning navigation")
+                if len(tags) >= 2:
+                    distance = (tags[0].distance + tags[1].distance) / 2
+                    angle = ((tags[0].angle) + (tags[1].angle)) / 2
+                    logger.info(f"Gate detected {angle} degrees at distance {distance}")
+                    self.logger.info("Gate detected, beginning navigation")
                 # compute the angle across from the gate
                 # depending on where the rover is facing, this is computed differently
                 if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
@@ -153,19 +160,23 @@ class ApproachingGate(RoverState):
                 # Also calculate second point (to run through the gate)
                 targetPastGateHeading = ((angleAcrossD1 - (math.pi / 2)) + interfaces.nav_board.heading()) % 360
                 targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(
-                    -3, target[0], target[1], targetPastGateHeading
+                    -core.constants.GATE_POINT_DISTANCES, target[0], target[1], targetPastGateHeading
                 )
                 targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
-                    3, target[0], target[1], targetPastGateHeading
+                    core.constants.GATE_POINT_DISTANCES, target[0], target[1], targetPastGateHeading
                 )
 
                 points = [targetBeforeGate, target, targetPastGate]
+                logger.info(f"Gate Nav Points are: {points}")
 
                 # Approach the gate using GPS drive
                 for point in points:
                     while (
                         algorithms.gps_navigate.get_approach_status(
-                            core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
+                            core.Coordinate(point[0], point[1]),
+                            interfaces.nav_board.location(),
+                            start,
+                            core.constants.WAYPOINT_DISTANCE_THRESHOLD,
                         )
                         == core.ApproachState.APPROACHING
                     ):
@@ -180,7 +191,7 @@ class ApproachingGate(RoverState):
                         self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
 
                         interfaces.drive_board.send_drive(left, right)
-                        time.sleep(0.01)
+                        time.sleep(0.1)
                     interfaces.drive_board.stop()
 
                 self.logger.info("Reached Gate")

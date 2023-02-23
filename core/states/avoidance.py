@@ -136,7 +136,7 @@ class Avoidance(RoverState):
                     goal,
                     current,
                     self.previous_loc,
-                    225,
+                    core.constants.MAX_DRIVE_POWER,
                 )
                 self.logger.info(f"Avoiding: Driving at ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)

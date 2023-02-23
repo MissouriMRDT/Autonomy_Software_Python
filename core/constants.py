@@ -20,13 +20,14 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-WAYPOINT_DISTANCE_THRESHOLD = 1.5  # maximum threshold in meters between rover and waypoint
+WAYPOINT_DISTANCE_THRESHOLD = 0.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
 MAX_DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 MIN_DRIVE_POWER = 50  # -1000 to 1000, normally 50
+GATE_POINT_DISTANCES = 1.0
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 20  # meters
+SEARCH_DISTANCE = 5  # meters
 DELTA_THETA = math.pi / 4
 
 # Obstacle Avoidance Parameters.
@@ -36,6 +37,9 @@ AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path i
 
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second
+ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
+ARUCO_MARKER_BORDER_BITS = 1
+ARUCO_ERROR_CORRECTION_RATE = 1
 DISPLAY_TEST_MODE = True  # This will enable opening of OpenCV windows for vision detection live viewing.
 ZED_X_OFFSET = 0.060325
 ZED_Z_OFFSET = 0.000

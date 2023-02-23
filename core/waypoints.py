@@ -94,6 +94,7 @@ class WaypointHandler:
         """
 
         self.waypoints.clear()
+        self.gps_data: GPSData = None
         self.logger.info("Cleared all waypoints")
 
     def get_waypoint(self) -> GPSData:
