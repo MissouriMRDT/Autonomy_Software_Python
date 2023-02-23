@@ -88,7 +88,7 @@ class Avoidance(RoverState):
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=2.0)
+            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=1.0)
 
             # If path was generated successfully, then overwrite current path with new one.
             if path is not None:
@@ -127,7 +127,7 @@ class Avoidance(RoverState):
                     goal,
                     current,
                     self.previous_loc,
-                    0.6,
+                    core.constants.WAYPOINT_DISTANCE_THRESHOLD,
                 )
                 == core.ApproachState.APPROACHING
             ):
