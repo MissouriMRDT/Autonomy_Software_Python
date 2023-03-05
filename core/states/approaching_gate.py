@@ -87,97 +87,85 @@ class ApproachingGate(RoverState):
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
             if len(tags) == 2 and self.gate_detection_attempts >= 5 and leg_type == "GATE":
                 self.logger.info("Gate detected, beginning navigation")
-                # compute the angle across from the gate
-                # depending on where the rover is facing, this is computed differently
-                if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
-                    larger = min(tags[0].angle, tags[1].angle)
-                    smaller = max(tags[0].angle, tags[1].angle)
-                    combinedAngle = abs(larger) - abs(smaller)
-                elif tags[0].angle >= 0 and tags[1].angle >= 0:  # both tags on the left
-                    larger = max(tags[0].angle, tags[1].angle)
-                    smaller = min(tags[0].angle, tags[1].angle)
-                    combinedAngle = larger - smaller
-                else:  # one tag on left, one on right
-                    combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
-                # Calculate bearing and distance for the midpoint between the two tags
-                # use law of cosines to get the distance between the tags, midpoint will be halfway between them
-                gateWidth = math.sqrt(
-                    (tags[0].distance ** 2)
-                    + (tags[1].distance ** 2)
-                    - 2 * tags[0].distance * tags[1].distance * math.cos(math.radians(combinedAngle))
-                )
-                self.logger.info(f"Gate width {gateWidth}")
 
-                # we want to use the smaller side for our midpoint triangle
-                D1 = min(tags[0].distance, tags[1].distance)
+                # Here the angle of tags are opposite of the direction of radians
+                # E.G. A positive tags[i].angle means right while a positive radian means left
+                # So we flip it
+                polGateMark1 = (tags[0].distance, -tags[0].angle)
+                polGateMark2 = (tags[1].distance, -tags[1].angle)
+                heading = interfaces.nav_board.heading()
 
-                # use law of sines to get the angle across from D1
-                sinVal = (math.sin(math.radians(combinedAngle / 2)) * D1) / (gateWidth * 0.5)
+                # Auxillary Functions
+                def cosDeg(degs):
+                    return math.cos(math.radians(degs))
 
-                # arcsin is limited between -1 and 1, not sure why reflecting these values
-                # across the y axis works, but it does. No proof it works in all cases
-                if sinVal > 1:
-                    sinDiff = sinVal - 1
-                    sinVal = 1 - sinDiff
-                elif sinVal < -1:
-                    sinDiff = sinVal + 1
-                    sinVal = -1 - sinDiff
-                angleAcrossD1 = math.asin(sinVal)
+                def sinDeg(degs):
+                    return math.sin(math.radians(degs))
 
-                # deduce the last angle from 180 (pi)
-                angleAcrossDm = math.pi - angleAcrossD1 - math.radians(combinedAngle / 2)
+                def avg(a, b):
+                    return (a + b) / 2
 
-                # law of sines to get the last side of our triangle
-                distToMidpoint = abs(
-                    ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
-                )
-                self.logger.info(f"Calculated Distance to gate: {distToMidpoint}")
+                def polarToCartesian(p):
+                    return ((p[0] * cosDeg(p[1])), (p[0] * sinDeg(p[1])))
 
-                # Last step to get angle to the midpoint, depending on where tags are relative to rover
-                if tags[0].angle < 0 and tags[1].angle < 0:
-                    angleToMidpoint = (interfaces.nav_board.heading() - (abs(larger) - (combinedAngle / 2))) % 360
-                elif tags[0].angle >= 0 and tags[1].angle >= 0:
-                    angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
-                else:
-                    angleToMidpoint = (interfaces.nav_board.heading() + ((tags[0].angle + tags[1].angle) / 2)) % 360
+                def cartesianToPolar(p):
+                    return (math.sqrt(p[0]**2 + p[1]**2), math.degrees(math.atan(p[1] / p[0])))
 
-                self.logger.info(f"Calculated Angle to gate: {angleToMidpoint}")
+                """"
+                    Context for the following math:
+                    Imagine the 2 gate markers and the three target points to form a cross whose intersection 
+                        is the midpoint between the two gates.
+                    The 2 Gate Markers and the gate's midpoint form the Gate Arm of the cross.
+                    The 3 Targets which includes the gate's midpoint will form the Route Arm of the cross
+                    Note that the Gate Arm and Route Arm will be perpendicular to each other.
+                """
+                cartGateMark1 = polarToCartesian(polGateMark1)
+                cartGateMark2 = polarToCartesian(polGateMark2)
+                polGateMidpoint = cartesianToPolar((avg(cartGateMark1[0], cartGateMark2[0]), avg(cartGateMark1[1], cartGateMark2[1])))
 
-                start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+                self.logger.info(f"Calculated Distance to gate: {polGateMidpoint[0]}")
+                self.logger.info(f"Calculated Angle to gate: {polGateMidpoint[1]}")
 
-                # Get a GPS coordinate using our distance and bearing
-                target = algorithms.obstacle_avoider.coords_obstacle(
-                    distToMidpoint, start[0], start[1], angleToMidpoint
-                )
+                # Calculate the angle of the route arm with respect to the rover's orientation
+                # Rover Axis is the axis aligned with the rover's current orientation
+                furthestMarkerOnRoverAxis = cartGateMark1 if cartGateMark1[0] >= cartGateMark2[0] else cartGateMark2
+                closestMarkerOnRoverAxis = cartGateMark1 if cartGateMark1[0] < cartGateMark2[0] else cartGateMark2
+                diffMarkerRoverAxis = furthestMarkerOnRoverAxis[0] - closestMarkerOnRoverAxis[0]
+                diffMarkerPerpRoverAxis = closestMarkerOnRoverAxis[1] - furthestMarkerOnRoverAxis[1]
+                angleOfRouteArm = math.degrees(math.atan(diffMarkerRoverAxis / diffMarkerPerpRoverAxis))
 
-                # Also calculate second point (to run through the gate)
-                targetPastGateHeading = ((angleAcrossD1 - (math.pi / 2)) + interfaces.nav_board.heading()) % 360
-                targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(
-                    -3, target[0], target[1], targetPastGateHeading
-                )
-                targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
-                    3, target[0], target[1], targetPastGateHeading
-                )
+                headingOfMidpoint = (heading - polGateMidpoint[1]) % 360
+                headingOfRouteArm = (heading - angleOfRouteArm) % 360
 
-                points = [targetBeforeGate, target, targetPastGate]
+                startingPoint = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+
+                # Coordinates of the route arm
+                targetBetweenGate = algorithms.obstacle_avoider.coords_obstacle(polGateMidpoint[0], startingPoint[0], startingPoint[1], headingOfMidpoint)
+                targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(-3, targetBetweenGate[0], targetBetweenGate[1], headingOfRouteArm)
+                targetPastGate   = algorithms.obstacle_avoider.coords_obstacle(3, targetBetweenGate[0], targetBetweenGate[1], headingOfRouteArm)
+
+                points = [targetBeforeGate, targetBetweenGate, targetPastGate]
+                pointsLabels = ["targetBeforeGate", "targetBetweenGate", "targetPastGate"]
                 self.logger.info(f"All points: {points}")
 
+                print("High Point")
+
                 # Approach the gate using GPS drive
-                for point in points:
+                for point, label in zip(points, pointsLabels):
                     while (
                         algorithms.gps_navigate.get_approach_status(
                             core.Coordinate(point[0], point[1]),
                             interfaces.nav_board.location(),
-                            start,
+                            startingPoint,
                             core.constants.WAYPOINT_DISTANCE_THRESHOLD,
                         )
                         == core.ApproachState.APPROACHING
                     ):
-                        self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
+                        self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]} Point: {label}")
                         left, right = algorithms.gps_navigate.calculate_move(
                             core.Coordinate(point[0], point[1]),
                             interfaces.nav_board.location(),
-                            start,
+                            startingPoint,
                             core.MAX_DRIVE_POWER,
                         )
 
