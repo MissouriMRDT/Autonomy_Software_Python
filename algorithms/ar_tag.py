@@ -7,18 +7,15 @@
 #
 
 import cv2
-from cv2 import aruco
-import logging
-from numpy.core.numeric import NaN
-import itertools
-
-from typing import Tuple, List
-
 import core
-import numpy as np
+import logging
 import interfaces
+import itertools
+import numpy as np
 from core.constants import FRAMES_DETECTED
-from matplotlib import pyplot as plt
+from cv2 import aruco
+from numpy.core.numeric import NaN
+from typing import Tuple, List
 
 
 class Tag:
@@ -250,7 +247,7 @@ def track_ar_tag(center):
     index = 0
 
     while not np.isfinite(distance) and index < len(perm):
-        distance = core.vision.camera_handler.grab_depth_data()[c_y + perm[index][1]][c_x + perm[index][0]]
+        distance = float(core.vision.camera_handler.grab_depth_data()[c_y + perm[index][1]][c_x + perm[index][0]])
         index += 1
 
     # Vision system reports depth in mm, we want in meters
@@ -264,5 +261,4 @@ def track_ar_tag(center):
     angle_per_pixel = hfov / img_res_x
     pixel_offset = c_x - (img_res_x / 2)
     angle = pixel_offset * angle_per_pixel
-
     return distance, angle
