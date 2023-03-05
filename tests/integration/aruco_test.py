@@ -33,9 +33,11 @@ image = cv2.imread('resources/tests/input/single_markers_source.png')
 for (arucoName, arucoDict) in ARUCO_DICT.items():
     # load the ArUCo dictionary, grab the ArUCo parameters, and
     # attempt to detect the markers for the current dictionary
-    # arucoDict = cv2.aruco.Dictionary_get(arucoDict)
-    arucoParams = cv2.aruco.DetectorParameters_create()
-    (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict, parameters=arucoParams)
+    dictionary = cv2.aruco.getgetPredefinedDictionary(arucoDict)
+    parameters = cv2.aruco.DetectorParameters()
+    detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+    
+    (corners, ids, rejected) = detector.detectMarkers(image)
     # if at least one ArUco marker was detected display the ArUco
     # name to our terminal
     if len(corners) > 0:
