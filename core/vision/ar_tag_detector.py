@@ -47,6 +47,10 @@ async def async_ar_tag_detector():
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
 
 
+def clear_tags():
+    ar_tags.clear()
+
+
 def is_marker():
     """
     Returns whether there is a visible marker.
