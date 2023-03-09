@@ -1,5 +1,4 @@
 import asyncio
-from turtle import distance
 from algorithms import ar_tag
 import algorithms.geomath as geomath
 import algorithms.small_movements as small_movements
@@ -17,7 +16,6 @@ import numpy as np
 import core.constants as constants
 import geopy.distance
 import geopy
-from core.states import new_search_pattern
 
 # NO GPS VERSION
 # drives in a straight line through the gate (this will be bad at steep angles)
@@ -148,8 +146,6 @@ class ApproachingGate(RoverState):
             return self
 
         if self.is_turning:
-            print("TURNING")
-
             if self.og_angle < 0:
                 interfaces.drive_board.send_drive(-150, 150)
             else:

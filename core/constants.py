@@ -41,6 +41,10 @@ DELTA_THETA = math.pi / 4
 
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 1500  # This should be about 1 second
+ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
+ARUCO_MARKER_BORDER_BITS = 1
+ARUCO_ERROR_CORRECTION_RATE = 1
+DISPLAY_TEST_MODE = False  # This will enable opening of OpenCV windows for vision detection live viewing.
 
 # LiDAR maximum distance before we decide we would yeet off a cliff.
 LIDAR_MAXIMUM = 250  # 2.5m to test early, need to determine actual value.
