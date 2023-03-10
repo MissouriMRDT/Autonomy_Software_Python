@@ -49,6 +49,7 @@ async def async_ar_tag_detector():
 
 def clear_tags():
     ar_tags.clear()
+    algorithms.ar_tag.detected_tags.clear()
 
 
 def is_marker():

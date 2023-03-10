@@ -87,12 +87,6 @@ class ApproachingGate(RoverState):
         # If we've seen at least 5 frames of 2 tags, assume it's a gate
         self.logger.info("Gate detected, beginning navigation")
 
-        if not self.is_turning:
-            distance = (tags[0].distance + tags[1].distance) / 2
-            angle = ((tags[0].angle) + (tags[1].angle)) / 2
-            if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
-                self.is_first = False
-
         if self.is_first:
             # Get
             post_1_coord = [tags[0].distance, tags[0].angle]
@@ -144,6 +138,12 @@ class ApproachingGate(RoverState):
             self.og_angle = ((tags[0].angle) + (tags[1].angle)) / 2
             core.vision.ar_tag_detector.clear_tags()
             return self
+
+        if not self.is_turning:
+            distance = (tags[0].distance + tags[1].distance) / 2
+            angle = ((tags[0].angle) + (tags[1].angle)) / 2
+            if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
+                self.is_first = False
 
         if self.is_turning:
             if self.og_angle < 0:

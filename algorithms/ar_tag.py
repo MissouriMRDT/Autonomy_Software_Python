@@ -155,14 +155,13 @@ def detect_ar_tag(image):
         # Changes the list of ids from 2-dim to 1-dim
         tag_ids_in_frame = [id[0] for id in tag_ids_in_frame]
         detected_tags_ids = [tag.id for tag in detected_tags]
-
         for tag, id in zip(tags_in_image, tag_ids_in_frame):
             try:
                 detected_tag = detected_tags[detected_tags_ids.index(id)]
                 detected_tag.tag_spotted(get_gps(), tag.location_of_center())
-            except ValueError:
+            except ValueError as e:
+                print(e)
                 add_tag(id, tag)
-
     return detected_tags, image
 
 
@@ -189,7 +188,6 @@ def track_ar_tag(center):
     # Find some permutations we can use in case of noisy data
     coordinates = [0, 1, -1, 2, -2, 3, -3, 4, -4]
     perm = list(itertools.permutations(coordinates, 2))
-
     # Grab the distance from the depth map, iterating over pixels if the distance is not finite
     index = 0
 
@@ -199,7 +197,6 @@ def track_ar_tag(center):
 
     # Vision system reports depth in mm, we want in meters
     distance /= 1000
-
     # Grab the camera parameters
     img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
     hfov = core.vision.camera_handler.get_hfov()
