@@ -156,12 +156,16 @@ def detect_ar_tag(image):
         tag_ids_in_frame = [id[0] for id in tag_ids_in_frame]
         detected_tags_ids = [tag.id for tag in detected_tags]
         for tag, id in zip(tags_in_image, tag_ids_in_frame):
-            try:
-                detected_tag = detected_tags[detected_tags_ids.index(id)]
-                detected_tag.tag_spotted(get_gps(), tag.location_of_center())
-            except ValueError as e:
-                print(e)
+            index = -1
+            for i, det_id in enumerate(detected_tags_ids):
+                if det_id == id:
+                    index = i
+                    break
+            if index > 0:
+                detected_tags[index].tag_spotted(get_gps(), tag.location_of_center())
+            else:
                 add_tag(id, tag)
+
     return detected_tags, image
 
 
