@@ -164,13 +164,6 @@ class ApproachingGate(RoverState):
         if angle == self.last_angle:
             self.not_seen += 1
             if self.not_seen > 10:
-                # t1 = time.time()
-                # t2 = time.time()
-                # # drive past gate for 10 seconds
-                # while t2 - t1 < 3:
-                #     t2 = time.time()
-                #     interfaces.drive_board.send_drive(150, 150)
-                # interfaces.drive_board.stop()
                 if not (0 < distance < 5) or np.isnan(distance):
                     distance = 3
                 small_movements.time_drive(distance + 2)
