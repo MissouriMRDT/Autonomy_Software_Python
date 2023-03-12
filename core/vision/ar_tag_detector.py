@@ -13,6 +13,7 @@ import core
 import algorithms
 import logging
 from core.constants import FRAMES_DETECTED
+import time
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -71,7 +72,11 @@ def is_gate():
     :return: detect (bool) - whether something was detected
     """
 
-    return len(ar_tags) > 1
+    # NEED TO UPDATE COMMENT
+    ar_tag_ids = [tag.id for tag in ar_tags]
+    if 0 in ar_tag_ids and 4 in ar_tag_ids:
+        return True
+    return False
 
 
 def get_tags() -> List[Tag]:
@@ -82,3 +87,14 @@ def get_tags() -> List[Tag]:
     """
 
     return ar_tags
+
+
+def get_gate_tags() -> List[Tag]:
+    """
+    Need To Comment
+    """
+    tags = []
+    for tag in ar_tags:
+        if tag.id == 0 or tag.id == 4:
+            tags.append(tag)
+    return tags

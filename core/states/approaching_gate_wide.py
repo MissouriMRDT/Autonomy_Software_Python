@@ -17,6 +17,8 @@ import core.constants as constants
 import geopy.distance
 import geopy
 
+import matplotlib.pyplot as plt
+
 # NO GPS VERSION
 # drives in a straight line through the gate (this will be bad at steep angles)
 
@@ -76,7 +78,7 @@ class ApproachingGate(RoverState):
 
         # Use get_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
-        tags = core.vision.ar_tag_detector.get_tags()
+        tags = core.vision.ar_tag_detector.get_gate_tags()
         gps_data = core.waypoint_handler.get_waypoint()
         orig_goal, orig_start, leg_type = gps_data.data()
 
@@ -88,9 +90,8 @@ class ApproachingGate(RoverState):
         self.logger.info("Gate detected, beginning navigation")
 
         if self.is_first:
-            # Get
-            post_1_coord = [tags[0].distance, tags[0].angle]
-            post_2_coord = [tags[1].distance, tags[1].angle]
+            post_1_coord = [tags[0].distance, -tags[0].angle]
+            post_2_coord = [tags[1].distance, -tags[1].angle]
 
             print("Current GPS coords", start[0], start[1])
             print("POST 1 COORD:", post_1_coord)
@@ -233,7 +234,6 @@ class ApproachingGate(RoverState):
 
 
 def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
-
     # This function finds two points that the rover can use to pass through a gate.
     # It does this by finding a line perpinduclar to the gate that passes through the midpoint.
     # It then finds the points on that line that are exactly "distance" away from the midpoint.

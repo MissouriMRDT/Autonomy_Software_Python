@@ -29,6 +29,7 @@ class Tag:
         self.lat, self.long = gps
         self.cX, self.cY = center
         self.detected = 1
+        self.blank = 0
         self.distance, self.angle = (NaN, NaN)
 
     def tag_spotted(self, gps, detected_center):
@@ -39,11 +40,19 @@ class Tag:
         """
 
         self.detected += 1
+        self.blank = 0
         self.lat, self.long = gps
         self.cX, self.cY = detected_center
 
         if self.detected >= core.constants.ARUCO_FRAMES_DETECTED:
             self.distance, self.angle = track_ar_tag((self.cX, self.cY))
+
+    def tag_not_spotted(self):
+        self.blank += 1
+
+        if self.blank >= 10:
+            self.blank = 0
+            self.detected = 0
 
     def print(self):
         """
@@ -155,16 +164,21 @@ def detect_ar_tag(image):
         # Changes the list of ids from 2-dim to 1-dim
         tag_ids_in_frame = [id[0] for id in tag_ids_in_frame]
         detected_tags_ids = [tag.id for tag in detected_tags]
+
         for tag, id in zip(tags_in_image, tag_ids_in_frame):
             index = -1
             for i, det_id in enumerate(detected_tags_ids):
                 if det_id == id:
                     index = i
                     break
-            if index > 0:
+            if index >= 0:
                 detected_tags[index].tag_spotted(get_gps(), tag.location_of_center())
             else:
                 add_tag(id, tag)
+
+        for tag in detected_tags:
+            if tag.id not in detected_tags_ids:
+                tag.tag_not_spotted()
 
     return detected_tags, image
 
