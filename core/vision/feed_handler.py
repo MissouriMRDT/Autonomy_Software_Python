@@ -16,6 +16,7 @@ if sys.platform == "linux":
     # Pyfakewebcam requires linux
     from pyfakewebcam import FakeWebcam
 
+
 def feed_process(
     pipe,
     num,
@@ -46,7 +47,7 @@ def feed_process(
 
     # Only attempt to stream video if on Linux (due to package dependencies)
     if stream_video and sys.platform == "linux":
-        streamer: FakeWebcam = pyfakewebcam.FakeWebcam(
+        streamer: FakeWebcam = FakeWebcam(
             f"/dev/video{num}", int(resolution_x / 2), int(resolution_y / 2)
         )  # append v4l output to list of cameras
 
