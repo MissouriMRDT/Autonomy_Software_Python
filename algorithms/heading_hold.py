@@ -33,7 +33,3 @@ def get_motor_power_from_heading(speed, goal_heading):
     heading_correction = clamp(heading_correction, -180, 180)
     logger.debug(f"Heading: {heading_correction}, Speed: {speed}")
     return interfaces.drive_board.calculate_move(speed, heading_correction)
-
-
-def get_motor_power_from_positions(current_pos, desired_pos):
-    """ """

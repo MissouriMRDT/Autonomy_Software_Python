@@ -227,7 +227,7 @@ class YOLOObstacleDetector:
             self.logger.info(f"Platform is {platform.system()}. Selecting spawn process method.")
         # Create queues for results.
         self.detection_image_queue = self.ctx.Queue(maxsize=1)
-        self.detection_result_queue = self.ctx.Queue()
+        self.detection_result_queue = self.ctx.Queue(maxsize=1)
 
         # Setup zed.
         # Try to use zed, if fails assume we are using the sim.

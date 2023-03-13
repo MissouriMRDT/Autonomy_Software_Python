@@ -176,8 +176,14 @@ class ASTAR_AVOIDER:
                 # Append to array.
                 self.obstacle_coords.append((obstacle_easting, obstacle_northing))
                 # If the length of the array is greater than 50, remove the oldest element.
-                if len(self.obstacle_coords) > 50:
-                    self.obstacle_coords = self.obstacle_coords[:-25]
+                if len(self.obstacle_coords) > constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH:
+                    self.obstacle_coords = self.obstacle_coords[: -constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH]
+
+    def clear_obstacles(self):
+        """
+        Empty the obstacle queue.
+        """
+        self.obstacle_coords.clear()
 
     def get_obstacle_coords(self):
         """

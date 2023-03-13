@@ -34,6 +34,7 @@ DELTA_THETA = math.pi / 4
 AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 3.0  # Minimum distance rover must be from the waypoint before avoidance kicks in.
 AVOIDANCE_PATH_NODE_INCREMENT = 0.3  # The distance between each node. Path resolution in meters.
 AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
+AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a time.
 
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second

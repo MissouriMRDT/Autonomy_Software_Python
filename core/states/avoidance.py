@@ -34,6 +34,7 @@ class Avoidance(RoverState):
     def exit(self):
         # Cancel all state specific coroutines and reset state variables.
         self.path.clear()
+        self.astar.clear_obstacles()
 
     def on_event(self, event) -> RoverState:
         """
