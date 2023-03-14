@@ -89,7 +89,7 @@ class Avoidance(RoverState):
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=1.0)
+            path = self.astar.plan_astar_avoidance_route(max_route_size=100, near_object_threshold=2.0)
 
             # If path was generated successfully, then overwrite current path with new one.
             if path is not None:
@@ -98,13 +98,14 @@ class Avoidance(RoverState):
                 #########################################################
                 # Get Obstacle Coordinates
                 obstacle_coords = self.astar.get_obstacle_coords()
-                # Append obstacle coords to path.
-                all_points = path + obstacle_coords
                 # Split XY array to X and Y arrays.
-                xs = [t[0] * -1 for t in all_points]
-                ys = [t[1] for t in all_points]
+                xp = [t[0] for t in path]
+                yp = [t[1] for t in path]
+                xo = [t[0] for t in obstacle_coords]
+                yo = [t[1] for t in obstacle_coords]
                 # Plot and save output.
-                plt.scatter(xs, ys)
+                plt.scatter(xp, yp, marker="^")
+                plt.scatter(xo, yo, marker="o", c="black")
                 plt.gca().set_aspect("equal", adjustable="box")
                 plt.savefig("logs/avoidance_gps_path.png")
 
