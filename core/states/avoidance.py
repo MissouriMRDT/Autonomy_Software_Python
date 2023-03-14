@@ -8,6 +8,7 @@
 
 import time
 from algorithms import obstacle_avoider
+from algorithms import stanley_controller
 import matplotlib.pyplot as plt
 import core
 import core.constants
@@ -24,17 +25,30 @@ class Avoidance(RoverState):
     def start(self):
         # Create state specific variable.
         self.astar = obstacle_avoider.ASTAR_AVOIDER()
-        self.path = []
-        self.next_lat = None
-        self.next_lon = None
+        self.rover_position_state = None
+        self.path_xs = []
+        self.path_ys = []
+        self.rover_xs = []
+        self.rover_ys = []
+        self.rover_yaws = []
+        self.rover_vs = []
+        self.target_idx = None
         self.previous_loc = interfaces.nav_board.location()
         self.last_point = False
         self.path_start_time = 0.0
 
     def exit(self):
         # Cancel all state specific coroutines and reset state variables.
-        self.path.clear()
         self.astar.clear_obstacles()
+        self.path_xs.clear()
+        self.path_ys.clear()
+        self.rover_xs.clear()
+        self.rover_ys.clear()
+        self.rover_yaws.clear()
+        self.rover_vs.clear()
+        self.target_idx = None
+        # Set position state back to none.
+        self.rover_position_state = None
 
     def on_event(self, event) -> RoverState:
         """
@@ -89,76 +103,46 @@ class Avoidance(RoverState):
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=100, near_object_threshold=2.0)
+            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=2.0)
 
             # If path was generated successfully, then overwrite current path with new one.
             if path is not None:
-                #########################################################
-                # DEBUG THIS IS HELPFUL
-                #########################################################
-                # Get Obstacle Coordinates
-                obstacle_coords = self.astar.get_obstacle_coords()
-                # Split XY array to X and Y arrays.
-                xp = [t[0] for t in path]
-                yp = [t[1] for t in path]
-                xo = [t[0] for t in obstacle_coords]
-                yo = [t[1] for t in obstacle_coords]
-                # Plot and save output.
-                plt.scatter(xp, yp, marker="^")
-                plt.scatter(xo, yo, marker="o", c="black")
-                plt.gca().set_aspect("equal", adjustable="box")
-                plt.savefig("logs/avoidance_gps_path.png")
-
                 # Store path.
-                self.path = path
-                # Pop first element out.
-                self.next_lat, self.next_lon = self.path.pop(0)
+                self.path_xs = [point[0] for point in path]
+                self.path_ys = [point[1] for point in path]
+                # Clear other rover state variables when path is regenerated.
+                self.path_xs.clear()
+                self.path_ys.clear()
+                self.rover_xs.clear()
+                self.rover_ys.clear()
+                self.rover_yaws.clear()
+                self.rover_vs.clear()
+                self.target_idx = None
                 # Set path start timer.
                 self.path_start_time = time.time()
 
         # Check if path is empty.
-        if len(self.path) > 0 or self.last_point:
-            # Create goal coordinate with next lat lon vars.
-            goal = core.Coordinate(self.next_lat, self.next_lon)
+        if len(self.path_xs) > 0 or self.last_point:
             # Get current gps location.
             current = interfaces.nav_board.location()
+            # Get current heading.
+            heading = interfaces.nav_board.heading()
 
-            # Drives to each of the points in the list of points around the object in sequence
-            if (
-                algorithms.gps_navigate.get_approach_status(
-                    goal,
-                    current,
-                    self.previous_loc,
-                    core.constants.WAYPOINT_DISTANCE_THRESHOLD,
+            # If this is the first run interation for the avoidance state, then initialize some variables with the current rover information.
+            if self.rover_position_state is None:
+                # Create new state and give intial values of the rovers current position, heading, and velocity.
+                self.rover_position_state = stanley_controller.State(current[0], current[1], heading)
+
+                # Store the initial rover state in x, y, yaw, and velocity arrays.
+                self.rover_xs.append(self.rover_position_state.x)
+                self.rover_ys.append(self.rover_position_state.y)
+                self.rover_yaws.append(self.rover_position_state.yaw)
+                self.rover_vs.append(self.rover_position_state.v)
+                self.target_idx, _ = stanley_controller.calc_target_index(
+                    self.rover_position_state, self.path_xs, self.path_ys
                 )
-                == core.ApproachState.APPROACHING
-            ):
-                # Find and set the next goal in the path.
-                left, right = algorithms.gps_navigate.calculate_move(
-                    goal,
-                    current,
-                    self.previous_loc,
-                    core.constants.MAX_DRIVE_POWER,
-                )
-                self.logger.info(f"Avoiding: Driving at ({left}, {right})")
-                interfaces.drive_board.send_drive(left, right)
-            else:
-                # Store the old path point.
-                self.previous_loc = core.Coordinate(self.next_lat, self.next_lon)
-                # If we are at the last point in the path set toggle to loop one more time.
-                if len(self.path) > 1:
-                    # Pop out the next lat and lon waypoint in the path.
-                    self.next_lat, self.next_lon = self.path.pop(0)
-                    # Set toggle.
-                    self.last_point = False
-                elif not self.last_point:
-                    # Pop out the next lat and lon waypoint in the path.
-                    self.next_lat, self.next_lon = self.path.pop(0)
-                    # Set toggle.
-                    self.last_point = True
-                elif len(self.path) <= 0:
-                    # If path is empty and we have already completed last point iteration, reset toggle.
-                    self.last_point = False
+
+            # Make sure we aren't at the end of the path.
         else:
             # Stop the drive board.
             # interfaces.drive_board.stop()
@@ -166,11 +150,10 @@ class Avoidance(RoverState):
             self.logger.info(
                 "Avoidance state completed a path from obstacle_avoider algorithm. Going back to Navigating."
             )
-            print(len(self.path))
 
         # Condition for moving out of avoidance state.
         if (
-            len(self.path) <= 1 and not self.last_point
+            len(self.path_xs) <= 1 and not self.last_point
         ) or self.astar.get_distance_from_goal() <= core.constants.AVOIDANCE_ENABLE_DISTANCE_THRESHOLD:
             # Clear matplotlib plt object.
             plt.clf()
