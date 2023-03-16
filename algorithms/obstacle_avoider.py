@@ -69,13 +69,14 @@ class Node:
         return self.f > other.f
 
 
-def return_path(current_node, utm_zone):
+def return_path(current_node, utm_zone, return_gps=False):
     """
     Uses the current node in the heapq and works backwards though the queue, adding the next
     parent node to the list of points.
 
-    :params current_node: The current node to working backwards from to build the path.
-    :params utm_zone: Your current UTM zone on the planet Earth. This must be correct of GPS coords will not be converted correctly.
+    :param current_node: The current node to working backwards from to build the path.
+    :param utm_zone: Your current UTM zone on the planet Earth. This must be correct of GPS coords will not be converted correctly.
+    :param return_gps: Whether or not to conver the coords from utm to gps before returning.
 
     :returns path: The compiled path containing the lat and lon gps coords.
     """
@@ -85,12 +86,19 @@ def return_path(current_node, utm_zone):
 
     # Loop backwards through each parent node until none exist.
     while current is not None:
-        # Use the given UTM zone to convert the UTM coords back to GPS coords.
-        gps_coords = utm.to_latlon(*(current.position[0], current.position[1], utm_zone[0], utm_zone[1]))
+        # Get coords from node.
+        coords = current.position
+
+        # Check if we should convert utm to gps.
+        if return_gps:
+            # Use the given UTM zone to convert the UTM coords back to GPS coords.
+            coords = utm.to_latlon(*(coords[0], coords[1], utm_zone[0], utm_zone[1]))
+
         # Append current nodes position.
-        path.append(gps_coords)
+        path.append(coords)
         # Set current node equal to current node's parent node.
         current = current.parent
+
     # Return reversed path.
     return path[::-1]
 
@@ -218,7 +226,7 @@ class ASTAR_AVOIDER:
 
         return distance_from_goal
 
-    def plan_astar_avoidance_route(self, max_route_size=10, near_object_threshold=2.0):
+    def plan_astar_avoidance_route(self, max_route_size=10, near_object_threshold=2.0, return_gps=False):
         """
         Uses the given list of object angles and distances, converts those to GPS waypoints, and then uses the A* (astar)
         algorithm to find the shortest path around the obstacle to a given endpoint in front of the robot.
@@ -290,14 +298,14 @@ class ASTAR_AVOIDER:
             if outer_iterations > max_interations:
                 # Print info message.
                 logger.info("Unable to solve path: too many iterations.")
-                return return_path(current_node, self.utm_zone)
+                return return_path(current_node, self.utm_zone, return_gps)
 
             # Found the goal.
             if (
                 fabs(current_node.position[0] - self.end.position[0]) <= 1.0
                 and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
             ):
-                return return_path(current_node, self.utm_zone)
+                return return_path(current_node, self.utm_zone, return_gps)
 
             ####################################################################
             # Generate children locations for current node.
@@ -381,3 +389,37 @@ class ASTAR_AVOIDER:
         # If unable to calulate path, then return nothing
         logger.info("Couldn't find path around obstacle to destination.")
         return None
+
+    def calculate_yaws_from_path(self, cx, cy, start_angle=0.0, radians=True):
+        """
+        Computes the appropiate absolute yaw from a given set of Xs and Ys. These should
+        produce a sensible path and the two lists should be the same length.
+        All yaw angle are calulated in radians by default.
+
+        :param cx: The list of x points within the path.
+        :param cy: The list of y points within the path.
+        :param start_angle: The initial angle for the first point.
+        :param radians: Whether of not to use radians for the angle. (On by default)
+        :return: ([yaws]) An array containing the yaw angles for each point.
+        """
+        # Create instance variables.
+        yaws = []
+
+        # Check if both lists are equal size.
+        if len(cx) == len(cy):
+            # Loop through points. The zip function returns iterables for a sublist starting at 0:-1 and a sublist starting at 1:end for each list x and y.
+            for i, x, y, x_next, y_next in zip(range(len(cx) - 1), cx[:-1], cy[:-1], cx[1:], cy[1:]):
+                # Basic trig to find angle between two points.
+                angle = math.atan2((y_next - y), (x_next - x))
+
+                # Check if we are converting to degrees.
+                if not radians:
+                    angle = math.degrees(angle)
+
+                # Append angle to yaws list.
+                yaws.append(angle)
+
+            # Copy second to last angle to last point since the last point doesn't have a point after it to find angle from.
+            yaws.append(yaws[-1])
+
+        return yaws

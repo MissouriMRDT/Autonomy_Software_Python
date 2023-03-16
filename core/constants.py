@@ -22,7 +22,7 @@ RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 WAYPOINT_DISTANCE_THRESHOLD = 1.0  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
-MAX_DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+MAX_DRIVE_POWER = 600  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 MIN_DRIVE_POWER = 50  # -1000 to 1000, normally 50
 GATE_POINT_DISTANCES = 3.0
 
@@ -32,9 +32,11 @@ DELTA_THETA = math.pi / 4
 
 # Obstacle Avoidance Parameters.
 AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 3.0  # Minimum distance rover must be from the waypoint before avoidance kicks in.
+AVOIDANCE_OBJECT_DISTANCE_THRESHOLD = 5.0  # Minimum distance rover must be from an obstacle before avoidance kicks in.
 AVOIDANCE_PATH_NODE_INCREMENT = 0.3  # The distance between each node. Path resolution in meters.
-AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
+AVOIDANCE_PATH_EXPIRATION_SECONDS = 10  # The time in seconds before a new path is force generated.
 AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a time.
+AVOIDANCE_MAX_SPEED_MPS = 0.3  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
 # Vision Parameters
 MAX_DETECTION_ATTEMPTS = 15  # This should be about 1 second

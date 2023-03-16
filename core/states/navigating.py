@@ -123,6 +123,7 @@ class Navigating(RoverState):
 
         if (
             core.vision.obstacle_avoidance.is_obstacle()
+            and core.vision.obstacle_avoidance.get_distance() < constants.AVOIDANCE_OBJECT_DISTANCE_THRESHOLD
             and (algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000)
             > constants.AVOIDANCE_ENABLE_DISTANCE_THRESHOLD
         ):  # If distance to object is less than distance to goal, continue
