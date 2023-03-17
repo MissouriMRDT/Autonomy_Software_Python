@@ -297,7 +297,7 @@ class ASTAR_AVOIDER:
             # Check if we have hit the maximum number of iterations.
             if outer_iterations > max_interations:
                 # Print info message.
-                logger.info("Unable to solve path: too many iterations.")
+                logger.warning("Unable to solve path: too many iterations.")
                 return return_path(current_node, self.utm_zone, return_gps)
 
             # Found the goal.
@@ -387,7 +387,7 @@ class ASTAR_AVOIDER:
                 heapq.heappush(open_list, child)
 
         # If unable to calulate path, then return nothing
-        logger.info("Couldn't find path around obstacle to destination.")
+        logger.warning("Couldn't find path around obstacle to destination.")
         return None
 
     def calculate_yaws_from_path(self, cx, cy, start_angle=0.0, radians=True):

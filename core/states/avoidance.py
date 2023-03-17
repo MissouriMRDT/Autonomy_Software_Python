@@ -106,7 +106,7 @@ class Avoidance(RoverState):
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Pass object list to obstalce avoider algorithm for processing/calculating of path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=40, near_object_threshold=2.0)
+            path = self.astar.plan_astar_avoidance_route(max_route_size=30, near_object_threshold=1.0)
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
             if path is not None:
@@ -168,10 +168,10 @@ class Avoidance(RoverState):
                     )
                     # Calculate adjusted heading. Add 90 to convert back to gps heading.
                     goal_heading = -np.rad2deg(heading + delta_adjustment) + 90
+                    goal_speed = core.constants.MAX_DRIVE_POWER * (1 + acceleration)
 
                     # Update the current rover state.
                     self.rover_position_state.update(current[0], current[1], heading)
-                    # self.rover_position_state.update_bicycle(acceleration, delta_adjustment)
 
                     # Store the initial rover state in x, y, yaw, and velocity arrays.
                     self.rover_xs.append(self.rover_position_state.x)
@@ -180,7 +180,7 @@ class Avoidance(RoverState):
                     self.rover_vs.append(self.rover_position_state.v)
 
                     # Write path 1 second before it expires.
-                    if int(time.time()) % 3 == 0:
+                    if int(time.time()) % 5 == 0:
                         plt.cla()
                         # Get and plot Obstacle Coordinates
                         obstacle_coords = self.astar.get_obstacle_coords()
@@ -198,9 +198,7 @@ class Avoidance(RoverState):
                         plt.savefig("logs/avoidance_gps_path.png")
 
                     # Send drive board commands to drive at a certain speed at a certain angle.
-                    left, right = heading_hold.get_motor_power_from_heading(
-                        core.constants.MAX_DRIVE_POWER, goal_heading
-                    )
+                    left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)
                     # Set drive powers.
                     self.logger.info(f"Avoidance: Driving at ({left}, {right})")
                     interfaces.drive_board.send_drive(left, right)

@@ -19,9 +19,9 @@ import time
 import math
 
 k = 0.6  # control gain
-Kp = 0.1  # speed proportional gain
+Kp = 1.5  # speed proportional gain
 L = 1.0  # [m] Wheel base of vehicle
-max_steer = np.radians(10.0)  # [rad] max steering angle
+max_steer = np.radians(60.0)  # [rad] max steering angle
 
 
 class State(object):
