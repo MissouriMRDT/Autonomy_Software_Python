@@ -120,10 +120,10 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
     return (lat2, lon2)
 
 
-class ASTAR_AVOIDER:
+class ASTAR:
     def __init__(self):
         """
-        Initialize the ASTAR_AVOIDER class.
+        Initialize the ASTAR class.
         """
         # Create class variables.
         self.obstacle_coords = []

@@ -26,7 +26,7 @@ class Avoidance(RoverState):
 
     def start(self):
         # Create state specific variable.
-        self.astar = obstacle_avoider.ASTAR_AVOIDER()
+        self.astar = obstacle_avoider.ASTAR()
         self.rover_position_state = None
         self.path_xs = []
         self.path_ys = []
