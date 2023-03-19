@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from core.states import RoverState
 from algorithms import geomath
 from core.vision.ar_tag_detector import clear_tags
-from algorithms import obstacle_avoider
+from algorithms.obstacle_avoider import ASTAR
 from algorithms import stanley_controller
 from algorithms import heading_hold
 from core import constants
@@ -36,7 +36,7 @@ class Navigating(RoverState):
         Schedule Navigating
         """
         # Create state specific variable.
-        self.astar = obstacle_avoider.ASTAR()
+        self.astar = ASTAR()
         self.rover_position_state = None
         self.path_xs = []
         self.path_ys = []
@@ -47,7 +47,6 @@ class Navigating(RoverState):
         self.rover_vs = []
         self.last_idx = 0
         self.target_idx = 0
-        self.generate_path = True
         self.path_start_time = 0
 
     def exit(self):
@@ -127,6 +126,7 @@ class Navigating(RoverState):
             self.logger.error("Navigating: No waypoint, please add a waypoint to start navigating")
             return self.on_event(core.AutonomyEvents.NO_WAYPOINT)
 
+        # Pull info out of waypoint.
         goal, start, leg_type = gps_data.data()
         self.logger.debug(
             f"Navigating: Driving to ({goal[0]}, {goal[1]}) from ({start[0]}, {start[1]}. Currently at: ({current[0]}, {current[1]}"
@@ -179,8 +179,6 @@ class Navigating(RoverState):
                 # Get new wapoint goal.
                 gps_data = core.waypoint_handler.get_new_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
-                # Set toggle to generate new path.
-                self.generate_path = True
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
             # Otherwise Trigger Next State
@@ -217,8 +215,8 @@ class Navigating(RoverState):
         # Update time since last path generation.
         time_since_last_path = time.time() - self.path_start_time
         # Now that we have our gps waypoints. Generate a path if not already done.
-        if time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS:
-            # Pass object list to obstalce avoider algorithm for processing/calculating of path.
+        if time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 0:
+            # Generate path.
             path = self.astar.plan_astar_avoidance_route(max_route_size=30, near_object_threshold=0.0)
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
@@ -290,14 +288,9 @@ class Navigating(RoverState):
                 self.rover_vs.append(self.rover_position_state.v)
 
                 # Write path 1 second before it expires.
-                if int(time.time()) % 5 == 0:
+                if int(time.time()) % 2 == 0:
                     plt.cla()
-                    # Get and plot Obstacle Coordinates
-                    obstacle_coords = self.astar.get_obstacle_coords()
-                    xo = [utm.from_latlon(t[0], t[1])[0] for t in obstacle_coords]
-                    yo = [utm.from_latlon(t[0], t[1])[1] for t in obstacle_coords]
                     # Plot path, current location, and target_index.
-                    plt.plot(xo, yo, "s", label="obstacles")
                     plt.gca().set_aspect("equal", adjustable="box")
                     plt.plot(self.path_xs, self.path_ys, ".r", label="course")
                     plt.plot(self.rover_xs, self.rover_ys, "-b", label="trajectory")
@@ -305,7 +298,7 @@ class Navigating(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/navigation_gps_path.png")
+                    plt.savefig("logs/.navigation_gps_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)

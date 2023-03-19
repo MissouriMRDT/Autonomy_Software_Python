@@ -193,7 +193,7 @@ def calculate_yaws_from_path(cx, cy, start_angle=0.0, radians=True):
     yaws = []
 
     # Check if both lists are equal size.
-    if len(cx) == len(cy):
+    if len(cx) == len(cy) and len(cx) > 1:
         # Loop through points. The zip function returns iterables for a sublist starting at 0:-1 and a sublist starting at 1:end for each list x and y.
         for i, x, y, x_next, y_next in zip(range(len(cx) - 1), cx[:-1], cy[:-1], cx[1:], cy[1:]):
             # Basic trig to find angle between two points.

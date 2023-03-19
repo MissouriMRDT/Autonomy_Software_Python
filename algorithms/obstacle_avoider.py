@@ -209,23 +209,6 @@ class ASTAR:
 
         return coords
 
-    def get_distance_from_goal(self):
-        """
-        Calculates and returns the current distance from the waypoint goal.
-
-        :returns distance_from_goal: The straight line distance from the endpoint.
-        """
-        # Calculate distance from goal.
-        if self.start.position is not None and self.end.position is not None:
-            distance_from_goal = math.sqrt(
-                math.pow(self.start.position[0] - self.end.position[0], 2)
-                + math.pow(self.start.position[1] - self.end.position[1], 2)
-            )
-        else:
-            distance_from_goal = -1.0
-
-        return distance_from_goal
-
     def plan_astar_avoidance_route(self, max_route_size=10, near_object_threshold=2.0, return_gps=False):
         """
         Uses the given list of object angles and distances, converts those to GPS waypoints, and then uses the A* (astar)
@@ -406,7 +389,7 @@ class ASTAR:
         yaws = []
 
         # Check if both lists are equal size.
-        if len(cx) == len(cy):
+        if len(cx) == len(cy) and len(cx) > 0:
             # Loop through points. The zip function returns iterables for a sublist starting at 0:-1 and a sublist starting at 1:end for each list x and y.
             for i, x, y, x_next, y_next in zip(range(len(cx) - 1), cx[:-1], cy[:-1], cx[1:], cy[1:]):
                 # Basic trig to find angle between two points.
@@ -414,7 +397,7 @@ class ASTAR:
 
                 # Check if we are converting to degrees.
                 if not radians:
-                    angle = math.degrees(angle)
+                    angle = np.rad2deg(angle)
 
                 # Append angle to yaws list.
                 yaws.append(angle)
