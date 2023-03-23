@@ -36,6 +36,8 @@ class NavBoard:
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
+        core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["AccelerometerData"]["dataId"], self.process_accel_data)
+
 
     def process_imu_data(self, packet):
         """
@@ -57,6 +59,16 @@ class NavBoard:
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
         self._location = Coordinate(lat, lon)
+
+    def process_accel_data(self, packet) -> None:
+        """
+        Process Accelerometer Data
+        :param packet: a_x, a_y, a_z with respect to the rover's 
+            frame of reference
+        """
+
+        self._accel = packet.data
+        self.logger.debug(f"Incoming Accelerometer Data: ({self._accel[0]}, {self._accel[1]}, {self._accel[2]})")
 
     def pitch(self) -> float:
         return self._pitch
