@@ -7,6 +7,7 @@ STATE_SIZE = 9
 MEASUREMENT_SIZE = 3
 DIMENSIONS = 3
 ORDER_OF_MOTION = 3
+GRAVITY = -9.81
 
 
 class MovementHistory(object):
@@ -56,31 +57,32 @@ class ImuData:
         self.loc_ay = loc_acc[1]
         self.loc_az = loc_acc[2]
 
-    def getGlobalAccelerations(self):
-        def sinDeg(theta):
-            return math.sin(math.radians(theta))
+    def sphericalToCartesian(self, r, azimuth, inclination):
+        x = r * math.sin(inclination) * math.cos(azimuth)
+        y = r * math.sin(inclination) * math.sin(azimuth)
+        z = r * math.cos(inclination)
+        return x, y, z
+
+    def getGlobalAccelerations(self, gravity=True):
+        ax_azimuth = math.radians(self.heading)
+        ay_azimuth = math.radians(90 + self.heading)
         
-        def cosDeg(theta):
-            return math.cos(math.radians(theta))
+        ax_inclination = math.radians(90 - self.pitch)
+        ay_inclination = math.radians(90 + self.roll)
 
-        glo_ax  = self.loc_ax * cosDeg(self.heading) * cosDeg(self.pitch)
-        glo_ax += self.loc_ay * sinDeg(self.heading) * cosDeg(self.roll)
-        glo_ax += self.loc_az * sinDeg(self.pitch) * cosDeg(self.roll)
+        ax_in_glo = self.sphericalToCartesian(self.loc_ax, ax_azimuth, ax_inclination)
+        ay_in_glo = self.sphericalToCartesian(self.loc_ay, ay_azimuth, ay_inclination)
+        
+        glo_ax, glo_ay, glo_az = [v+w for v,w in zip(ax_in_glo, ay_in_glo)]
 
-        glo_ay  = self.loc_ax * sinDeg(self.heading) * cosDeg(self.pitch)
-        glo_ay += self.loc_ay * cosDeg(self.heading) * cosDeg(self.roll)
-        glo_ay += self.loc_az * cosDeg(self.pitch) * sinDeg(self.roll)
-
-        glo_az  = self.loc_ax * cosDeg(self.heading) * sinDeg(self.pitch)
-        glo_az += self.loc_ay * cosDeg(self.heading) * sinDeg(self.roll)
-        glo_az += self.loc_az * cosDeg(self.pitch) * cosDeg(self.roll)
+        if gravity:
+            glo_az -= GRAVITY
 
         return np.array([
             [glo_ax],
             [glo_ay],
             [glo_az]
         ])
-
 
 # TEMPORARY COMMENTS
 # Init_pos = [x,y,z]
@@ -144,6 +146,9 @@ class RoverKalmanFilter(KalmanFilter):
 
     def getEstimatedPos(self):
         return self._getDimState(0)
+    
+    def getEstimatedGPSPos(self):
+        pass
 
     def getEstimatedVel(self):
         return self._getDimState(1)
@@ -167,3 +172,13 @@ class RoverKalmanFilter(KalmanFilter):
     def _getDimState(self, order, as_list=False):
         state = self.x[order * DIMENSIONS: (order + 1) * DIMENSIONS].reshape(1, DIMENSIONS)[0]
         return list(state) if as_list else state
+
+def test():
+    # r, p, h
+    orient = [0,45,45]
+    accel = [1,0,0]
+    imu_data = ImuData(orient, accel)
+    print(imu_data.getGlobalAccelerations(gravity=False))
+
+if __name__ == "__main__":
+    test()
