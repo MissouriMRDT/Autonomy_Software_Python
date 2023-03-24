@@ -1,6 +1,7 @@
 from filterpy.kalman import KalmanFilter
 from filterpy.common import Q_discrete_white_noise
 import numpy as np
+import transforms3d.euler as euler
 import math
 
 STATE_SIZE = 9
@@ -57,32 +58,41 @@ class ImuData:
         self.loc_ay = loc_acc[1]
         self.loc_az = loc_acc[2]
 
-    def sphericalToCartesian(self, r, azimuth, inclination):
-        x = r * math.sin(inclination) * math.cos(azimuth)
-        y = r * math.sin(inclination) * math.sin(azimuth)
-        z = r * math.cos(inclination)
-        return x, y, z
-
     def getGlobalAccelerations(self, gravity=True):
-        ax_azimuth = math.radians(self.heading)
-        ay_azimuth = math.radians(90 + self.heading)
-        
-        ax_inclination = math.radians(90 - self.pitch)
-        ay_inclination = math.radians(90 + self.roll)
-
-        ax_in_glo = self.sphericalToCartesian(self.loc_ax, ax_azimuth, ax_inclination)
-        ay_in_glo = self.sphericalToCartesian(self.loc_ay, ay_azimuth, ay_inclination)
-        
-        glo_ax, glo_ay, glo_az = [v+w for v,w in zip(ax_in_glo, ay_in_glo)]
-
         if gravity:
-            glo_az -= GRAVITY
+            loc_acc = self._removeGravity()
+        else:
+            loc_acc = self.loc_ax, self.loc_ay, self.loc_az
 
-        return np.array([
-            [glo_ax],
-            [glo_ay],
-            [glo_az]
-        ])
+        rot_mat = self._rotationMatrix()
+
+        a_in_glo = rot_mat @ np.diag(loc_acc)
+
+        glo_a = np.sum(a_in_glo, axis=1).reshape(3, 1)
+
+        return glo_a
+
+    def _rotationMatrix(self):
+        pitch = math.radians(self.pitch)
+        roll = math.radians(self.roll)
+        yaw = math.radians(self.heading)
+        yaw = math.radians((-self.heading) % 360)
+
+        R = euler.euler2mat(yaw, pitch, roll, 'rzyx')
+        return R
+
+    def _removeGravity(self):
+        rot_mat = self._rotationMatrix()
+
+        g_global = np.array([0, 0, -9.81])
+        loc_g = np.dot(np.linalg.inv(rot_mat), g_global)
+
+        loc_acc = [self.loc_ax, self.loc_ay, self.loc_az]
+
+        acc = [a - g for a, g in zip(loc_acc, loc_g)]
+        print("HERE YOU GO: ", acc)
+
+        return acc
 
 # TEMPORARY COMMENTS
 # Init_pos = [x,y,z]
@@ -172,13 +182,3 @@ class RoverKalmanFilter(KalmanFilter):
     def _getDimState(self, order, as_list=False):
         state = self.x[order * DIMENSIONS: (order + 1) * DIMENSIONS].reshape(1, DIMENSIONS)[0]
         return list(state) if as_list else state
-
-def test():
-    # r, p, h
-    orient = [0,45,45]
-    accel = [1,0,0]
-    imu_data = ImuData(orient, accel)
-    print(imu_data.getGlobalAccelerations(gravity=False))
-
-if __name__ == "__main__":
-    test()
