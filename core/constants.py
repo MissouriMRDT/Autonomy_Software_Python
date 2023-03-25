@@ -26,9 +26,11 @@ MAX_DRIVE_POWER = 600  # -1000 to 1000, normally 250 dropped lower for early tes
 MIN_DRIVE_POWER = 50  # -1000 to 1000, normally 50
 GATE_POINT_DISTANCES = 3.0
 NAVIGATION_PATH_EXPIRATION_SECONDS = 30  # The time in seconds before a new path is force generated.
+METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
+AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 5  # meters
+SEARCH_DISTANCE = 25  # meters
 DELTA_THETA = math.pi / 4
 SEARCHPATTERN_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
 
