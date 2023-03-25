@@ -24,8 +24,6 @@ pandas = "*"
 tdqm = "*"
 seaborn = "*"
 utm = "*"
-torch = "*"
-torchvision = "*"
 
 [dev-packages]
 pytest = "*"
