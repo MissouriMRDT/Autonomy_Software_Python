@@ -31,6 +31,7 @@ jobs:
       with:
         command: install -d # Install all dependencies, including development ones
     - name: Unit and coverage test with pytest (excludes tests not in the tests/ folder)
-      run: |
-        pipenv run pytest -v --cov=../Autonomy_Software tests/
+      uses: VaultVulp/action-pipenv@v2.0.1
+      with:
+        command: run pytest -v --cov=../Autonomy_Software tests/
 
