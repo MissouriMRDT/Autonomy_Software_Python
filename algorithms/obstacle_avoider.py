@@ -3,6 +3,7 @@ import math
 import interfaces
 from geopy import Point
 from geopy.distance import VincentyDistance
+import numpy as np
 import heapq
 import logging
 import utm
