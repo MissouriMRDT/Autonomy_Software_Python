@@ -10,6 +10,7 @@ import core
 import logging
 import asyncio
 import interfaces.nav_board
+import utm
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,8 @@ def main() -> None:
     # Setup feeds for AR Tag and obstacle avoidance
     core.vision.feed_handler.add_feed(2, "artag", stream_video=core.vision.STREAM_FLAG)
     core.vision.feed_handler.add_feed(3, "obstacle", stream_video=core.vision.STREAM_FLAG)
+    # Enable ZED positional tracking.
+    core.vision.camera_handler.enable_pose_tracking()
 
     # Create our two detection tasks
     loop.create_task(core.vision.ar_tag_detector.async_ar_tag_detector())
@@ -76,7 +79,7 @@ async def autonomy_state_loop():
             ),
             False,
         )
-
+        
         # Core state machine runs every X ms, to prevent unnecessarily fast computation.
         # Sensor data is processed separately, as that is the bulk of processing time
         await asyncio.sleep(core.EVENT_LOOP_DELAY)

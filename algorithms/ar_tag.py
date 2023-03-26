@@ -171,7 +171,7 @@ def detect_ar_tag(reg_img):
 
     # Add Tags to Tag Class Object
     if ids is not None:
-        reg_img = cv2.aruco.drawDetectedMarkers(reg_img, corners)
+        # reg_img = cv2.aruco.drawDetectedMarkers(reg_img, corners)
         index_counter = 0
 
         # Create a list of all ids seen in frame

@@ -18,10 +18,11 @@ import matplotlib.pyplot as plt
 import time
 import math
 
-k = 0.6  # control gain
-Kp = 1.5  # speed proportional gain
-L = 1.0  # [m] Wheel base of vehicle
+k = 0.5  # control gain
+Kp = 0.5  # speed proportional gain
+L = 2.0  # [m] Wheel base of vehicle
 max_steer = np.radians(60.0)  # [rad] max steering angle
+yaw_tolerance = np.deg2rad(2) # Error tolerance off of the path.
 
 
 class State(object):
@@ -124,12 +125,19 @@ def stanley_control(state, cx, cy, cyaw, last_target_idx):
     if last_target_idx >= current_target_idx:
         current_target_idx = last_target_idx
 
+    # Calculate yaw offset.
+    error = cyaw[current_target_idx] - state.yaw
     # Theta_e corrects the heading error.
-    theta_e = normalize_angle(cyaw[current_target_idx] - state.yaw)
+    theta_e = normalize_angle(error)
     # Theta_d corrects the cross track error.
     theta_d = math.atan2(k * error_front_axle, state.v)
     # Steering control.
     delta = theta_e + theta_d
+
+    # Yaw tolerance.
+    if (abs(error) < yaw_tolerance):
+        # Set turn adjustment to zero.
+        delta = 0
 
     return delta, current_target_idx
 

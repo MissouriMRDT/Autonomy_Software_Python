@@ -12,6 +12,7 @@ from core.vision import feed_handler
 from core.vision import Camera
 import threading
 import time
+import numpy as np
 from threading import Lock
 
 
@@ -210,9 +211,18 @@ class ZedHandler(Camera):
         """
         Returns the estimated pose of the ZED camera
         """
+        # Get pose from ZED camera.
         pose = sl.Pose()
-        cam_pose = self.zed.get_position(pose)
-        return cam_pose
+        status = self.zed.get_position(pose, sl.REFERENCE_FRAME.WORLD)
+
+        # Unpack pose values.
+        translation = sl.Translation()
+        tx = round(pose.get_translation(translation).get()[0], 3)
+        ty = round(pose.get_translation(translation).get()[1], 3)
+        tz = round(pose.get_translation(translation).get()[2], 3)
+        orientation = sl.Orientation()
+        ox, oy, oz = np.rad2deg(pose.get_orientation(orientation).get_rotation_matrix().get_euler_angles())
+        return tx, ty, tz, ox, oy, oz
 
     def start(self):
         """

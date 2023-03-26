@@ -26,6 +26,7 @@ def haversine(lat1, lon1, lat2, lon2):
         distance : float (kilometers)
             distance to target in kilometers
     """
+    print("HAVERSIN: ", lat1, lon1, lat2, lon2)
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
 

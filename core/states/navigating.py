@@ -138,6 +138,10 @@ class Navigating(RoverState):
         if distance > 25:
             clear_tags()
 
+        print("GPS CURRENT: ", current)
+        print("GPS GOAL: ", goal)
+        print("Distance from goal: ", distance)
+
         # Move to approaching marker if 1 ar tag is spotted during marker leg type
         if (
             core.waypoint_handler.gps_data.leg_type == "MARKER"
