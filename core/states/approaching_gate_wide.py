@@ -115,7 +115,7 @@ class ApproachingGate(RoverState):
                 algorithms.gps_navigate.get_approach_status(
                     core.Coordinate(point[0], point[1]), interfaces.nav_board.location(), start, 0.5
                 )
-                == core.ApproachState.APPROACHING
+                != core.ApproachState.CLOSE_ENOUGH
             ):
                 print("FIRST GPS POINT")
 
