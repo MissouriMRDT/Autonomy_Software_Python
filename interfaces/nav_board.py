@@ -67,6 +67,8 @@ class NavBoard:
         return self._roll
 
     def heading(self) -> float:
+        # Check if ZED relative positioning is turned on.
+        if self.
         heading = core.vision.camera_handler.get_pose()[4]
         if heading < 0:
             heading = 360 + heading
