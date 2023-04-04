@@ -92,7 +92,8 @@ def main() -> None:
     parser.add_argument(
         "--obstacle-avoidance", 
         choices=["ENABLE", "DISABLE"], 
-        default="DISABLE"
+        default="DISABLE",
+        help="Enable or disable YOLO algorithm for obstacle detection."
     )
     
     # Add optional argument for selecting yolo classes.
@@ -103,6 +104,14 @@ def main() -> None:
         help="filter by class(corresponds to order of classes in dataset .yaml file): --classes 0, or --classes 0 2 3",
     )
 
+    # Add optional argument for zed relative distance toggle.
+    parser.add_argument(
+        "--relative-positioning",
+        choices=["ENABLE", "DISABLE"],
+        default="DISABLE",
+        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM position."
+    )
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -111,6 +120,11 @@ def main() -> None:
     # SIM mode defaults vision subsystem to also originate from simulator
     if args.mode == "SIM":
         args.vision = "SIM"
+
+    # Make sure SIM mode is off when relative distance is enabled.
+    if args.relative_positioning == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
+        # Print warning message.
+        self.logger.warning("ZED relative positioning is not available when mode is SIM or vision mode isn't ZED")
 
     # Add the examples' folder to our path, so we can run example files
     sys.path.insert(0, "example/")
