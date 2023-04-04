@@ -83,6 +83,7 @@ class ApproachingMarker(RoverState):
             # Currently only orienting based on one AR Tag
             distance = tags[0].distance
             angle = tags[0].angle
+            self.logger.info(f"MARKER DISTANCE: {distance} ANGLE: {angle}")
 
             left, right = algorithms.follow_marker.drive_to_marker(core.MAX_DRIVE_POWER, angle)
 
