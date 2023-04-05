@@ -145,7 +145,7 @@ def main() -> None:
     core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes)
 
     # Initialize the Interfaces
-    interfaces.setup()
+    interfaces.setup(args.relative_positioning)
 
     # Sleep so everything can be set up
     time.sleep(2)
