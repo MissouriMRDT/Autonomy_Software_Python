@@ -76,6 +76,7 @@ class ApproachingGate(RoverState):
 
     async def run(self) -> RoverState:
 
+
         # Use get_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
         tags = core.vision.ar_tag_detector.get_gate_tags()
@@ -105,7 +106,7 @@ class ApproachingGate(RoverState):
                 return self
 
             print("TB4GATE:", targetBeforeGate.latitude, targetBeforeGate.longitude)
-            print("MIDPOINT:", midpoint.latitude, midpoint)
+            print("MIDPOINT:", midpoint.latitude, midpoint.longitude)
             print("PAST GATE:", targetPastGate.latitude, targetPastGate.longitude)
 
             point = targetBeforeGate.latitude, targetBeforeGate.longitude
@@ -131,6 +132,7 @@ class ApproachingGate(RoverState):
 
                 interfaces.drive_board.send_drive(left, right)
                 time.sleep(0.01)
+
             interfaces.drive_board.stop()
             self.is_first = False
             self.is_turning = True
@@ -141,8 +143,10 @@ class ApproachingGate(RoverState):
             return self
 
         if not self.is_turning:
-            distance = (tags[0].distance + tags[1].distance) / 2
-            angle = ((tags[0].angle) + (tags[1].angle)) / 2
+            p0 = (tags[0].distance, tags[0].angle)
+            p1 = (tags[1].distance, tags[1].angle)
+            distance, angle = polar_mid(p0, p1)
+
             if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
                 self.is_first = False
 
@@ -159,8 +163,10 @@ class ApproachingGate(RoverState):
                 return self
 
         # Calculate angle and distance of center point between ar tags.
-        distance = (tags[0].distance + tags[1].distance) / 2
-        angle = ((tags[0].angle) + (tags[1].angle)) / 2
+        
+        p0 = (tags[0].distance, tags[0].angle)
+        p1 = (tags[1].distance, tags[1].angle)
+        distance, angle = polar_mid(p0, p1)
 
         if angle == self.last_angle:
             self.not_seen += 1
@@ -248,7 +254,7 @@ def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
     #   drive through the gate.
     #
     #   The first object is the point closest to the rover.
-
+    
     # Distance each point will be from the gate (meters)
     distance = 3
 
@@ -311,3 +317,23 @@ def find_gate_path(polar_p1, polar_p2, current_gps_pos, current_heading):
         return dest_point_1, dest_point_mid, dest_point_2
     else:
         return dest_point_2, dest_point_mid, dest_point_1
+    
+def polar_to_cartesian(r,a):
+    a = math.radians(a)
+    x = r * math.cos(a)
+    y = r * math.sin(a)
+    return x,y
+
+def midpoint(p1, p2):
+    return (p1[0] + p2[0])/2, (p1[1] + p2[1])/2
+
+def cartesian_to_polar(x,y):
+    r = math.sqrt(x**2 + y**2)
+    a = math.degrees(math.atan(y/x))
+    return r,a
+
+def polar_mid(p1, p2):
+    c1 = polar_to_cartesian(*p1)
+    c2 = polar_to_cartesian(*p2)
+    m = midpoint(c1,c2)
+    return cartesian_to_polar(*m)
