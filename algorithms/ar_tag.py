@@ -61,6 +61,9 @@ class Tag:
 
         print(output.format(id=self.id, detected=self.detected))
 
+    def __repr__(self) -> str:
+        return f"{self.id}: {self.detected} {self.blank}"
+
 
 class ArucoTagCorners:
     """
@@ -148,6 +151,7 @@ def get_gps():
 
 
 def detect_ar_tag(image):
+    print("RUNNING")
     "Searching"
     """
     Detects an AR Tag in the provided color image.
@@ -160,10 +164,11 @@ def detect_ar_tag(image):
     tags_corners, tag_ids_in_frame = tag_detector.detectMarkers(image)
     tags_in_image = [ArucoTagCorners(tag_corners[0]) for tag_corners in tags_corners]
 
+    tag_ids_in_frame = [] if tag_ids_in_frame is None else [id[0] for id in tag_ids_in_frame]
+    detected_tags_ids = [] if detected_tags is None else [tag.id for tag in detected_tags]
+
     if tag_ids_in_frame is not None:
         # Changes the list of ids from 2-dim to 1-dim
-        tag_ids_in_frame = [id[0] for id in tag_ids_in_frame]
-        detected_tags_ids = [tag.id for tag in detected_tags]
 
         for tag, id in zip(tags_in_image, tag_ids_in_frame):
             index = -1
@@ -176,9 +181,9 @@ def detect_ar_tag(image):
             else:
                 add_tag(id, tag)
 
-        for tag in detected_tags:
-            if tag.id not in detected_tags_ids:
-                tag.tag_not_spotted()
+    for tag in detected_tags:
+        if tag.id not in tag_ids_in_frame:
+            tag.tag_not_spotted()
 
     return detected_tags, image
 
