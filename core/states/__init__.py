@@ -12,7 +12,7 @@ from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
 from core.states.approaching_marker import ApproachingMarker
-from core.states.approaching_gate_wide import ApproachingGate
+from core.states.approaching_gate_ref import ApproachingGate
 from core.states.avoidance import Avoidance
 from enum import Enum
 
