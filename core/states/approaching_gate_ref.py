@@ -33,6 +33,7 @@ class ApproachingGate(RoverState):
     def start(self):
         # Is it the first iteration of the state?
         self.is_first = True
+        self.gate_search = True
         # Id of the left tag
         self.tagL_id = 0
         # Current approaching_gate (AG) state
@@ -118,11 +119,14 @@ class ApproachingGate(RoverState):
         :return: self
         """
 
-        # First iteration of this state
-        if self.is_first:
+        print(f"TAG NAV STATUS: {self.distance} {dist_thres}")
 
-            # Make sure gate is in view
+                    # Make sure gate is in view
+        if self.gate_search:
             self.find_gate()
+
+        # First iteration of this state
+        elif self.is_first:
 
             # Initialize information on the gate tag's positions
             tags = core.vision.ar_tag_detector.get_gate_tags()
@@ -139,6 +143,7 @@ class ApproachingGate(RoverState):
         elif self.distance is not None and self.distance < dist_thres:
                self.state = next_state
                self.is_first = True
+               self.gate_search = True
 
         # Move the rover towards the target
         else:
@@ -146,6 +151,8 @@ class ApproachingGate(RoverState):
 
             # Both tags are visible
             if len(tags) == 2:
+                print("FULL RELIANCE")
+                print(tags)
                 tagL, tagR = self.parse_tags(tags)
                 self.distance, self.angle = calc_point_func(tagL, tagR)
                 self.last_tags_both_detected = [tagL, tagR]
@@ -154,6 +161,7 @@ class ApproachingGate(RoverState):
 
             # Only one tag is visible
             elif len(tags) == 1:
+                print("SINGULAR RELIANCE")
                 tagL, tagR = self.parse_tags(tags)
 
                 # Which tag isn't visible
@@ -172,6 +180,7 @@ class ApproachingGate(RoverState):
             
             # Not tags seen
             else:
+                print("GPS RELIANCE")
                 pos = interfaces.nav_board.location()
 
                 if self.targ_coord is None:
@@ -280,9 +289,14 @@ class ApproachingGate(RoverState):
         Rotate the rover until the gate is in sight
         """
         
-        while not core.vision.ar_tag_detector.is_gate():
-            interfaces.drive_board.send_drive(150, -150)
-        interfaces.drive_board.stop()
+        # while not core.vision.ar_tag_detector.is_gate():
+        #     interfaces.drive_board.send_drive(150, -150)
+        # interfaces.drive_board.stop()
+
+        if not core.vision.ar_tag_detector.is_gate():
+            small_movements.rotate_rover(10)
+        else:
+            self.gate_search = False
 
     def recenter(self, a:float) -> None:
         """
