@@ -1,8 +1,5 @@
-import asyncio
-from algorithms import ar_tag
 import algorithms.geomath as geomath
 import algorithms.small_movements as small_movements
-import algorithms.obstacle_avoider as obs_avoid
 from core.vision.ar_tag_detector import is_gate
 import core
 import interfaces
@@ -12,23 +9,21 @@ import time
 import logging
 import math
 from core.vision.ar_tag_detector import clear_tags
-import numpy as np
-import core.constants as constants
 import geopy.distance
 import geopy
-
-import matplotlib.pyplot as plt
-
-# NO GPS VERSION
-# drives in a straight line through the gate (this will be bad at steep angles)
+from collections.abc import Callable
+from typing import Tuple
 
 # Create logger object.
 logger = logging.getLogger(__name__)
 
-OFFSET_THRESHOLD = 1
+GATE_OFFSET = 1
 DISTANCE_THRESHOLD = 0.5
 TURN_FREQ = 10
 PAST_GATE_DISTANCE = 5
+
+POLAR_COORD = Tuple[float, float]
+CART_COORD = Tuple[float, float]
 
 class ApproachingGate(RoverState):
     """
@@ -36,22 +31,19 @@ class ApproachingGate(RoverState):
     """
 
     def start(self):
-        # Schedule AR Tag detection
-        self.num_detection_attempts = 0
-        self.gate_detection_attempts = 0
-        self.last_angle = 1000
-        self.not_seen = 0
-        self.is_turning = False
-        self.og_angle = 0
-
+        # Is it the first iteration of the state?
         self.is_first = True
+        # Id of the left tag
         self.tagL_id = 0
+        # Current approaching_gate (AG) state
         self.state = 'front'
-        self.distance = None
-        self.angle = None
+        # Angle and distance from current target
+        self.distance, self.angle = 0, 0
+        # Amount of iterations on tag_nav
         self.iteration = 1
+        # GPS coordinates of the current target
         self.targ_coord = None
-
+        # List of the tags the last time they were both spotted in one frame
         self.last_tags_both_detected = []
 
     def exit(self):
@@ -88,62 +80,71 @@ class ApproachingGate(RoverState):
         return state
 
     async def run(self) -> RoverState:
-
-
-        # Use get_tags to create an array of the 2 gate posts
-        # (named tuples containing the distance and relative angle from the camera)
-        tags = core.vision.ar_tag_detector.get_gate_tags()
-        gps_data = core.waypoint_handler.get_waypoint()
-        orig_goal, orig_start, leg_type = gps_data.data()
-
         self.logger.info("Gate detected, beginning navigation")
 
-        start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
-
-        # If we've seen at least 5 frames of 2 tags, assume it's a gate
-        self.logger.info("Gate detected, beginning navigation")
-
+        # Approach a point in front of the gate
         if self.state == 'front':
+            self.logger.info("Current AG State: Front")
             self.tag_nav(self.calc_point_before, 'mid', dist_thres=2, turn_freq=10)
+
+        # Approach a point in the middle of the gate
         elif self.state == 'mid':
-            self.tag_nav(self.calc_point_midpoint, 'zoom', dist_thres=1, turn_freq=10)
+            self.logger.info("Current AG State: Middle")
+            self.tag_nav(self.calc_point_midpoint, 'zoom', dist_thres=0.5, turn_freq=10)
+
+        # Go straight a certain distance
         elif self.state == 'zoom':
+            self.logger.info("Current AG State: Zoom")
             small_movements.time_drive(PAST_GATE_DISTANCE)
             self.state = 'complete'
             interfaces.drive_board.stop()
+
+        # We have accomplished the goal
         else:
+            self.logger.info("Current AG State: Complete")
             return self.on_event(core.AutonomyEvents.REACHED_MARKER)
         
-
         return self
 
-    def tag_nav(self, calc_point_func, next_state, dist_thres=1, turn_freq=100):
-        if self.is_first:
-            print('FINDING GATE')
+    def tag_nav(self, calc_point_func:Callable, next_state:str, dist_thres=1., turn_freq=10):
+        """
+        Travels to a target point that is defined by its position relative to the two gate tags.
 
+        :param calc_point_func: A function that takes the polar position of the two gate markers with
+            respect to the rover and returns the polar position of the target marker with respect to the rover.
+        :param next_state: The next state after we reach the target
+        :param dist_thres: How close we need to be to the target
+        :param turn_freq: After how many iterations before rotating the rover to face the target
+        :return: self
+        """
+
+        # First iteration of this state
+        if self.is_first:
+
+            # Make sure gate is in view
             self.find_gate()
+
+            # Initialize information on the gate tag's positions
             tags = core.vision.ar_tag_detector.get_gate_tags()
             tagL, tagR = self.parse_tags(tags)
             self.distance,self.angle = calc_point_func(tagL, tagR)
-            
             self.update_target_gps()
 
-            print("RECENTERING")
-            
+            # Rotate the rover so it's facing the target
             self.recenter(self.angle)
             
             self.is_first = False
 
+        # Have we gotten close enough to the target?
         elif self.distance is not None and self.distance < dist_thres:
-               print("COMPLETE")
                self.state = next_state
                self.is_first = True
-               print("MOVING ONTO ", next_state)
-               time.sleep(2)
 
+        # Move the rover towards the target
         else:
             tags = core.vision.ar_tag_detector.get_gate_tags()
 
+            # Both tags are visible
             if len(tags) == 2:
                 tagL, tagR = self.parse_tags(tags)
                 self.distance, self.angle = calc_point_func(tagL, tagR)
@@ -151,12 +152,15 @@ class ApproachingGate(RoverState):
 
                 self.update_target_gps()
 
+            # Only one tag is visible
             elif len(tags) == 1:
-                pass
                 tagL, tagR = self.parse_tags(tags)
 
+                # Which tag isn't visible
                 which = 0 if tags[0].id == self.tagL_id else 1
                 
+                # Estimate the position of the missing tag
+                # based on last time they were seen together
                 if which == 0:
                     tagR = self.calc_other_tag(tagL, which)
                 else:
@@ -165,29 +169,38 @@ class ApproachingGate(RoverState):
                 self.distance, self.angle = calc_point_func(tagL, tagR)
 
                 self.update_target_gps()
-
+            
+            # Not tags seen
             else:
                 pos = interfaces.nav_board.location()
 
                 if self.targ_coord is None:
                     raise Exception("Target coordinate can't be empty")
 
+                # Use the estimated GPS position of the tag to determine its relative position
                 self.distance, self.angle = geomath.haversine(pos[0], pos[1], self.targ_coord[0], self.targ_coord[1])
 
-
-            print(f"Distance {self.distance}\nAngle {self.angle}")
-
+            # Recenter the rover on the target
             if self.iteration % turn_freq == 0:
                self.recenter(self.angle)
 
             self.iteration += 1
 
             self.move(self.angle)
+
             time.sleep(0.01)
 
         return self
     
-    def pol_target_gps(self):
+    def pol_target_gps(self) -> POLAR_COORD:
+        """
+        Find the polar position of the target with respect to the rover
+        using gps.
+
+        :return distance: distance from the rover
+        :return angle: angle with respect to the rover's heading
+        """
+
         curr = interfaces.nav_board.location()
         head = interfaces.nav_board.heading()
 
@@ -199,68 +212,96 @@ class ApproachingGate(RoverState):
 
         return distance, angle
     
-    def update_target_gps(self):
+    def update_target_gps(self) -> None:
+        """"
+        Update the gps position of the target using the last recorded distance and angle.
+        """
+
         curr = interfaces.nav_board.location()
         head = interfaces.nav_board.heading()
 
         self.targ_coord = self.calc_gps(curr, head, self.distance, self.angle)
 
-    def calc_point_before(self, tagL, tagR):
-        def calc_line_intersect(cart1, cart2):
+    def calc_point_before(self, tagL:POLAR_COORD, tagR:POLAR_COORD) -> POLAR_COORD:
+        """
+        This function calculates the polar position of a point in front of the gate
+        a distance GATE_OFFSET with respect to the rover.
+
+        :param tagL: The polar position of the left gate tag
+        :param tagR: The polar position of the right gate tag
+        :return: The polar position of the tag before the gate
+        """
+
+        def find_intersect_line(cart1, cart2):
             slope = (cart1[1] - cart2[1])/(cart1[0]-cart2[0])
             b = cart1[1] - slope * cart1[0]
             return slope, b
         
-        cartL = self.polar_to_cartesian(*tagL)
-        cartR = self.polar_to_cartesian(*tagR)
+        cartL = polar_to_cartesian(*tagL)
+        cartR = polar_to_cartesian(*tagR)
 
-        m, b = calc_line_intersect(cartL, cartR)
+        # The slope and y-intercept of the line intersecting both gate tags
+        m, b = find_intersect_line(cartL, cartR)
 
-        mid_x, mid_y = self.midpoint(cartL, cartR)
+        # Midpoint of the gate (cartesian)
+        mid_x, mid_y = midpoint(cartL, cartR)
 
+        # Find the position GATE_OFFSET in front of the gate
         m_perp = -(1/m)
         theta = math.atan(m_perp)
 
-        x_diff = math.cos(theta) * OFFSET_THRESHOLD
-        y_diff = math.sin(theta) * OFFSET_THRESHOLD
+        x_diff = math.cos(theta) * GATE_OFFSET
+        y_diff = math.sin(theta) * GATE_OFFSET
 
         final_x = mid_x - x_diff
         final_y = mid_y - y_diff
 
-        return self.cartesian_to_polar(final_x, final_y)
+        return cartesian_to_polar(final_x, final_y)
 
-    def calc_point_midpoint(self, tagL, tagR): 
-        c1 = self.polar_to_cartesian(*tagL)
-        c2 = self.polar_to_cartesian(*tagR)
+    def calc_point_midpoint(self, tagL:POLAR_COORD, tagR:POLAR_COORD) -> POLAR_COORD: 
+        """
+        This function calculates the polar position of a point in the middle of the gate
+        with respect to the rover.
 
-        m = self.midpoint(c1,c2)
+        :param tagL: The polar position of the left gate tag
+        :param tagR: The polar position of the right gate tag
+        :return: The polar position of the tag in the middle of the gate
+        """
 
-        return self.cartesian_to_polar(*m) 
+        c1 = polar_to_cartesian(*tagL)
+        c2 = polar_to_cartesian(*tagR)
 
-    def midpoint(self, p1, p2):
-        return (p1[0] + p2[0])/2, (p1[1] + p2[1])/2
+        m = midpoint(c1,c2)
 
-    def polar_to_cartesian(self, r,a):
-        a = math.radians(a)
-        x = r * math.cos(a)
-        y = r * math.sin(a)
-        return x,y
+        return cartesian_to_polar(*m) 
 
-    def cartesian_to_polar(self, x,y):
-        r = math.sqrt(x**2 + y**2)
-        a = math.degrees(math.atan(y/x))
-        return r,a
-
-    def find_gate(self):
+    def find_gate(self) -> None:
+        """
+        Rotate the rover until the gate is in sight
+        """
+        
         while not core.vision.ar_tag_detector.is_gate():
             interfaces.drive_board.send_drive(150, -150)
         interfaces.drive_board.stop()
 
-    def recenter(self, a):
+    def recenter(self, a:float) -> None:
+        """
+        Rotate the rover until it's facing the specified angle with respect to it's current position.
+
+        :param a: The angle of the target with respect to the rover
+        """
+        
         small_movements.rotate_rover(a)
 
-    def move(self, a):
+    def move(self, a:float) -> None:
+        """
+        Move the rover in the direction of the specified angle
+
+        :param a: The angle of the target with respect to the rover
+        """
+
         left, right = algorithms.follow_marker.drive_to_marker(300, a)
+
         if a < -0.5:
             right *= 1.2
         elif a > 0.5:
@@ -271,44 +312,61 @@ class ApproachingGate(RoverState):
 
         interfaces.drive_board.send_drive(left, right)
 
-    def calc_gps(self, pos, heading, d, a):
+    def calc_gps(self, pos, heading:float, d:float, a:float):
+        """
+        Calculate the gps postion of the polar position defined by d and a.
+
+        :param pos: Current GPS position of the rover
+        :param heading: Heading of the rover
+        :param d: Distance to the target from the rover
+        :param a: Angle to the target with respect to the rover's heading
+        :return: The coordinate of the target point
+        """
+        
         pos = geopy.Point(pos[0], pos[1])
         targ_point = geopy.distance.distance(meters=d).destination(
             pos, bearing=(heading + math.degrees(a)) % 360 
         )
-        return targ_point
+        return core.Coordinate(targ_point[0], targ_point[1])
 
 
-    def calc_other_tag(self, known_tag, which):
+    def calc_other_tag(self, known_tag, which:int):
+        """
+        Calculate the position of the unknown tag using the known tags position
+
+        :param known_tag: Polar position of the known tag with respect to the rover
+        :param which: 0 means left and 1 means right is the known tag
+        """
+        
         tagR_b, tagL_b = self.last_tags_both_detected
 
         if tagR_b is None or tagL_b is None:
             raise Exception('Tags must be initialized')
 
-        cart_tagL_b = self.polar_to_cartesian(*tagL_b)
-        cart_tagR_b = self.polar_to_cartesian(*tagR_b)
+        cart_tagL_b = polar_to_cartesian(*tagL_b)
+        cart_tagR_b = polar_to_cartesian(*tagR_b)
 
         if which:
             tagR = known_tag
-            cart_tagR = self.polar_to_cartesian(*tagR)
+            cart_tagR = polar_to_cartesian(*tagR)
             
             diff_x = cart_tagL_b[0] - cart_tagR_b[0]
             diff_y = cart_tagL_b[1] - cart_tagR_b[1]
             
             cart_tagL = (cart_tagR[0] + diff_x, cart_tagR[1] + diff_y)
-            tagL = self.cartesian_to_polar(*cart_tagL)
+            tagL = cartesian_to_polar(*cart_tagL)
             
             return tagL
 
         else:
             tagL = known_tag
-            cart_tagL = self.polar_to_cartesian(*tagL)
+            cart_tagL = polar_to_cartesian(*tagL)
 
             diff_x = cart_tagR_b[0] - cart_tagL_b[0]
             diff_y = cart_tagR_b[1] - cart_tagL_b[1]
 
             cart_tagR = (cart_tagL[0] + diff_x, cart_tagL[1] + diff_y)
-            tagR = self.cartesian_to_polar(*cart_tagR)
+            tagR = cartesian_to_polar(*cart_tagR)
 
             return tagR
 
@@ -330,3 +388,17 @@ class ApproachingGate(RoverState):
             else:
                 tagR = (tag.distance, tag.angle)
         return tagL, tagR
+    
+def midpoint(p1:CART_COORD, p2:CART_COORD) -> CART_COORD:
+    return (p1[0] + p2[0])/2, (p1[1] + p2[1])/2
+
+def polar_to_cartesian(d:float, a:float) -> CART_COORD:
+    a = math.radians(a)
+    x = d * math.cos(a)
+    y = d * math.sin(a)
+    return x, y
+
+def cartesian_to_polar(x:float, y:float) -> POLAR_COORD:
+    d = math.sqrt(x**2 + y**2)
+    a = math.degrees(math.atan(y/x))
+    return d, a
