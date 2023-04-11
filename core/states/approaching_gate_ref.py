@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 OFFSET_THRESHOLD = 1
 DISTANCE_THRESHOLD = 0.5
 TURN_FREQ = 10
+PAST_GATE_DISTANCE = 5
 
 class ApproachingGate(RoverState):
     """
@@ -40,15 +41,16 @@ class ApproachingGate(RoverState):
         self.gate_detection_attempts = 0
         self.last_angle = 1000
         self.not_seen = 0
-        self.is_first = True
         self.is_turning = False
         self.og_angle = 0
 
+        self.is_first = True
         self.tagL_id = 0
-        self.state = 'mid'
+        self.state = 'front'
         self.distance = None
         self.angle = None
         self.iteration = 1
+        self.targ_coord = None
 
         self.last_tags_both_detected = []
 
@@ -101,11 +103,21 @@ class ApproachingGate(RoverState):
         # If we've seen at least 5 frames of 2 tags, assume it's a gate
         self.logger.info("Gate detected, beginning navigation")
 
-        self.tag_nav(self.calc_point_before)
+        if self.state == 'front':
+            self.tag_nav(self.calc_point_before, 'mid', dist_thres=2, turn_freq=10)
+        elif self.state == 'mid':
+            self.tag_nav(self.calc_point_midpoint, 'zoom', dist_thres=1, turn_freq=10)
+        elif self.state == 'zoom':
+            small_movements.time_drive(PAST_GATE_DISTANCE)
+            self.state = 'complete'
+            interfaces.drive_board.stop()
+        else:
+            return self.on_event(core.AutonomyEvents.REACHED_MARKER)
+        
 
         return self
 
-    def tag_nav(self, calc_point_func):
+    def tag_nav(self, calc_point_func, next_state, dist_thres=1, turn_freq=100):
         if self.is_first:
             print('FINDING GATE')
 
@@ -113,30 +125,31 @@ class ApproachingGate(RoverState):
             tags = core.vision.ar_tag_detector.get_gate_tags()
             tagL, tagR = self.parse_tags(tags)
             self.distance,self.angle = calc_point_func(tagL, tagR)
-
-            #self.calc_point_before(tagL, tagR)
-            #gps = self.calc_gps(tagL, tagR)
             
+            self.update_target_gps()
+
             print("RECENTERING")
             
             self.recenter(self.angle)
             
-            time.sleep(1)
             self.is_first = False
 
-        elif self.distance is not None and self.distance < DISTANCE_THRESHOLD:
+        elif self.distance is not None and self.distance < dist_thres:
                print("COMPLETE")
+               self.state = next_state
+               self.is_first = True
+               print("MOVING ONTO ", next_state)
                time.sleep(2)
 
         else:
             tags = core.vision.ar_tag_detector.get_gate_tags()
 
             if len(tags) == 2:
-                print("TAG UPDATE")
                 tagL, tagR = self.parse_tags(tags)
                 self.distance, self.angle = calc_point_func(tagL, tagR)
                 self.last_tags_both_detected = [tagL, tagR]
-                #gps = self.calc_gps()
+
+                self.update_target_gps()
 
             elif len(tags) == 1:
                 pass
@@ -151,12 +164,20 @@ class ApproachingGate(RoverState):
 
                 self.distance, self.angle = calc_point_func(tagL, tagR)
 
+                self.update_target_gps()
+
             else:
-                pass
+                pos = interfaces.nav_board.location()
+
+                if self.targ_coord is None:
+                    raise Exception("Target coordinate can't be empty")
+
+                self.distance, self.angle = geomath.haversine(pos[0], pos[1], self.targ_coord[0], self.targ_coord[1])
+
 
             print(f"Distance {self.distance}\nAngle {self.angle}")
 
-            if self.iteration % TURN_FREQ == 0:
+            if self.iteration % turn_freq == 0:
                self.recenter(self.angle)
 
             self.iteration += 1
@@ -165,6 +186,24 @@ class ApproachingGate(RoverState):
             time.sleep(0.01)
 
         return self
+    
+    def pol_target_gps(self):
+        curr = interfaces.nav_board.location()
+        head = interfaces.nav_board.heading()
+
+        if self.targ_coord is None:
+            raise Exception("Target can't be none!!!")
+        
+        distance, bearing = geomath.haversine(curr[0], curr[1], self.targ_coord[0], self.targ_coord[1])
+        angle = self.heading_diff(head, bearing)
+
+        return distance, angle
+    
+    def update_target_gps(self):
+        curr = interfaces.nav_board.location()
+        head = interfaces.nav_board.heading()
+
+        self.targ_coord = self.calc_gps(curr, head, self.distance, self.angle)
 
     def calc_point_before(self, tagL, tagR):
         def calc_line_intersect(cart1, cart2):
@@ -232,18 +271,48 @@ class ApproachingGate(RoverState):
 
         interfaces.drive_board.send_drive(left, right)
 
-    def calc_gps(self, curr, d, a):
-        pass
+    def calc_gps(self, pos, heading, d, a):
+        pos = geopy.Point(pos[0], pos[1])
+        targ_point = geopy.distance.distance(meters=d).destination(
+            pos, bearing=(heading + math.degrees(a)) % 360 
+        )
+        return targ_point
+
 
     def calc_other_tag(self, known_tag, which):
-        tagR_b, tagL_b = self.last_tags_both_detected[]
+        tagR_b, tagL_b = self.last_tags_both_detected
+
+        if tagR_b is None or tagL_b is None:
+            raise Exception('Tags must be initialized')
+
+        cart_tagL_b = self.polar_to_cartesian(*tagL_b)
+        cart_tagR_b = self.polar_to_cartesian(*tagR_b)
 
         if which:
             tagR = known_tag
+            cart_tagR = self.polar_to_cartesian(*tagR)
+            
+            diff_x = cart_tagL_b[0] - cart_tagR_b[0]
+            diff_y = cart_tagL_b[1] - cart_tagR_b[1]
+            
+            cart_tagL = (cart_tagR[0] + diff_x, cart_tagR[1] + diff_y)
+            tagL = self.cartesian_to_polar(*cart_tagL)
+            
+            return tagL
+
         else:
             tagL = known_tag
+            cart_tagL = self.polar_to_cartesian(*tagL)
 
-    def heading_diff(facing, target):
+            diff_x = cart_tagR_b[0] - cart_tagL_b[0]
+            diff_y = cart_tagR_b[1] - cart_tagL_b[1]
+
+            cart_tagR = (cart_tagL[0] + diff_x, cart_tagL[1] + diff_y)
+            tagR = self.cartesian_to_polar(*cart_tagR)
+
+            return tagR
+
+    def heading_diff(self, facing, target):
         diff = target-facing
         if abs(diff) > 180:
             if diff > 0:
