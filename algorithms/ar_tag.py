@@ -62,7 +62,7 @@ class Tag:
         print(output.format(id=self.id, detected=self.detected))
 
     def __repr__(self) -> str:
-        return f"{self.id}: {self.detected} {self.blank}"
+        return f"{self.id}: {self.detected} {self.blank} {self.distance} {self.angle}"
 
 
 class ArucoTagCorners:
@@ -151,7 +151,6 @@ def get_gps():
 
 
 def detect_ar_tag(image):
-    print("RUNNING")
     "Searching"
     """
     Detects an AR Tag in the provided color image.
