@@ -39,7 +39,7 @@ class ApproachingGate(RoverState):
         # Id of the left tag
         self.tagL_id = 4
         # Current approaching_gate (AG) state
-        self.state = "front"
+        self.state = "mid"
         # Angle and distance from current target
         self.distance, self.angle = 0, 0
         # Amount of iterations on tag_nav
@@ -130,7 +130,21 @@ class ApproachingGate(RoverState):
             print("YES")
             return True
 
-        print(f"TAG NAV STATUS: {self.distance} {dist_thres}")
+        print(f"TAG NAV STATUS: {self.distance} {self.angle}")
+        if self.targ_coord is not None:
+            pos = interfaces.nav_board.location()
+            print(f"POS: {pos}")
+            print(f"TARGET: {self.targ_coord}")
+            d, a = geomath.haversine(pos[0], pos[1], self.targ_coord[0], self.targ_coord[1])
+            d = geopy.distance.geodesic(pos, self.targ_coord).km * 1000
+            heading = interfaces.nav_board.heading()
+            print("HEADING: ", heading)
+            d_lat = self.targ_coord[0] - pos[0]
+            d_lon = self.targ_coord[1] - pos[1]
+            g = -math.degrees(math.atan(d_lat / d_lon))
+            print(g)
+            a = self.heading_diff(heading, g)
+            print(f"GPS STATUS: {d} {a}")
 
         # Make sure gate is in view
         if self.gate_search:
@@ -180,12 +194,9 @@ class ApproachingGate(RoverState):
             if len(val_tags) == 2:
                 print("FULL RELIANCE")
                 # tagL, tagR = self.parse_tags(tags)
-                print("TAGL: ", tagL)
-                print("TAGR: ", tagR)
 
                 self.distance, self.angle = calc_point_func(tagL, tagR)
 
-                print("BOTH AS WELL: ", tagL, tagR)
                 self.last_tags_both_detected = [tagL, tagR]
 
                 self.update_target_gps()
@@ -193,12 +204,6 @@ class ApproachingGate(RoverState):
             # Only one tag is visible
             elif len(val_tags) == 1:
                 print("SINGULAR RELIANCE")
-                # tagL, tagR = self.parse_tags(tags)
-
-                print("TAGL: ", tagL)
-                print("TAGR: ", tagR)
-
-                print("BOTH: ", self.last_tags_both_detected)
 
                 # Which tag isn't visible
                 # which = 0 if tags[0].id == self.tagL_id else 1
@@ -211,21 +216,12 @@ class ApproachingGate(RoverState):
                 else:
                     tagR = self.calc_other_tag(tagL, which)
 
-                print("TAGL: ", tagL)
-                print("TAGR: ", tagR)
-
                 self.distance, self.angle = calc_point_func(tagL, tagR)
-
-                print("DISTANCE: ", self.distance)
-                print("ANGLE: ", self.angle)
 
                 self.update_target_gps()
 
-                time.sleep(0.5)
-
             # Not tags seen
             else:
-                print("GPS RELIANCE")
                 pos = interfaces.nav_board.location()
 
                 if self.targ_coord is None:
@@ -397,7 +393,7 @@ class ApproachingGate(RoverState):
         :param which: 0 means left and 1 means right is the known tag
         """
 
-        tagR_b, tagL_b = self.last_tags_both_detected
+        tagL_b, tagR_b = self.last_tags_both_detected
 
         if tagR_b is None or tagL_b is None:
             raise Exception("Tags must be initialized")
@@ -440,7 +436,6 @@ class ApproachingGate(RoverState):
             return diff
 
     def parse_tags(self, tags):
-        print("PT: ", tags)
         tagL, tagR = None, None
         for tag in tags:
             if tag.id == self.tagL_id:
@@ -455,7 +450,7 @@ def midpoint(p1: CART_COORD, p2: CART_COORD) -> CART_COORD:
 
 
 def polar_to_cartesian(d: float, a: float) -> CART_COORD:
-    a = math.radians(a)
+    a = -math.radians(a)
     x = d * math.cos(a)
     y = d * math.sin(a)
     return x, y
@@ -463,5 +458,5 @@ def polar_to_cartesian(d: float, a: float) -> CART_COORD:
 
 def cartesian_to_polar(x: float, y: float) -> POLAR_COORD:
     d = math.sqrt(x**2 + y**2)
-    a = math.degrees(math.atan(y / x))
+    a = -math.degrees(math.atan(y / x))
     return d, a
