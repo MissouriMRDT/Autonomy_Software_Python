@@ -103,6 +103,9 @@ def main() -> None:
         parser.print_help()
         exit(1)
 
+    # Enable the logger, also pass-in optional logging level for console output
+    logger = setup_logger(level)
+
     # SIM mode defaults vision subsystem to also originate from simulator
     if args.mode == "SIM":
         args.vision = "SIM"
@@ -117,9 +120,6 @@ def main() -> None:
 
     # Add the unit test folder to our path, so we can run tests
     sys.path.insert(0, "tests/unit/")
-
-    # Enable the logger, also pass-in optional logging level for console output
-    logger = setup_logger(level)
 
     # Initialize the rovecomm node
     core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
