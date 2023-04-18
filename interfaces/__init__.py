@@ -22,10 +22,10 @@ nav_board: NavBoard
 multimedia_board: MultiMedia
 
 
-def setup(relative_positioning="DISABLE"):
+def setup():
     """
     Sets up all the interfaces
     """
-    this.nav_board = NavBoard(relative_positioning)
+    this.nav_board = NavBoard()
     this.drive_board = DriveBoard()
     this.multimedia_board = MultiMedia()

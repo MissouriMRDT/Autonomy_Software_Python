@@ -5,18 +5,15 @@
 # Created on Dec 23, 2021
 # Updated on Jan 18, 2023
 #
-import asyncio
 import logging
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import platform
 import core.constants
 import core
 import math
 import os
 import cv2
-import multiprocessing as mp
 import time
 from pickle import UnpicklingError
 
@@ -135,67 +132,10 @@ def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_th
 
     :returns: Nothing (Everything is put in the result queue)
     """
-    # Create instance variables.
-    imgsz = (img_size, img_size)
-    half = False
-
-    # Setup logger.
-    logger = logging.getLogger(__name__)
-
-    logger.info("Intializing Neural Network...")
-    # Create the device and model objects. (load model)
-    device = select_device()
-    # Catch error if model path is wrong.
-    try:
-        model = DetectMultiBackend(
-            weights,
-            device=device,
-            dnn=False,
-            data=os.path.dirname(__file__) + "/../core/vision/yolov5/data/coco128.yaml",
-        )
-        cudnn.benchmark = True
-
-        # Load model
-        stride, names, pt, jit, onnx, engine = model.stride, model.names, model.pt, model.jit, model.onnx, model.engine
-        imgsz = check_img_size(imgsz, s=stride)  # check image size
-
-        # Half
-        half &= (pt or jit or engine) and device.type != "cpu"  # half precision only supported by PyTorch on CUDA
-        if pt or jit:
-            model.model.half() if half else model.model.float()
-
-        # Warmup/Optimize
-        model.warmup(imgsz=(1, 3, *imgsz))
-        while True:
-            # Get image from queue.
-            image_net = img_queue.get()
-
-            # Record start time.
-            s = time.time()
-            # Reformat and convert the image to something the model can read.
-            img, ratio, pad = img_preprocess(image_net, device, half, imgsz)
-            # Run inference on the image using the model.
-            pred = model(img)
-            # Get/filter the model detection results.
-            # Select classes that we want track. For corresponding object labels check the order of classes in your
-            # .yaml file for your dataset.
-            predictions = non_max_suppression(pred, conf_thres, iou_thres, classes)
-            # ZED CustomBox format (with inverse letterboxing tf applied)
-            detections = detections_to_custom_box(predictions, img, image_net)
-            inference_time = time.time() - s
-
-            # Put results into queue.
-            result_queue.put([predictions, detections, names, inference_time])
-    except FileNotFoundError:
-        logging.error(msg="Unable to open YOLO model file. Make sure directory is correct and model exists.")
-    except UnpicklingError:
-        logging.error(
-            msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty."
-        )
 
 
 class YOLOObstacleDetector:
-    def __init__(self, weights, model_image_size, min_confidence, classes=None):
+    def __init__(self, weights, model_image_size, classes=None):
         """
         Initializing the Obstacle Detector class variables and objects.
 
@@ -213,21 +153,7 @@ class YOLOObstacleDetector:
         self.predictions = None
         self.object_summary = ""
         self.inference_time = 0
-
-        # Setup process creation method.
-        if platform.system() == "Linux":
-            # Set method.
-            self.ctx = mp.get_context("forkserver")
-            # Print info.
-            self.logger.info(f"Platform is {platform.system()}. Selecting forkserver process method.")
-        else:
-            # Set method.
-            self.ctx = mp.get_context("spawn")
-            # Print info.
-            self.logger.info(f"Platform is {platform.system()}. Selecting spawn process method.")
-        # Create queues for results.
-        self.detection_image_queue = self.ctx.Queue(maxsize=1)
-        self.detection_result_queue = self.ctx.Queue(maxsize=1)
+        self.classes = classes
 
         # Setup zed.
         # Try to use zed, if fails assume we are using the sim.
@@ -240,22 +166,51 @@ class YOLOObstacleDetector:
             self.logger.info("Unable to invoke zed specific methods. object_detector.py is assuming the SIM is active.")
             self.sim_active = True
 
-        # Create seperate process for running inference.
-        self.detect_task = self.ctx.Process(
-            target=torch_proc,
-            args=(
-                self.detection_image_queue,
-                self.detection_result_queue,
-                weights,
-                model_image_size,
-                classes,
-                min_confidence,
-            ),
-        )
-        # Start the new thread.
-        self.detect_task.start()
+        # Create instance variables.
+        self.imgsz = (model_image_size, model_image_size)
+        self.half = False
 
-    def detect_obstacles(self, zed_left_img):
+        self.logger.info("Intializing Neural Network...")
+        # Create the device and model objects. (load model)
+        self.device = select_device()
+        # Catch error if model path is wrong.
+        try:
+            self.model = DetectMultiBackend(
+                weights,
+                device=self.device,
+                dnn=False,
+                data=os.path.dirname(__file__) + "/../core/vision/yolov5/data/coco128.yaml",
+            )
+            cudnn.benchmark = True
+
+            # Load model
+            stride, self.names, pt, jit, onnx, engine = (
+                self.model.stride,
+                self.model.names,
+                self.model.pt,
+                self.model.jit,
+                self.model.onnx,
+                self.model.engine,
+            )
+            self.imgsz = check_img_size(self.imgsz, s=stride)  # check image size
+
+            # Half
+            self.half &= (
+                pt or jit or engine
+            ) and self.device.type != "cpu"  # half precision only supported by PyTorch on CUDA
+            if pt or jit:
+                self.model.model.half() if self.half else self.model.model.float()
+
+            # Warmup/Optimize
+            self.model.warmup(imgsz=(1, 3, *self.imgsz))
+        except FileNotFoundError:
+            logging.error(msg="Unable to open YOLO model file. Make sure directory is correct and model exists.")
+        except UnpicklingError:
+            logging.error(
+                msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty."
+            )
+
+    def detect_obstacles(self, zed_left_img, conf_thres, iou_thres):
         """
         Uses the yolov5 algorithm and a pretrained model to detect potential obstacles. The detected objects in the
         2d image are then cross referenced with the 3d point cloud to get their real world position.
@@ -266,30 +221,30 @@ class YOLOObstacleDetector:
         :returns objects: A numpy array containing bounding_box_2d, label, probability, and is_grounded data.
         :returns predictions: List of predictions, on (n,6) tensor per image [xyxy, conf, cls].
         """
-        # Pass new zed normal image to the process through the queue.
-        if not self.detection_image_queue.full():
-            self.detection_image_queue.put(zed_left_img.copy())
+        # Get new image from camera.
+        image_net = zed_left_img.copy()
 
-        # Attempt to get data from the queue, if process is not ready then skip iteration.
-        try:
-            # Get data from queue.
-            detection_data = self.detection_result_queue.get_nowait()
-            # Split data.
-            self.predictions = detection_data[0]
-            self.objects = detection_data[1]
-            self.names = detection_data[2]
-            self.inference_time = detection_data[3]
-        except Exception as e:
-            pass
+        # Record start time.
+        s = time.time()
+        # Reformat and convert the image to something the model can read.
+        img, ratio, pad = img_preprocess(image_net, self.device, self.half, self.imgsz)
+        # Run inference on the image using the model.
+        pred = self.model(img)
+        # Get/filter the model detection results.
+        # Select classes that we want track. For corresponding object labels check the order of classes in your
+        # .yaml file for your dataset.
+        self.predictions = non_max_suppression(pred, conf_thres, iou_thres, self.classes)
+        # ZED CustomBox format (with inverse letterboxing tf applied)
+        self.objects = detections_to_custom_box(self.predictions, img, image_net)
+        self.inference_time = time.time() - s
 
         return self.objects, self.predictions
 
-    def track_obstacle(self, zed_point_cloud, reg_img, label_img=True):
+    def track_obstacle(self, reg_img, label_img=True):
         """
         Tracks the closest object and display it on screen. All of the others objects are also labeled.
 
         :params reg_img: Zed left eye camera image.
-        :params zed_point_cloud: The point cloud image from the ZED.
         :params label_img: Toggle for drawing inferences on screen.
 
         :returns angle: The angle of the obstacle in relation to the left ZED camera

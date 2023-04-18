@@ -19,6 +19,7 @@ import core
 import interfaces
 from logging import config
 
+
 def setup_logger(level) -> logging.Logger:
     """
     Sets up the logger used for the autonomy codebase with
@@ -50,52 +51,37 @@ def main() -> None:
     parser = argparse.ArgumentParser()
 
     # Optional: Maps the file name to a known module if found
-    parser.add_argument(
-        "--file",
-        help="Specify the name of the custom module to be run",
-        default="autonomy.py"
-    )
+    parser.add_argument("--file", help="Specify the name of the custom module to be run", default="autonomy.py")
 
     # Optional: Sets the logging level for autonomy
     parser.add_argument(
         "--level",
         help="Specify the logging level to be used",
         choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
-        default="INFO"
+        default="INFO",
     )
 
     # Optional: Sets the vision system to be used
     parser.add_argument(
-        "--vision",
-        help="Specify the vision system for autonomy",
-        choices=["ZED", "SIM"],
-        default="ZED"
+        "--vision", help="Specify the vision system for autonomy", choices=["ZED", "SIM"], default="ZED"
     )
 
     # Optional: Sets whether we are streaming or not
-    parser.add_argument(
-        "--stream",
-        help="Specify if we are streaming",
-        choices=["Y", "N"],
-        default="N"
-    )
+    parser.add_argument("--stream", help="Specify if we are streaming", choices=["Y", "N"], default="N")
 
     # Optional: Sets the mode of operation
     parser.add_argument(
-        "--mode",
-        help="Sets if we are running on rover or on sim",
-        choices=["REGULAR", "SIM"],
-        default="REGULAR"
+        "--mode", help="Sets if we are running on rover or on sim", choices=["REGULAR", "SIM"], default="REGULAR"
     )
 
-     # Optional argument for obstacle avoidance toggle.
+    # Optional argument for obstacle avoidance toggle.
     parser.add_argument(
-        "--obstacle-avoidance", 
-        choices=["ENABLE", "DISABLE"], 
+        "--obstacle-avoidance",
+        choices=["ENABLE", "DISABLE"],
         default="DISABLE",
-        help="Enable or disable YOLO algorithm for obstacle detection."
+        help="Enable or disable YOLO algorithm for obstacle detection.",
     )
-    
+
     # Add optional argument for selecting yolo classes.
     parser.add_argument(
         "--yolo-classes",
@@ -109,7 +95,7 @@ def main() -> None:
         "--relative-positioning",
         choices=["ENABLE", "DISABLE"],
         default="DISABLE",
-        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM position."
+        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM position.",
     )
 
     args = parser.parse_args()
@@ -124,7 +110,7 @@ def main() -> None:
     # Make sure SIM mode is off when relative distance is enabled.
     if args.relative_positioning == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
         # Print warning message.
-        self.logger.warning("ZED relative positioning is not available when mode is SIM or vision mode isn't ZED")
+        logger.warning("ZED relative positioning is not available when mode is SIM or vision mode isn't ZED")
 
     # Add the examples' folder to our path, so we can run example files
     sys.path.insert(0, "example/")
@@ -142,10 +128,10 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes)
+    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes, args.relative_positioning)
 
     # Initialize the Interfaces
-    interfaces.setup(args.relative_positioning)
+    interfaces.setup()
 
     # Sleep so everything can be set up
     time.sleep(2)

@@ -20,7 +20,7 @@ class NavBoard:
     data received from the navboard, so it can be used elsewhere.
     """
 
-    def __init__(self, relative_positioning="DISABLE"):
+    def __init__(self):
         self._pitch: float = 0
         self._roll: float = 0
         self._heading: float = 0
@@ -29,7 +29,6 @@ class NavBoard:
         self._lidarQuality = 0  # int 5 for brand-new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
         self._start_UTM = None
-        self._relative_positioning = relative_positioning
 
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
@@ -63,7 +62,7 @@ class NavBoard:
 
     def pitch(self) -> float:
         # Check if ZED relative positioning is turned on.
-        if self._relative_positioning:
+        if core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
             pitch = core.vision.camera_handler.get_pose()[0]
 
@@ -78,7 +77,7 @@ class NavBoard:
 
     def roll(self) -> float:
         # Check if ZED relative positioning is turned on.
-        if self._relative_positioning:
+        if core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
             roll = core.vision.camera_handler.get_pose()[2]
 
@@ -93,7 +92,7 @@ class NavBoard:
 
     def heading(self) -> float:
         # Check if ZED relative positioning is turned on.
-        if self._relative_positioning:
+        if core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
             heading = core.vision.camera_handler.get_pose()[4]
 
@@ -108,16 +107,16 @@ class NavBoard:
 
     def location(self) -> Coordinate:
         # Check if ZED relative positioning is turned on.
-        if self._relative_positioning:
+        if core.vision.RELATIVE_POSITIONING:
             location = core.vision.camera_handler.get_pose()
-            
+
             # Get zed x, y location.
             x, y = location[0] / 1000, location[2] / 1000
-            
+
             # Check if we already set are absolute start position.
             if self._start_UTM is None:
                 # Get current GPS.
-                self._start_UTM =  utm.from_latlon(self._location[0], self._location[1])
+                self._start_UTM = utm.from_latlon(self._location[0], self._location[1])
 
             # Add Start UTM coords to ZED position.
             x, y = x + self._start_UTM[0], y + self._start_UTM[1]

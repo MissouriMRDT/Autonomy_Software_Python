@@ -39,7 +39,7 @@ class ZedHandler(Camera):
         self.depth_res_y = 1080
         self.reg_res_x = 1920
         self.reg_res_y = 1080
-        self.hfov = 85
+        self.hfov = 110
 
         # Define the desired runtime FPS
         self.fps = 60

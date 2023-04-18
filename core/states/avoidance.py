@@ -104,16 +104,19 @@ class Avoidance(RoverState):
         if object_locations is not None:
             self.astar.update_obstacles(
                 object_locations,
-                min_object_distance=2.0,
-                max_object_distance=7.0,
-                min_object_angle=-40,
-                max_object_angle=40,
+                min_object_distance=core.constants.AVOIDANCE_OBJECT_DISTANCE_MIN,
+                max_object_distance=core.constants.AVOIDANCE_OBJECT_DISTANCE_MAX,
+                min_object_angle=-core.constants.AVOIDANCE_OBJECT_ANGLE,
+                max_object_angle=core.constants.AVOIDANCE_OBJECT_ANGLE,
             )
 
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
         if is_obstacle and time_since_last_path > path_expiration:
             # Generate path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=10, near_object_threshold=3.5)
+            path = self.astar.plan_astar_avoidance_route(
+                max_route_size=core.constants.AVOIDANCE_PATH_ROUTE_LENGTH,
+                near_object_threshold=core.constants.AVOIDANCE_OBJECT_DISTANCE_MIN,
+            )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
             if path is not None:

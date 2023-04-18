@@ -135,12 +135,8 @@ class Navigating(RoverState):
         # Calculate distance from goal for checking for markers and gates.
         bearing, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])
         distance *= 1000  # convert from km to m
-        if distance > 25:
+        if distance > constants.ARUCO_GOAL_DISTANCE_THRESH:
             clear_tags()
-
-        print("GPS CURRENT: ", current)
-        print("GPS GOAL: ", goal)
-        print("Distance from goal: ", distance)
 
         # Move to approaching marker if 1 ar tag is spotted during marker leg type
         if (
@@ -162,7 +158,7 @@ class Navigating(RoverState):
         # Move to obstacle avoidance if objects are detected and we aren't close to the goal.
         if (
             core.vision.obstacle_avoidance.is_obstacle()
-            and core.vision.obstacle_avoidance.get_distance() < constants.AVOIDANCE_OBJECT_DISTANCE_THRESHOLD
+            and core.vision.obstacle_avoidance.get_distance() < constants.AVOIDANCE_OBJECT_DISTANCE_MAX
             and (algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000)
             > constants.AVOIDANCE_ENABLE_DISTANCE_THRESHOLD
         ):  # If distance to object is less than distance to goal, continue
@@ -221,7 +217,9 @@ class Navigating(RoverState):
         # Now that we have our gps waypoints. Generate a path if not already done.
         if time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 0:
             # Generate path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=30, near_object_threshold=0.0)
+            path = self.astar.plan_astar_avoidance_route(
+                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
+            )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
             if path is not None:

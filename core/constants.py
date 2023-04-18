@@ -26,6 +26,7 @@ MAX_DRIVE_POWER = 600  # -1000 to 1000, normally 250 dropped lower for early tes
 MIN_DRIVE_POWER = -250  # -1000 to 1000, normally 50
 GATE_POINT_DISTANCES = 3.0
 NAVIGATION_PATH_EXPIRATION_SECONDS = 10  # The time in seconds before a new path is force generated.
+NAVIGATION_PATH_ROUTE_LENGTH = 30  # The length in meters that ASTAR will generate at one time.
 METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 
@@ -34,11 +35,17 @@ SEARCH_DISTANCE = 25  # meters
 DELTA_THETA = math.pi / 4
 SEARCHPATTERN_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
 
+# Obstacle Detection Parameters.
+DETECTION_MODEL_CONF = 0.4
+DETECTION_MODEL_IOU = 0.65
 # Obstacle Avoidance Parameters.
 AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 3.0  # Minimum distance rover must be from the waypoint before avoidance kicks in.
-AVOIDANCE_OBJECT_DISTANCE_THRESHOLD = 20.0  # Minimum distance rover must be from an obstacle before avoidance kicks in.
+AVOIDANCE_OBJECT_DISTANCE_MIN = 2.0  # Closest rover can get to an obstacle.
+AVOIDANCE_OBJECT_DISTANCE_MAX = 10.0  # Minimum distance rover must be from an obstacle before avoidance kicks in.
+AVOIDANCE_OBJECT_ANGLE = 40  # The FOV of detection for obstacles.
 AVOIDANCE_PATH_NODE_INCREMENT = 0.3  # The distance between each node. Path resolution in meters.
 AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
+AVOIDANCE_PATH_ROUTE_LENGTH = 20  # The length in meters that ASTAR will generate at one time.
 AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 50  # The number of obstacles to store at a time.
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
@@ -47,6 +54,9 @@ MAX_DETECTION_ATTEMPTS = 5  # This should be about 1 second
 ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
+ARUCO_GOAL_DISTANCE_THRESH = (
+    25  # The minimum distance from the goal waypoint before aruco detection os considered valid.
+)
 DISPLAY_TEST_MODE = False  # This will enable opening of OpenCV windows for vision detection live viewing.
 ZED_X_OFFSET = 0.060325
 ZED_Z_OFFSET = 0.000
