@@ -143,13 +143,8 @@ class SearchPattern(RoverState):
             self.logger.info("Search Pattern: Marker seen")
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
-        # Check if we have reached waypoint.
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING
-            or len(self.path_xs) <= 1
-        ):
-            interfaces.drive_board.stop()
-
+        # If Stanley has reached the last index of the path generate new one even though we aren't there yet.
+        if self.target_idx == self.last_idx:
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
             await asyncio.sleep(0.1)
 
@@ -158,8 +153,18 @@ class SearchPattern(RoverState):
             core.waypoint_handler.set_goal(goal)
             self.logger.info(f"Search Pattern: Adding New Waypoint ({goal[0]}, {goal[1]}")
 
+            # If path is empty use rover's current location.
+            if len(self.path_xs) > 0:
+                # Get UTM zone.
+                utm_current = utm.from_latlon(current[0], current[1])
+                # Get last coordinate of path and convert it to GPS.
+                start_coord = utm.to_latlon(*(self.path_xs[-1], self.path_ys[-1], utm_current[2], utm_current[3]))
+            else:
+                start_coord = current
             # Generate path.
-            path = self.astar.plan_astar_avoidance_route(max_route_size=30, near_object_threshold=0.0)
+            path = self.astar.plan_astar_avoidance_route(
+                max_route_size=30, near_object_threshold=0.0, start_gps=start_coord
+            )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
             if path is not None:

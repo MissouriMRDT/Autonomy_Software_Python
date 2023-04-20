@@ -210,7 +210,9 @@ class ASTAR:
 
         return coords
 
-    def plan_astar_avoidance_route(self, max_route_size=10, near_object_threshold=2.0, return_gps=False):
+    def plan_astar_avoidance_route(
+        self, max_route_size=10, near_object_threshold=2.0, start_gps=None, return_gps=False
+    ):
         """
         Uses the given list of object angles and distances, converts those to GPS waypoints, and then uses the A* (astar)
         algorithm to find the shortest path around the obstacle to a given endpoint in front of the robot.
@@ -218,11 +220,18 @@ class ASTAR:
 
         :params max_route_size: the max square area available for route planning.
         :params near_object_threshold: the minimum distance the rover can get from the objects along the path.
+        :params start_gps: The start position to use for the path. Will use rover's current GPS position by defualt.
+        :params return_gps: Whether or not to return the path in GPS coords or UTM. UTM by default.
 
         :returns path: A list of gps waypoints around the path that should be safe for traversal.
         """
-        # Get current gps position.
-        current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+        # Determine start position.
+        if start_gps is None:
+            # Get current gps position.
+            current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+        else:
+            # Use given start position.
+            current_gps_pos = start_gps
         # Convert the gps coords to UTM coords. These coords are in meters and they are easier to work with.
         current_utm_pos = utm.from_latlon(current_gps_pos[0], current_gps_pos[1])
         self.utm_zone = (current_utm_pos[2], current_utm_pos[3])

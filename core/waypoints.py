@@ -139,7 +139,7 @@ class WaypointHandler:
         :return: If waypoints is empty
         """
 
-        if self.waypoints:
+        if len(self.waypoints) > 0:
             return False
         else:
             return True

@@ -45,9 +45,10 @@ class Navigating(RoverState):
         self.rover_ys = []
         self.rover_yaws = []
         self.rover_vs = []
-        self.last_idx = 0
+        self.last_idx = -1
         self.target_idx = 0
         self.path_start_time = 0
+        self.time_since_last_path = 0
 
     def exit(self):
         """
@@ -165,24 +166,27 @@ class Navigating(RoverState):
             self.logger.info("Detected obstacle, now avoiding")
             return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
 
-        # Check if we are still approaching the goal.
-        if (
-            algorithms.gps_navigate.get_approach_status(goal, current, start, core.WAYPOINT_DISTANCE_THRESHOLD)
-            != core.ApproachState.APPROACHING
-        ):
-            self.logger.info(
-                f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
-            )
-
+        # If Stanley has reached the last index of the path generate new one even though we aren't there yet.
+        if self.target_idx == self.last_idx:
             # If there are more points, set the new one and start from top
             if not core.waypoint_handler.is_empty():
                 # Get new wapoint goal.
                 gps_data = core.waypoint_handler.get_new_waypoint()
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
-                return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
 
-            # Otherwise Trigger Next State
-            else:
+                # Force path to expire and regenerate.
+                self.time_since_last_path += constants.NAVIGATION_PATH_EXPIRATION_SECONDS
+                self.last_idx = -1
+
+                return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
+            elif (
+                algorithms.gps_navigate.get_approach_status(goal, current, start, core.WAYPOINT_DISTANCE_THRESHOLD)
+                != core.ApproachState.APPROACHING
+            ):
+                # Print logger info.
+                self.logger.info(
+                    f"Navigating: Reached goal ({interfaces.nav_board._location[0]}, {interfaces.nav_board._location[1]})"
+                )
                 # Stop all movement
                 interfaces.drive_board.stop()
 
@@ -213,9 +217,10 @@ class Navigating(RoverState):
         PATH GENERATION AND FOLLOWING.
         """
         # Update time since last path generation.
-        time_since_last_path = time.time() - self.path_start_time
+        self.time_since_last_path = time.time() - self.path_start_time
         # Now that we have our gps waypoints. Generate a path if not already done.
-        if time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 0:
+        if self.time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 0:
+
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
                 max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
@@ -244,6 +249,9 @@ class Navigating(RoverState):
 
                 # Store last index of path.
                 self.last_idx = len(self.path_xs) - 1
+            else:
+                # Print error.
+                self.logger.error("Path didn't generate!")
 
         # Check if path is empty.
         if len(self.path_xs) > 0:
