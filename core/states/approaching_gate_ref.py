@@ -22,6 +22,8 @@ GATE_OFFSET = 1
 DISTANCE_THRESHOLD = 0.5
 TURN_FREQ = 10
 PAST_GATE_DISTANCE = 5
+DIST_RANGE = 5
+ANGLE_RANGE = 10
 
 POLAR_COORD = Tuple[float, float]
 CART_COORD = Tuple[float, float]
@@ -46,6 +48,7 @@ class ApproachingGate(RoverState):
         self.iteration = 1
         # GPS coordinates of the current target
         self.targ_coord = None
+        self.last_pos = None
         # List of the tags the last time they were both spotted in one frame
         self.last_tags_both_detected = []
 
@@ -123,28 +126,11 @@ class ApproachingGate(RoverState):
 
         def verify_tag(tag):
             for v in tag:
-                print("VAL: ", v)
                 if np.isnan(v) or np.isinf(v):
-                    print("NO")
                     return False
-            print("YES")
             return True
 
         print(f"TAG NAV STATUS: {self.distance} {self.angle}")
-        if self.targ_coord is not None:
-            pos = interfaces.nav_board.location()
-            print(f"POS: {pos}")
-            print(f"TARGET: {self.targ_coord}")
-            d, a = geomath.haversine(pos[0], pos[1], self.targ_coord[0], self.targ_coord[1])
-            d = geopy.distance.geodesic(pos, self.targ_coord).km * 1000
-            heading = interfaces.nav_board.heading()
-            print("HEADING: ", heading)
-            d_lat = self.targ_coord[0] - pos[0]
-            d_lon = self.targ_coord[1] - pos[1]
-            g = -math.degrees(math.atan(d_lat / d_lon))
-            print(g)
-            a = self.heading_diff(heading, g)
-            print(f"GPS STATUS: {d} {a}")
 
         # Make sure gate is in view
         if self.gate_search:
@@ -174,6 +160,7 @@ class ApproachingGate(RoverState):
             self.state = next_state
             self.is_first = True
             self.gate_search = True
+            self.iteration = 1
 
         # Move the rover towards the target
         else:
@@ -272,8 +259,9 @@ class ApproachingGate(RoverState):
 
         try:
             self.targ_coord = self.calc_gps(curr, head, self.distance, self.angle)
+
         except ValueError:
-            pass
+            return
 
     def calc_point_before(self, tagL: POLAR_COORD, tagR: POLAR_COORD) -> POLAR_COORD:
         """
@@ -382,7 +370,8 @@ class ApproachingGate(RoverState):
         """
 
         pos = geopy.Point(pos[0], pos[1])
-        targ_point = geopy.distance.distance(meters=d).destination(pos, bearing=(heading + math.degrees(a)) % 360)
+
+        targ_point = geopy.distance.distance(meters=d).destination(pos, bearing=(heading + a) % 360)
         return core.Coordinate(targ_point[0], targ_point[1])
 
     def calc_other_tag(self, known_tag, which: int):
@@ -460,3 +449,12 @@ def cartesian_to_polar(x: float, y: float) -> POLAR_COORD:
     d = math.sqrt(x**2 + y**2)
     a = -math.degrees(math.atan(y / x))
     return d, a
+
+
+def cartesian_to_heading(x: float, y: float):
+    # calculate angle relative to x-axis
+    angle_rad = math.atan2(y, x)
+    angle_deg = math.degrees(angle_rad)
+    angle_deg = 90 - angle_deg
+    angle_deg %= 360
+    return angle_deg
