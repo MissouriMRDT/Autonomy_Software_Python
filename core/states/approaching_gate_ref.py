@@ -41,7 +41,7 @@ class ApproachingGate(RoverState):
         # Id of the left tag
         self.tagL_id = 4
         # Current approaching_gate (AG) state
-        self.state = "mid"
+        self.state = "front"
         # Angle and distance from current target
         self.distance, self.angle = 0, 0
         # Amount of iterations on tag_nav
@@ -167,6 +167,8 @@ class ApproachingGate(RoverState):
             tags = core.vision.ar_tag_detector.get_gate_tags()
 
             tagL, tagR = self.parse_tags(tags)
+            print("TAGS")
+            print(tags)
 
             val_tags = []
             val_ids = []
@@ -180,8 +182,8 @@ class ApproachingGate(RoverState):
             # Both tags are visible
             if len(val_tags) == 2:
                 print("FULL RELIANCE")
-                # tagL, tagR = self.parse_tags(tags)
-
+                print(tagL)
+                print(tagR)
                 self.distance, self.angle = calc_point_func(tagL, tagR)
 
                 self.last_tags_both_detected = [tagL, tagR]
@@ -215,7 +217,13 @@ class ApproachingGate(RoverState):
                     raise Exception("Target coordinate can't be empty")
 
                 # Use the estimated GPS position of the tag to determine its relative position
-                self.distance, self.angle = geomath.haversine(pos[0], pos[1], self.targ_coord[0], self.targ_coord[1])
+                self.distance = geopy.distance.geodesic(pos, self.targ_coord).km * 1000
+                
+                d_lat = self.targ_coord[0] - pos[0]
+                d_lon = self.targ_coord[1] - pos[1]
+                target_heading = cartesian_to_heading(d_lon, d_lat)
+
+                self.angle = self.heading_diff(interfaces.nav_board.heading(), target_heading)
 
             # Recenter the rover on the target
             if self.iteration % turn_freq == 0:
@@ -326,7 +334,13 @@ class ApproachingGate(RoverState):
         # interfaces.drive_board.stop()
 
         if not core.vision.ar_tag_detector.is_gate():
-            small_movements.rotate_rover(10)
+            if self.angle is not None:
+                if self.angle < 0:
+                    small_movements.rotate_rover(-10)
+                else:
+                    small_movements.rotate_rover(10)
+            else:
+                small_movements.rotate_rover(10)
         else:
             self.gate_search = False
 
