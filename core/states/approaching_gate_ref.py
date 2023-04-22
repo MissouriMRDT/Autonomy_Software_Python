@@ -223,7 +223,7 @@ class ApproachingGate(RoverState):
                 d_lon = self.targ_coord[1] - pos[1]
                 target_heading = cartesian_to_heading(d_lon, d_lat)
 
-                self.angle = self.heading_diff(interfaces.nav_board.heading(), target_heading)
+                self.angle = heading_diff(interfaces.nav_board.heading(), target_heading)
 
             # Recenter the rover on the target
             if self.iteration % turn_freq == 0:
@@ -253,7 +253,7 @@ class ApproachingGate(RoverState):
             raise Exception("Target can't be none!!!")
 
         distance, bearing = geomath.haversine(curr[0], curr[1], self.targ_coord[0], self.targ_coord[1])
-        angle = self.heading_diff(head, bearing)
+        angle = heading_diff(head, bearing)
 
         return distance, angle
 
@@ -334,8 +334,9 @@ class ApproachingGate(RoverState):
         # interfaces.drive_board.stop()
 
         if not core.vision.ar_tag_detector.is_gate():
-            if self.angle is not None:
-                if self.angle < 0:
+            time.sleep(1)
+            if self.last_tags_both_detected is not None:
+                if self.last_tags_both_detected[0][1] < 0:
                     small_movements.rotate_rover(-10)
                 else:
                     small_movements.rotate_rover(10)
@@ -428,16 +429,6 @@ class ApproachingGate(RoverState):
 
             return tagR
 
-    def heading_diff(self, facing, target):
-        diff = target - facing
-        if abs(diff) > 180:
-            if diff > 0:
-                return diff - 360
-            elif diff < 180:
-                return diff % 360
-        else:
-            return diff
-
     def parse_tags(self, tags):
         tagL, tagR = None, None
         for tag in tags:
@@ -459,10 +450,21 @@ def polar_to_cartesian(d: float, a: float) -> CART_COORD:
     return x, y
 
 
+def heading_diff(facing, target):
+    diff = target - facing
+    if abs(diff) > 180:
+        if diff > 0:
+            return diff - 360
+        elif diff < 180:
+            return diff % 360
+    else:
+        return diff
+
+
 def cartesian_to_polar(x: float, y: float) -> POLAR_COORD:
     d = math.sqrt(x**2 + y**2)
-    a = -math.degrees(math.atan(y / x))
-    return d, a
+    head = cartesian_to_heading(x,y)
+    return d, heading_diff(90, head)
 
 
 def cartesian_to_heading(x: float, y: float):
