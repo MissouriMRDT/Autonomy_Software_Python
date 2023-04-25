@@ -61,6 +61,10 @@ def main() -> None:
     # Regular (on rover) or Sim (using the autonomy simulator)
     parser.add_argument("--mode", choices=["REGULAR", "SIM"], default="REGULAR")
 
+    parser.add_argument("--camera-stitching", choices=["ENABLE", "DISABLE"], default="DISABLE")
+    parser.add_argument("--right-camera-path", default= 1)
+    parser.add_argument("--left-camera-path",  default= 2)
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
@@ -86,7 +90,7 @@ def main() -> None:
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream)
+    core.vision.setup(args.vision, args.stream, args.camera_stitching, args.right_camera_path, args.left_camera_path)
 
     # Initialize the Interfaces
     interfaces.setup()

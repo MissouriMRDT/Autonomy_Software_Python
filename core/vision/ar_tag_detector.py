@@ -15,11 +15,11 @@ async def async_ar_tag_detector():
     """
     logger = logging.getLogger(__name__)
     while True:
-        reg_img = core.vision.camera_handler.grab_regular()
+        stitch_img = core.vision.stitch_handler.grab_stitched()
 
-        tags, reg_img = algorithms.AR_tag.detect_ar_tag(reg_img)
+        tags, stitch_img = algorithms.AR_tag.detect_ar_tag(stitch_img)
 
-        core.vision.feed_handler.handle_frame("artag", reg_img)
+        core.vision.feed_handler.handle_frame("artag", stitch_img)
 
         if len(tags) > 0:
             ar_tags.clear()

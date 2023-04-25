@@ -17,7 +17,7 @@ feed_handler = FeedHandler()
 STREAM_FLAG = True
 
 
-def setup(type="ZED", stream="Y"):
+def setup(type="ZED", stream="Y", stitching="DISABLE", right_camera_path=1, left_camera_path=2):
     """
     Sets up the vision system and camera/feed handlers
 
@@ -34,15 +34,20 @@ def setup(type="ZED", stream="Y"):
 
         this.camera_handler = SimCamHandler()
         this.camera_handler.start()
-    else:
-        # TODO: Initialize a regular webcam here
-        pass
 
     # Flag to enable whether or not we are streaming feeds
     if stream == "Y":
         this.STREAM_FLAG = True
     else:
         this.STREAM_FLAG = False
+
+    # Flag for camera stitching
+    if stitching == "ENABLE":
+        from core.vision.stitch_handler import StitchHandler
+
+        right_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibration/right_camera.json"
+        left_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibration/left_camera.json"
+        this.stitch_handler = StitchHandler(right_camera_json, left_camera_json, right_camera_path, left_camera_path)
 
 
 def close(type="ZED"):

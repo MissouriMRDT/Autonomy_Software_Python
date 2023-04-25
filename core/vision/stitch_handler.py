@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 
 class StitchHandler:
-    def __init__(self, left_camera_json, right_camera_json, camera_left_source, camera_right_source):
+    def __init__(self, right_camera_json, left_camera_json, camera_right_source, camera_left_source):
         """
         Stitches the feed of the 2 180 degree cameras together
         """
@@ -27,6 +27,7 @@ class StitchHandler:
             self.camera_right_mtx = np.array(data["camera_matrix"])
             self.camera_right_dist = np.array(data["distortion"])
 
+        #Makes the camera caputre object
         self.cap_left = cv2.VideoCapture(int(camera_left_source))
         self.cap_right = cv2.VideoCapture(int(camera_right_source))
 
@@ -51,11 +52,11 @@ class StitchHandler:
         ret, img_left = self.cap_left.read()
         ret, img_right = self.cap_right.read()
         # Undistort the images from both cameras using the provided camera matrix values.
-        camera_left_img = cv2.undistort(img_left, camera_left_mtx, camera_left_dist, None, camera_left_mtx_scaled)
-        camera_right_img = cv2.undistort(img_right, camera_right_mtx, camera_right_dist, None, camera_right_mtx_scaled)
+        self.camera_left_img = cv2.undistort(img_left, camera_left_mtx, camera_left_dist, None, camera_left_mtx_scaled)
+        self.camera_right_img = cv2.undistort(img_right, camera_right_mtx, camera_right_dist, None, camera_right_mtx_scaled)
 
         # Loop through both images.
-        image_crops = []
+        self.image_crops = []
         for img in (camera_left_img, camera_right_img):
             # Get image dimensions.
             h, w = img.shape[0], img.shape[1]
@@ -199,19 +200,42 @@ class StitchHandler:
             return (matches, homography_matrix, status)
 
         # No homography could be computed.
-        return None
-    
-    def open_camera(self)
+        return None  
+
+    def grab_stitched(self)
+        """
+        opens the camera
+
+        Parameters:
+        -----------
+            none
+
+        Returns:
+        --------
+            nothing 
+            opens the result of the camera 
+        """
         # Crop images.
         cropped_images = []
         for crop, image in zip(image_crops, [camera_left_img, camera_right_img]):
             cropped_images.append(image[crop[2]:crop[3], crop[0]:crop[1]].copy())
 
         stitched_image = stitch(cropped_images, ratio=0.75, reproj_thresh=2.0)
-        cv2.imshow("Result1", stitched_image)
-        return
+        return stitched_image
 
     def close_camera(self)
+        """
+        closes the camera
+
+        Parameters:
+        -----------
+            none
+
+        Returns:
+        --------
+            nothing 
+            closes the camera window
+        """
         self.cap_left.release()
         self.cap_right.release()
         cv2.destroyAllWindows()
