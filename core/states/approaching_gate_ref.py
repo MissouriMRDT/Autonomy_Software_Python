@@ -134,13 +134,10 @@ class ApproachingGate(RoverState):
 
         # Make sure gate is in view
         if self.gate_search:
-            print("GATE SEARCH")
             self.find_gate()
 
         # First iteration of this state
         elif self.is_first:
-
-            print("FIRST TIMER")
             # Initialize information on the gate tag's positions
             tags = core.vision.ar_tag_detector.get_gate_tags()
 
@@ -167,8 +164,6 @@ class ApproachingGate(RoverState):
             tags = core.vision.ar_tag_detector.get_gate_tags()
 
             tagL, tagR = self.parse_tags(tags)
-            print("TAGS")
-            print(tags)
 
             val_tags = []
             val_ids = []
@@ -181,9 +176,6 @@ class ApproachingGate(RoverState):
 
             # Both tags are visible
             if len(val_tags) == 2:
-                print("FULL RELIANCE")
-                print(tagL)
-                print(tagR)
                 self.distance, self.angle = calc_point_func(tagL, tagR)
 
                 self.last_tags_both_detected = [tagL, tagR]
@@ -192,8 +184,6 @@ class ApproachingGate(RoverState):
 
             # Only one tag is visible
             elif len(val_tags) == 1:
-                print("SINGULAR RELIANCE")
-
                 # Which tag isn't visible
                 # which = 0 if tags[0].id == self.tagL_id else 1
                 which = 0 if val_ids[0] == self.tagL_id else 1
@@ -334,7 +324,6 @@ class ApproachingGate(RoverState):
         # interfaces.drive_board.stop()
 
         if not core.vision.ar_tag_detector.is_gate():
-            time.sleep(1)
             if self.last_tags_both_detected is not None:
                 if self.last_tags_both_detected[0][1] < 0:
                     small_movements.rotate_rover(-10)
