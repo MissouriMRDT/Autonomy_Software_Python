@@ -39,7 +39,7 @@ class ApproachingGate(RoverState):
         self.is_first = True
         self.gate_search = True
         # Id of the left tag
-        self.tagL_id = 4
+        self.tagL_id = None
         # Current approaching_gate (AG) state
         self.state = "front"
         # Angle and distance from current target
@@ -87,6 +87,14 @@ class ApproachingGate(RoverState):
 
     async def run(self) -> RoverState:
         self.logger.info("Gate detected, beginning navigation")
+
+        if self.tagL_id is None:
+            tags = core.vision.ar_tag_detector.get_gate_tags()
+            if tags[0].angle < tags[1].angle:
+                self.tagL_id = tags[0].id
+            else:
+                self.tagL_id = tags[1].id
+            print("IDENTIFIED TAG: ", self.tagL_id)
 
         # Approach a point in front of the gate
         if self.state == "front":
@@ -208,7 +216,7 @@ class ApproachingGate(RoverState):
 
                 # Use the estimated GPS position of the tag to determine its relative position
                 self.distance = geopy.distance.geodesic(pos, self.targ_coord).km * 1000
-                
+
                 d_lat = self.targ_coord[0] - pos[0]
                 d_lon = self.targ_coord[1] - pos[1]
                 target_heading = cartesian_to_heading(d_lon, d_lat)
@@ -452,7 +460,7 @@ def heading_diff(facing, target):
 
 def cartesian_to_polar(x: float, y: float) -> POLAR_COORD:
     d = math.sqrt(x**2 + y**2)
-    head = cartesian_to_heading(x,y)
+    head = cartesian_to_heading(x, y)
     return d, heading_diff(90, head)
 
 
