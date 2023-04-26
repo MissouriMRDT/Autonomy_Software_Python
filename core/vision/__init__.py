@@ -3,6 +3,7 @@ from core.vision.camera import Camera
 import core.vision.obstacle_avoidance as obstacle_avoidance
 import sys
 import core.vision.ar_tag_detector as ar_tag_detector
+import os
 
 # reference to self
 this = sys.modules[__name__]
@@ -45,8 +46,8 @@ def setup(type="ZED", stream="Y", stitching="DISABLE", right_camera_path=1, left
     if stitching == "ENABLE":
         from core.vision.stitch_handler import StitchHandler
 
-        right_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibration/right_camera.json"
-        left_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibration/left_camera.json"
+        right_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibrations/right_camera.json"
+        left_camera_json = os.path.dirname(__file__) + "/../../resources/camera_calibrations/left_camera.json"
         this.stitch_handler = StitchHandler(right_camera_json, left_camera_json, right_camera_path, left_camera_path)
 
 
