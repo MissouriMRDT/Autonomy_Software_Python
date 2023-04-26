@@ -1,7 +1,10 @@
+[requires]
+python_version = "3.8"
+
 [[source]]
 name = "pypi"
-url = "https://pypi.org/simple"
-verify_ssl = true
+url = "https://pypi.org/simple"   
+verify_ssl = false
 
 [packages]
 simplejson = "*"
@@ -15,7 +18,13 @@ snakeviz = "*"
 geopy = "==1.23.0"
 rich = "*"
 gmplot = "*"
+opencv-python = "*"
 opencv-contrib-python = "*"
+pandas = "*"
+tdqm = "*"
+seaborn = "*"
+utm = "*"
+torchvision = "*"
 
 [dev-packages]
 pytest = "*"

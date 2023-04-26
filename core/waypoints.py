@@ -94,6 +94,7 @@ class WaypointHandler:
         """
 
         self.waypoints.clear()
+        self.gps_data: GPSData = None
         self.logger.info("Cleared all waypoints")
 
     def get_waypoint(self) -> GPSData:
@@ -138,7 +139,7 @@ class WaypointHandler:
         :return: If waypoints is empty
         """
 
-        if self.waypoints:
+        if len(self.waypoints) > 0:
             return False
         else:
             return True

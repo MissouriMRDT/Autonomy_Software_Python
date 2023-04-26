@@ -7,6 +7,7 @@
 #
 
 import core
+import core.constants
 import interfaces
 import algorithms
 from core.states import RoverState
@@ -82,8 +83,9 @@ class ApproachingMarker(RoverState):
             # Currently only orienting based on one AR Tag
             distance = tags[0].distance
             angle = tags[0].angle
+            self.logger.info(f"MARKER DISTANCE: {distance} ANGLE: {angle}")
 
-            left, right = algorithms.follow_marker.drive_to_marker(100, angle)
+            left, right = algorithms.follow_marker.drive_to_marker(core.MAX_DRIVE_POWER, angle)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0

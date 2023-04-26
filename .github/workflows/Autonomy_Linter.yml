@@ -2,7 +2,7 @@ name: Autonomy Flake8 Linter
 
 on:
   push:
-    branches:
+    branches-ignore:
       - dev
       - release/testing
       - release/competition

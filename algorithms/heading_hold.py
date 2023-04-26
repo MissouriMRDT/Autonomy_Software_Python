@@ -14,7 +14,7 @@ from algorithms.helper_funcs import clamp
 
 from algorithms.pid_controller import PIDcontroller
 
-pid = PIDcontroller(Kp=3, Ki=0.25, Kd=0, wraparound=360)
+pid = PIDcontroller(Kp=3, Ki=0.3, Kd=0, wraparound=360)
 
 
 def get_motor_power_from_heading(speed, goal_heading):

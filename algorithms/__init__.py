@@ -14,5 +14,6 @@ from algorithms import marker_search as marker_search
 from algorithms import pid_controller as PID_controller
 from algorithms import obstacle_detector as obstacle_detector
 from algorithms import obstacle_avoider as obstacle_avoider
+from algorithms import stanley_controller as stanley_controller
 from algorithms import ar_tag as ar_tag
 from algorithms import helper_funcs as helper_funcs
