@@ -74,7 +74,7 @@ def is_gate():
 
     # NEED TO UPDATE COMMENT
     ar_tag_ids = [tag.id for tag in ar_tags]
-    if 0 in ar_tag_ids and 4 in ar_tag_ids:
+    if 4 in ar_tag_ids and 5 in ar_tag_ids:
         return True
     return False
 
@@ -95,6 +95,6 @@ def get_gate_tags() -> List[Tag]:
     """
     tags = []
     for tag in ar_tags:
-        if tag.id == 0 or tag.id == 4:
+        if tag.id == 4 or tag.id == 5:
             tags.append(tag)
     return tags
