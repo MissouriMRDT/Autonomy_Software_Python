@@ -1,5 +1,12 @@
 import asyncio
+
+# from turtle import distance
+# from algorithms import AR_tag
+import algorithms.geomath as geomath
 import algorithms.small_movements as small_movements
+import algorithms.obstacle_avoider as obs_avoid
+
+# from core.vision.ar_tag_detector import is_gate
 import core
 import interfaces
 import algorithms
@@ -7,10 +14,14 @@ from core.states import RoverState
 import time
 import logging
 import math
+
+# from core.vision.ar_tag_detector import clear_tags
 import numpy as np
 import core.constants as constants
 import geopy.distance
 import geopy
+
+# from core.states import new_search_pattern
 
 # NO GPS VERSION
 # drives in a straight line through the gate (this will be bad at steep angles)
@@ -101,7 +112,7 @@ class ApproachingGate(RoverState):
                 targetBeforeGate, midpoint, targetPastGate = find_gate_path(
                     post_1_coord, post_2_coord, (start[0], start[1]), interfaces.nav_board.heading()
                 )
-            except Exception:
+            except:
                 return self
 
             print("TB4GATE:", targetBeforeGate.latitude, targetBeforeGate.longitude)

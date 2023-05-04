@@ -46,7 +46,7 @@ async def async_ar_tag_detector():
             else:
                 ar_tags.clear()
 
-            if str(core.states.state_machine.state) == "Idle" or str(core.states.state_machine.state) == "Avoidance":
+            if str(core.states.state_machine.state) == "Idle":
                 clear_tags()
 
         except Exception:
