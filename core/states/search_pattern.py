@@ -8,6 +8,7 @@
 
 import utm
 import core
+import math
 import algorithms
 import interfaces
 import asyncio
@@ -69,7 +70,6 @@ class SearchPattern(RoverState):
         :param event:
         :return: RoverState
         """
-
         state: RoverState = None
 
         if event == core.AutonomyEvents.MARKER_SEEN:
@@ -255,6 +255,42 @@ class SearchPattern(RoverState):
                 # Set drive powers.
                 self.logger.info(f"SearchPattern: Driving at ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
+
+                # Check if the rover is too far from the target position in path. Manually lead rover back onto path.
+                if (
+                    math.sqrt(
+                        math.pow(self.path_xs[self.target_idx] - utm_current[0], 2)
+                        + math.pow(self.path_ys[self.target_idx] - utm_current[1], 2)
+                    )
+                    > constants.SEARCH_PATTERN_MAX_ERROR_FROM_PATH
+                ):
+                    path = self.astar.plan_astar_avoidance_route(
+                        max_route_size=30, near_object_threshold=0.0, start_gps=current
+                    )
+
+                    # If path was generated successfully, then put it in our future path. Cut out old future.
+                    if path is not None:
+                        # Set path start timer.
+                        self.path_start_time = time.time()
+
+                        # Cut off path data after our current location.
+                        self.path_xs = self.path_xs[: self.target_idx]
+                        self.path_ys = self.path_ys[: self.target_idx]
+                        self.path_yaws = self.path_yaws[: self.target_idx]
+
+                        # Append new path onto current.
+                        for point in path:
+                            # Add new path starting from current location.
+                            self.path_xs.append(point[0])
+                            self.path_ys.append(point[1])
+
+                        # Manually calulate yaws since ASTAR doesn't given yaws.
+                        self.path_yaws = stanley_controller.calculate_yaws_from_path(
+                            self.path_xs, self.path_ys, interfaces.nav_board.heading()
+                        )
+
+                        # Store last index of path.
+                        self.last_idx = len(self.path_xs) - 1
         else:
             # Stop the drive board.
             interfaces.drive_board.stop()

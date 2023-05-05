@@ -10,7 +10,7 @@ import core
 import core.constants
 import interfaces
 import logging
-import algorithms
+from algorithms.obstacle_avoider import ASTAR
 from core.states import RoverState
 import time
 import math
@@ -26,7 +26,19 @@ class ApproachingGate(RoverState):
         """
         Schedule AR Tag detection
         """
-
+        # Create state specific variable.
+        self.astar = ASTAR()
+        self.rover_position_state = None
+        self.path_xs = []
+        self.path_ys = []
+        self.path_yaws = []
+        self.rover_xs = []
+        self.rover_ys = []
+        self.rover_yaws = []
+        self.rover_vs = []
+        self.last_idx = 0
+        self.target_idx = 0
+        self.path_start_time = 0
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
 
@@ -34,8 +46,18 @@ class ApproachingGate(RoverState):
         """
         Cancel all state specific coroutines
         """
-
-        pass
+        # Cancel all state specific coroutines and reset state variables.
+        self.astar.clear_obstacles()
+        self.path_xs.clear()
+        self.path_ys.clear()
+        self.path_yaws.clear()
+        self.rover_xs.clear()
+        self.rover_ys.clear()
+        self.rover_yaws.clear()
+        self.rover_vs.clear()
+        self.target_idx = 0
+        # Set position state back to none.
+        self.rover_position_state = None
 
     def on_event(self, event) -> RoverState:
         """
@@ -44,7 +66,6 @@ class ApproachingGate(RoverState):
         :param event:
         :return: RoverState
         """
-
         state: RoverState = None
 
         if event == core.AutonomyEvents.REACHED_MARKER:
@@ -92,131 +113,7 @@ class ApproachingGate(RoverState):
                 and self.gate_detection_attempts >= core.constants.ARUCO_FRAMES_DETECTED
                 and leg_type == "GATE"
             ):
-                # Print DEBUG.
-                print(f"TAG{tags[0].id} - Distance: {tags[0].distance}, Angle: {tags[0].angle}")
-                print(f"TAG{tags[1].id} - Distance: {tags[1].distance}, Angle: {tags[1].angle}")
-                print()
-
-                # if len(tags) >= 2:
-                #     distance = (tags[0].distance + tags[1].distance) / 2
-                #     angle = ((tags[0].angle) + (tags[1].angle)) / 2
-                #     logger.info(f"Gate detected {angle} degrees at distance {distance}")
-                #     self.logger.info("Gate detected, beginning navigation")
-                # # compute the angle across from the gate
-                # # depending on where the rover is facing, this is computed differently
-                # if tags[0].angle < 0 and tags[1].angle < 0:  # both tags on the right
-                #     larger = min(tags[0].angle, tags[1].angle)
-                #     smaller = max(tags[0].angle, tags[1].angle)
-                #     combinedAngle = abs(larger) - abs(smaller)
-                # elif tags[0].angle >= 0 and tags[1].angle >= 0:  # both tags on the left
-                #     larger = max(tags[0].angle, tags[1].angle)
-                #     smaller = min(tags[0].angle, tags[1].angle)
-                #     combinedAngle = larger - smaller
-                # else:  # one tag on left, one on right
-                #     combinedAngle = abs(tags[0].angle) + abs(tags[1].angle)
-                # # Calculate bearing and distance for the midpoint between the two tags
-                # # use law of cosines to get the distance between the tags, midpoint will be halfway between them
-                # gateWidth = math.sqrt(
-                #     (tags[0].distance ** 2)
-                #     + (tags[1].distance ** 2)
-                #     - 2 * tags[0].distance * tags[1].distance * math.cos(math.radians(combinedAngle))
-                # )
-                # self.logger.info(f"Gate width {gateWidth}")
-
-                # # we want to use the smaller side for our midpoint triangle
-                # D1 = min(tags[0].distance, tags[1].distance)
-
-                # # use law of sines to get the angle across from D1
-                # sinVal = (math.sin(math.radians(combinedAngle / 2)) * D1) / (gateWidth * 0.5)
-
-                # # arcsin is limited between -1 and 1, not sure why reflecting these values
-                # # across the y axis works, but it does. No proof it works in all cases
-                # if sinVal > 1:
-                #     sinDiff = sinVal - 1
-                #     sinVal = 1 - sinDiff
-                # elif sinVal < -1:
-                #     sinDiff = sinVal + 1
-                #     sinVal = -1 - sinDiff
-                # angleAcrossD1 = math.asin(sinVal)
-
-                # # deduce the last angle from 180 (pi)
-                # angleAcrossDm = math.pi - angleAcrossD1 - math.radians(combinedAngle / 2)
-
-                # # law of sines to get the last side of our triangle
-                # distToMidpoint = abs(
-                #     ((gateWidth / 2) * math.sin(angleAcrossDm)) / math.sin(math.radians(combinedAngle / 2))
-                # )
-                # self.logger.info(f"Calculated Distance to gate: {distToMidpoint}")
-
-                # # Last step to get angle to the midpoint, depending on where tags are relative to rover
-                # if tags[0].angle < 0 and tags[1].angle < 0:
-                #     angleToMidpoint = (interfaces.nav_board.heading() - (abs(larger) - (combinedAngle / 2))) % 360
-                # elif tags[0].angle >= 0 and tags[1].angle >= 0:
-                #     angleToMidpoint = (interfaces.nav_board.heading() + (abs(larger) - (combinedAngle / 2))) % 360
-                # else:
-                #     angleToMidpoint = (interfaces.nav_board.heading() + ((tags[0].angle + tags[1].angle) / 2)) % 360
-
-                # self.logger.info(f"Calculated Angle to gate: {angleToMidpoint}")
-
-                # start = core.Coordinate(interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
-
-                # # Get a GPS coordinate using our distance and bearing
-                # target = algorithms.obstacle_avoider.coords_obstacle(
-                #     distToMidpoint, start[0], start[1], angleToMidpoint
-                # )
-
-                # # Also calculate second point (to run through the gate)
-                # targetPastGateHeading = ((angleAcrossD1 - (math.pi / 2)) + interfaces.nav_board.heading()) % 360
-                # targetBeforeGate = algorithms.obstacle_avoider.coords_obstacle(
-                #     -core.constants.GATE_POINT_DISTANCES, target[0], target[1], targetPastGateHeading
-                # )
-                # targetPastGate = algorithms.obstacle_avoider.coords_obstacle(
-                #     core.constants.GATE_POINT_DISTANCES, target[0], target[1], targetPastGateHeading
-                # )
-
-                # points = [targetBeforeGate, target, targetPastGate]
-                # logger.info(f"Gate Nav Points are: {points}")
-
-                # # Approach the gate using GPS drive
-                # for point in points:
-                #     while (
-                #         algorithms.gps_navigate.get_approach_status(
-                #             core.Coordinate(point[0], point[1]),
-                #             interfaces.nav_board.location(),
-                #             start,
-                #             core.constants.WAYPOINT_DISTANCE_THRESHOLD,
-                #         )
-                #         == core.ApproachState.APPROACHING
-                #     ):
-                #         self.logger.info(f"Driving towards: Lat: {point[0]}, Lon: {point[1]}")
-                #         left, right = algorithms.gps_navigate.calculate_move(
-                #             core.Coordinate(point[0], point[1]),
-                #             interfaces.nav_board.location(),
-                #             start,
-                #             core.MAX_DRIVE_POWER,
-                #         )
-
-                #         self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
-
-                #         interfaces.drive_board.send_drive(left, right)
-                #         time.sleep(0.1)
-                #     interfaces.drive_board.stop()
-
-                # self.logger.info("Reached Gate")
-
-                # # Transmit that we have reached the gate
-                # core.rovecomm_node.write(
-                #     core.RoveCommPacket(
-                #         core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                #         "B",
-                #         (1,),
-                #     ),
-                #     False,
-                # )
-
-                # # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                # interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-
+                
                 # return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
             # If we grabbed more than one, see if it's a gate

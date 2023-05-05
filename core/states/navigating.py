@@ -175,7 +175,7 @@ class Navigating(RoverState):
         if (
             core.waypoint_handler.gps_data.leg_type == "MARKER"
             and core.vision.ar_tag_detector.is_marker()
-            and distance < constants.SEARCH_DISTANCE
+            and distance < constants.ARUCO_ENABLE_DISTANCE
         ):
             return core.states.ApproachingMarker()
 
@@ -183,7 +183,7 @@ class Navigating(RoverState):
         if (
             (core.waypoint_handler.gps_data.leg_type == "GATE" or core.waypoint_handler.gps_data.leg_type == "MARKER")
             and core.vision.ar_tag_detector.is_gate()
-            and distance < constants.SEARCH_DISTANCE
+            and distance < constants.ARUCO_ENABLE_DISTANCE
         ):
             core.waypoint_handler.gps_data.leg_type = "GATE"
             return core.states.ApproachingGate()

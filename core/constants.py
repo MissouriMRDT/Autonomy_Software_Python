@@ -31,9 +31,9 @@ METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 25  # meters
+SEARCH_DISTANCE = 5  # meters
+SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 10  # The max distance the rover diverge off path before regen.
 DELTA_THETA = math.pi / 4
-SEARCHPATTERN_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
 
 # Obstacle Detection Parameters.
 DETECTION_MODEL_CONF = 0.4
@@ -54,6 +54,7 @@ MAX_DETECTION_ATTEMPTS = 5  # This should be about 1 second
 ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
+ARUCO_ENABLE_DISTANCE = 25
 ARUCO_GOAL_DISTANCE_THRESH = (
     25  # The minimum distance from the goal waypoint before aruco detection os considered valid.
 )
