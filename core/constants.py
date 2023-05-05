@@ -43,10 +43,10 @@ AVOIDANCE_ENABLE_DISTANCE_THRESHOLD = 3.0  # Minimum distance rover must be from
 AVOIDANCE_OBJECT_DISTANCE_MIN = 2.0  # Closest rover can get to an obstacle.
 AVOIDANCE_OBJECT_DISTANCE_MAX = 10.0  # Minimum distance rover must be from an obstacle before avoidance kicks in.
 AVOIDANCE_OBJECT_ANGLE = 40  # The FOV of detection for obstacles.
-AVOIDANCE_PATH_NODE_INCREMENT = 0.3  # The distance between each node. Path resolution in meters.
+AVOIDANCE_PATH_NODE_INCREMENT = 0.1  # The distance between each node. Path resolution in meters.
 AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
-AVOIDANCE_PATH_ROUTE_LENGTH = 20  # The length in meters that ASTAR will generate at one time.
-AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 50  # The number of obstacles to store at a time.
+AVOIDANCE_PATH_ROUTE_LENGTH = 40  # The length in meters that ASTAR will generate at one time.
+AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a time.
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
 # Vision Parameters

@@ -111,7 +111,7 @@ class Avoidance(RoverState):
             )
 
         # If one or more obstacles have been detected and time since last path generation has exceeded limit, then attempt to plan a new avoidance route.
-        if is_obstacle and (time_since_last_path > path_expiration or self.target_idx == self.last_idx):
+        if is_obstacle and time_since_last_path > path_expiration or self.target_idx == self.last_idx:
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
                 max_route_size=core.constants.AVOIDANCE_PATH_ROUTE_LENGTH,

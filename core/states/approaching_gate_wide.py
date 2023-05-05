@@ -120,6 +120,8 @@ class ApproachingGate(RoverState):
             print("PAST GATE:", targetPastGate.latitude, targetPastGate.longitude)
 
             point = targetBeforeGate.latitude, targetBeforeGate.longitude
+            print("TAGS LL: ", tags[0].lat, tags[0].long, " - ", tags[1].lat, tags[1].long)
+            input()
             print(point)
 
             while (

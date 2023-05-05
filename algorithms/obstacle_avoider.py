@@ -236,7 +236,6 @@ class ASTAR:
         current_utm_pos = utm.from_latlon(current_gps_pos[0], current_gps_pos[1])
         self.utm_zone = (current_utm_pos[2], current_utm_pos[3])
 
-        # Only continue if obstacle_coords is not empty.
         ####################################################################
         # Create start and end node.
         ####################################################################
@@ -295,8 +294,8 @@ class ASTAR:
 
             # Found the goal.
             if (
-                fabs(current_node.position[0] - self.end.position[0]) <= 1.0
-                and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
+                fabs(current_node.position[0] - self.end.position[0]) <= constants.WAYPOINT_DISTANCE_THRESHOLD
+                and fabs(current_node.position[1] - self.end.position[1]) <= constants.WAYPOINT_DISTANCE_THRESHOLD
             ):
                 return return_path(current_node, self.utm_zone, return_gps)
 

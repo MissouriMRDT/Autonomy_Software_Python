@@ -86,6 +86,38 @@ class Navigating(RoverState):
             state = core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.NEW_WAYPOINT:
+            # Generate path.
+            path = self.astar.plan_astar_avoidance_route(
+                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
+            )
+
+            # If path was generated successfully, then put it in our future path. Cut out old future.
+            if path is not None:
+                # Set path start timer.
+                self.path_start_time = time.time()
+
+                # Cut off path data after our current location.
+                self.path_xs = self.path_xs[: self.target_idx]
+                self.path_ys = self.path_ys[: self.target_idx]
+                self.path_yaws = self.path_yaws[: self.target_idx]
+
+                # Append new path onto current.
+                for point in path:
+                    # Add new path starting from current location.
+                    self.path_xs.append(point[0])
+                    self.path_ys.append(point[1])
+
+                # Manually calulate yaws since ASTAR doesn't given yaws.
+                self.path_yaws = stanley_controller.calculate_yaws_from_path(
+                    self.path_xs, self.path_ys, interfaces.nav_board.heading()
+                )
+
+                # Store last index of path.
+                self.last_idx = len(self.path_xs) - 1
+            else:
+                # Print error.
+                self.logger.error("Path didn't generate!")
+
             state = self
 
         elif event == core.AutonomyEvents.START:
@@ -167,7 +199,7 @@ class Navigating(RoverState):
             return self.on_event(core.AutonomyEvents.OBSTACLE_AVOIDANCE)
 
         # If Stanley has reached the last index of the path generate new one even though we aren't there yet.
-        if self.target_idx == self.last_idx:
+        if self.target_idx == self.last_idx or len(self.path_xs) <= 1:
             # If there are more points, set the new one and start from top
             if not core.waypoint_handler.is_empty():
                 # Get new wapoint goal.
@@ -175,7 +207,7 @@ class Navigating(RoverState):
                 self.logger.info(f"Navigating: Reached midpoint, grabbing new point ({goal[0]}, {goal[1]})")
 
                 # Force path to expire and regenerate.
-                self.time_since_last_path += constants.NAVIGATION_PATH_EXPIRATION_SECONDS
+                self.path_start_time = 0
                 self.last_idx = -1
 
                 return self.on_event(core.AutonomyEvents.NEW_WAYPOINT)
@@ -212,6 +244,10 @@ class Navigating(RoverState):
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 else:
                     return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
+            else:
+                # Force path to expire and regenerate.
+                self.path_start_time = 0
+                self.last_idx = -1
 
         """
         PATH GENERATION AND FOLLOWING.
@@ -219,8 +255,7 @@ class Navigating(RoverState):
         # Update time since last path generation.
         self.time_since_last_path = time.time() - self.path_start_time
         # Now that we have our gps waypoints. Generate a path if not already done.
-        if self.time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 0:
-
+        if self.time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 1:
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
                 max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
