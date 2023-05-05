@@ -57,10 +57,10 @@ class DriveBoard:
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
-                "h",
-                (target_left, target_right),
-                core.manifest["Drive"]["Ip"],
+                core.manifest["Core"]["Commands"]["DriveLeftRight"]["dataId"],
+                "f",
+                (target_left / 1000, target_right / 1000),
+                core.manifest["Core"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             False,
@@ -74,10 +74,10 @@ class DriveBoard:
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
-                "h",
-                (0, 0),
-                core.manifest["Drive"]["Ip"],
+                core.manifest["Core"]["Commands"]["DriveLeftRight"]["dataId"],
+                "f",
+                (0.0, 0.0),
+                core.manifest["Core"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             False,
