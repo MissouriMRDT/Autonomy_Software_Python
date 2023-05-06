@@ -28,10 +28,10 @@ class MultiMedia:
         # Write a lighting state packet (TCP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Core"]["Commands"]["StateDisplay"]["dataId"],
+                core.manifest["Multimedia"]["Commands"]["StateDisplay"]["dataId"],
                 "B",
                 (state,),
-                core.manifest["Core"]["Ip"],
+                core.manifest["Multimedia"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             False,
@@ -46,10 +46,10 @@ class MultiMedia:
         # Write a lighting rgb packet (TCP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Core"]["Commands"]["LEDRGB"]["dataId"],
+                core.manifest["Multimedia"]["Commands"]["LEDRGB"]["dataId"],
                 "B",
                 rgb,
-                core.manifest["Core"]["Ip"],
+                core.manifest["Multimedia"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             True,
