@@ -81,8 +81,18 @@ class DriveBoard:
         """
         # Get data out of packet.
         max_speed = packet.data
+
+        # Do some checking.
+        if max_speed < 0:
+            max_speed = 0
+        elif max_speed > 1000:
+            max_speed = 1000
+
         # Set max speed constant.
         core.constants.MAX_DRIVE_POWER = max_speed
+
+        # Print logging info.
+        self.logger.info(f"Autonomy set max drive power to {max_speed}")
 
     def stop(self) -> None:
         """
