@@ -19,9 +19,15 @@ class DriveBoard:
     """
 
     def __init__(self):
+        # Create class member variables.
         self._targetSpdLeft: int = 0
         self._targetSpdRight: int = 0
         self.logger: logging.Logger = logging.getLogger(__name__)
+
+        # Set rovecomm callback for setting max drive speed.
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["SetMaxSpeed"]["dataId"], self.set_max_speed
+        )
 
     def calculate_move(self, speed: float, angle: float) -> Tuple[int, int]:
         """
@@ -65,6 +71,18 @@ class DriveBoard:
             ),
             False,
         )
+
+    def set_max_speed(self, packet) -> None:
+        """
+        This method is called whenever a SetMaxSpeed packet is sent from basestation.
+
+        :param packet:
+        :return: None
+        """
+        # Get data out of packet.
+        max_speed = packet.data
+        # Set max speed constant.
+        core.constants.MAX_DRIVE_POWER = max_speed
 
     def stop(self) -> None:
         """

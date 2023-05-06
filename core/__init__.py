@@ -9,6 +9,7 @@
 import sys
 
 from core import states
+from core import constants
 from core import vision
 from core.constants import *
 from core.states.state_machine import StateMachine
