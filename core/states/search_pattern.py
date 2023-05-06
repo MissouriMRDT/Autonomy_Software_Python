@@ -163,7 +163,7 @@ class SearchPattern(RoverState):
                 start_coord = current
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
-                max_route_size=30, near_object_threshold=0.0, start_gps=start_coord
+                max_route_size=40, near_object_threshold=0.0, start_gps=start_coord
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
@@ -248,7 +248,7 @@ class SearchPattern(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/.searchpattern_gps_path.png")
+                    plt.savefig("logs/!searchpattern_gps_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)

@@ -30,9 +30,17 @@ NAVIGATION_PATH_ROUTE_LENGTH = 30  # The length in meters that ASTAR will genera
 METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 
+# Approaching Gate Parameters.
+GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
+GATE_NEAR_MARKER_THRESH = 0.4  # The closest the rover can get to a post.
+GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
+    3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
+)
+GATE_DRIVE_THROUGH_TIME = 10  # The amount of time to continue driving after going through gate.
+
 # Search Pattern Parameters
 SEARCH_DISTANCE = 5  # meters
-SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 10  # The max distance the rover diverge off path before regen.
+SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 DELTA_THETA = math.pi / 4
 
 # Obstacle Detection Parameters.
@@ -50,7 +58,7 @@ AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a ti
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
 # Vision Parameters
-MAX_DETECTION_ATTEMPTS = 5  # This should be about 1 second
+MAX_DETECTION_ATTEMPTS = 50  # This should be about 1 second
 ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1

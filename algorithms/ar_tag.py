@@ -246,9 +246,9 @@ def track_ar_tag(center):
             distance = core.vision.camera_handler.grab_depth_data()[depth_cY + perm[index][1]][
                 depth_cX + perm[index][0]
             ]
-            # If distance is equal to or greater than 40000 (max zed and sim range), then set distance to NaN.
+            # If distance is equal to or greater than 40000 (max zed and sim range), then set distance to 40 meters.
             if distance >= 40000:
-                distance = NaN
+                distance = 40000
             index += 1
 
     # Vision system reports depth in mm, we want in meters

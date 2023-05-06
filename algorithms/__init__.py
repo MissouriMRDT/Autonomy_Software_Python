@@ -12,6 +12,7 @@ from algorithms import gps_navigate as gps_navigate
 from algorithms import heading_hold as heading_hold
 from algorithms import marker_search as marker_search
 from algorithms import pid_controller as PID_controller
+from algorithms import small_movements as small_movements
 from algorithms import obstacle_detector as obstacle_detector
 from algorithms import obstacle_avoider as obstacle_avoider
 from algorithms import stanley_controller as stanley_controller

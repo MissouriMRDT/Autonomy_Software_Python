@@ -11,6 +11,7 @@ from algorithms import obstacle_avoider
 from algorithms import stanley_controller
 from algorithms import heading_hold
 from algorithms import gps_navigate
+from algorithms import geomath
 import matplotlib.pyplot as plt
 import core
 import core.constants
@@ -92,6 +93,31 @@ class Avoidance(RoverState):
         # Get goal waypoint.
         gps_data = core.waypoint_handler.get_waypoint()
         goal, start, leg_type = gps_data.data()
+        _, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])
+
+        """
+        STATE TRANSITION AND WAYPOINT LOGIC.
+        """
+        # Move to approaching marker if 1 ar tag is spotted during marker leg type
+        if (
+            core.waypoint_handler.gps_data.leg_type == "MARKER"
+            and core.vision.ar_tag_detector.is_marker()
+            and distance < core.constants.ARUCO_ENABLE_DISTANCE
+        ):
+            return core.states.ApproachingMarker()
+
+        # Move to approaching gate if 2 ar tags are spotted during gate leg type.
+        if (
+            (core.waypoint_handler.gps_data.leg_type == "GATE" or core.waypoint_handler.gps_data.leg_type == "MARKER")
+            and core.vision.ar_tag_detector.is_gate()
+            and distance < core.constants.ARUCO_ENABLE_DISTANCE
+        ):
+            core.waypoint_handler.gps_data.leg_type = "GATE"
+            return core.states.ApproachingGate()
+
+        """
+        PATH GENERATION AND FOLLOWING.
+        """
 
         # Get boolean toggle for if one or more obstacles have been detected.
         is_obstacle = core.vision.obstacle_avoidance.is_obstacle()
@@ -200,7 +226,7 @@ class Avoidance(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/.avoidance_gps_path.png")
+                    plt.savefig("logs/!avoidance_gps_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)
