@@ -107,6 +107,9 @@ class ApproachingGate(RoverState):
             print("Current GPS coords", start[0], start[1])
             print("POST 1 COORD:", post_1_coord)
             print("POST 2 COORD:", post_2_coord)
+            if post_1_coord[0] == 40.0 or post_2_coord[0] == 40.0:
+                print("NULL TAG DISTANCE")
+                return self
 
             try:
                 targetBeforeGate, midpoint, targetPastGate = find_gate_path(
@@ -121,7 +124,6 @@ class ApproachingGate(RoverState):
 
             point = targetBeforeGate.latitude, targetBeforeGate.longitude
             print("TAGS LL: ", tags[0].lat, tags[0].long, " - ", tags[1].lat, tags[1].long)
-            input()
             print(point)
 
             while (
