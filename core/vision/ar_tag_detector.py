@@ -12,6 +12,8 @@ from algorithms.ar_tag import Tag
 import core
 import algorithms
 import logging
+from core.constants import FRAMES_DETECTED
+import time
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -21,23 +23,34 @@ async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
+
     logger = logging.getLogger(__name__)
     while True:
         reg_img = core.vision.camera_handler.grab_regular()
 
         tags, reg_img = algorithms.ar_tag.detect_ar_tag(reg_img)
-
         core.vision.feed_handler.handle_frame("artag", reg_img)
+
+        ids = []
 
         if len(tags) > 0:
             ar_tags.clear()
-            ar_tags.extend(tags)
+
+            for t in tags:
+                if t.detected > 0:
+                    ids.append(t.id)
+                    ar_tags.append(t)
         else:
             ar_tags.clear()
 
         logger.debug("Running AR Tag async")
 
         await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
+
+
+def clear_tags():
+    ar_tags.clear()
+    algorithms.ar_tag.detected_tags.clear()
 
 
 def is_marker():
@@ -59,7 +72,11 @@ def is_gate():
     :return: detect (bool) - whether something was detected
     """
 
-    return len(ar_tags) > 1
+    # NEED TO UPDATE COMMENT
+    ar_tag_ids = [tag.id for tag in ar_tags]
+    if 4 in ar_tag_ids and 5 in ar_tag_ids:
+        return True
+    return False
 
 
 def get_tags() -> List[Tag]:
@@ -70,3 +87,14 @@ def get_tags() -> List[Tag]:
     """
 
     return ar_tags
+
+
+def get_gate_tags() -> List[Tag]:
+    """
+    Need To Comment
+    """
+    tags = []
+    for tag in ar_tags:
+        if tag.id == 4 or tag.id == 5:
+            tags.append(tag)
+    return tags
