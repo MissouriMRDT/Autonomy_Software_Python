@@ -7,6 +7,8 @@ from core.constants import ARUCO_FRAMES_DETECTED
 
 # Dict to hold the obstacle info
 ar_tags = []
+leg_valid_tags = []
+clear_tags_toggle = False
 
 
 async def async_ar_tag_detector():
@@ -15,7 +17,6 @@ async def async_ar_tag_detector():
     """
     # Setup logger for function.
     logger = logging.getLogger(__name__)
-
     # Declare detection objects.
     TagDetector = algorithms.ar_tag.ArucoARTagDetector()
 
@@ -28,36 +29,44 @@ async def async_ar_tag_detector():
             # Detect tags.
             TagDetector.detect_ar_tag(reg_img)
             # Filter tags.
-            # TagDetector.filter_ar_tags()
+            # TagDetector.filter_ar_tags(angle_range=80, distance_range=25, valid_id_range=[0, 1, 2, 3, 4, 5])
+            # Get and store tags.
+            ar_tags = TagDetector.get_tags()
 
             # Draw tags.
             reg_img = TagDetector.track_ar_tags(reg_img)
             core.vision.feed_handler.handle_frame("artag", reg_img)
 
-            # # Print info about tags if 1 or more detected.
-            # if len(tags) >= 1:
-            #     output = f"{len(tags)} Tags Detected: "
-            #     for tag in tags:
-            #         output += f"ID: {tag.id}\n"
-            #     logger.info(output)
+            # Print info about tags if 1 or more detected.
+            if len(ar_tags) >= 1:
+                # Build output string.
+                output = f"{len(ar_tags)} Tags Detected:\n"
+                # Add individual tag data to output.
+                for tag in ar_tags:
+                    output += (
+                        f"[ID:{tag.id} DIST:{int(tag.distance)} ANGLE:{int(tag.angle)} DETS:{tag.times_detected}]\n"
+                    )
+                # Print log output.
+                logger.info(output)
 
-            # ids = []
+            # Clear valid_ids list.
+            leg_valid_tags.clear()
+            # Check if the waypoint handler has a waypoint.
+            if core.waypoint_handler.gps_data:
+                # Check if the waypoint is a marker or gate and that we have detected a valid amount of tags.
+                if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(ar_tags) > 0) or (
+                    core.waypoint_handler.gps_data.leg_type == "GATE" and len(ar_tags) > 1
+                ):
+                    # Loop through each tag and check if the times_detected for each one is over the threshold.
+                    for tag in ar_tags:
+                        if tag.times_detected >= ARUCO_FRAMES_DETECTED:
+                            leg_valid_tags.append(tag)
 
-            # if core.waypoint_handler.gps_data:
-            #     ar_tags.clear()
-
-            #     if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(tags) > 0) or (
-            #         core.waypoint_handler.gps_data.leg_type == "GATE" and len(tags) > 1
-            #     ):
-            #         for t in tags:
-            #             if t.detected >= ARUCO_FRAMES_DETECTED:
-            #                 ids.append(t.id)
-            #                 ar_tags.append(t)
-            # else:
-            #     ar_tags.clear()
-
-            if str(core.states.state_machine.state) == "Idle":
+            if str(core.states.state_machine.state) == "Idle" or clear_tags_toggle:
+                # Clear tags in detector object.
                 TagDetector.clear_tags()
+                # Reset toggle.
+                clear_tags_toggle = False
 
         except Exception:
             # Because we are using async functions, they don't print out helpful tracebacks. We must do this instead.
@@ -72,7 +81,10 @@ def clear_tags():
 
     :returns: None
     """
-    ar_tags.clear()
+    # Clear detection object by setting toggle.
+    clear_tags_toggle = True
+    # Clear local lists.
+    leg_valid_tags.clear()
 
 
 def is_marker():
@@ -81,9 +93,7 @@ def is_marker():
 
     :return: detect (bool) - whether or not something was detected
     """
-    flag = len(ar_tags) > 0 and ar_tags[0].id in [0, 1, 2, 3]
-    # flag = False
-    return flag
+    return True if len(leg_valid_tags) > 0 and leg_valid_tags[0].id in [0, 1, 2, 3, 4, 5] else False
 
 
 def is_gate():
@@ -94,9 +104,11 @@ def is_gate():
 
     :return: detect (bool) - whether or not something was detected
     """
-    flag = len(ar_tags) >= 2 and ar_tags[0].id in [4, 5] and ar_tags[1].id in [4, 5]
-
-    return flag
+    return (
+        True
+        if len(leg_valid_tags) >= 2 and leg_valid_tags[0].id in [4, 5] and leg_valid_tags[1].id in [4, 5]
+        else False
+    )
 
 
 def get_tags():
@@ -106,3 +118,10 @@ def get_tags():
     :return: tags - A list of class objects of the type Tag
     """
     return ar_tags
+
+
+def get_valid_tags():
+    """
+    Returns a filtered list of valid tags depending on waypoint leg type. (MARKER or GATE)
+    """
+    return leg_valid_tags

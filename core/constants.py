@@ -13,8 +13,8 @@ import json
 
 # Autonomy General Configuration
 EVENT_LOOP_DELAY = 0.1  # seconds
-IDLE_TIME_GPS_REALIGN = 5 # Second to sit in idle before realigning gps with relative.
-IDLE_GPS_ACCUR_THRESH = 0.8 # The minimum meter accuracy needed to update rover position.
+IDLE_TIME_GPS_REALIGN = 5  # Second to sit in idle before realigning gps with relative.
+IDLE_GPS_ACCUR_THRESH = 0.8  # The minimum meter accuracy needed to update rover position.
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -31,6 +31,9 @@ NAVIGATION_PATH_EXPIRATION_SECONDS = 10  # The time in seconds before a new path
 NAVIGATION_PATH_ROUTE_LENGTH = 30  # The length in meters that ASTAR will generate at one time.
 METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
+NAVIGATION_START_BACKUP_TIME = 2  # Time to backup if tag is in front of rover when entering nav state.
+NAVIGATION_BACKUP_SPEED = -250  # the speed to backup with.
+NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 2  # Min distance tag can be from rover to trigger backup.
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
@@ -40,6 +43,11 @@ GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
 )
 GATE_DRIVE_THROUGH_TIME = 10  # The amount of time to continue driving after going through gate.
 RECENTER_GATE_THRESHOLD = 20
+
+# Approaching Marker Parameters.
+MARKER_MAX_APPROACH_SPEED = 200  # The speed to approach the marker at.
+MAX_DETECTION_ATTEMPTS = 20  # This should be about 1 second
+
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 5  # meters
@@ -61,14 +69,11 @@ AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a ti
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
 # Vision Parameters
-MAX_DETECTION_ATTEMPTS = 50  # This should be about 1 second
 ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
-ARUCO_ENABLE_DISTANCE = 25
-ARUCO_GOAL_DISTANCE_THRESH = (
-    25  # The minimum distance from the goal waypoint before aruco detection os considered valid.
-)
+ARUCO_ENABLE_DISTANCE = 25  # The minimum distance from the goal waypoint before aruco detection os considered valid.
+ARUCO_MARKER_STOP_DISTANCE = 1.50
 DISPLAY_TEST_MODE = False  # This will enable opening of OpenCV windows for vision detection live viewing.
 ZED_X_OFFSET = 0.060325
 ZED_Z_OFFSET = 0.000

@@ -82,7 +82,7 @@ class ApproachingGate(RoverState):
 
         # Use get_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
-        tags = core.vision.ar_tag_detector.get_tags()
+        tags = core.vision.ar_tag_detector.get_valid_tags()
         gps_data = core.waypoint_handler.get_waypoint()
         orig_goal, orig_start, leg_type = gps_data.data()
 
@@ -164,8 +164,11 @@ class ApproachingGate(RoverState):
             else:
                 interfaces.drive_board.send_drive(150, -150)
 
-            tags = core.vision.ar_tag_detector.get_tags() 
-            if core.vision.ar_tag_detector.is_gate() and (tags[0].angle + tags[1].angle / 2) < core.RECENTER_GATE_THRESHOLD:
+            tags = core.vision.ar_tag_detector.get_tags()
+            if (
+                core.vision.ar_tag_detector.is_gate()
+                and (tags[0].angle + tags[1].angle / 2) < core.RECENTER_GATE_THRESHOLD
+            ):
                 self.is_turning = False
                 interfaces.drive_board.stop()
             else:

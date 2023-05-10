@@ -6,6 +6,8 @@ import math
 import numpy as np
 import interfaces
 import core.constants
+from geopy.distance import VincentyDistance
+from geopy import Point
 
 
 class Tag:
@@ -24,6 +26,21 @@ class Tag:
         self.times_detected = 1
         self.distance = 0
         self.angle = 0
+        self.lat, self.long = 0, 0
+
+        # Get tag info.
+        self.refresh(center)
+
+    def refresh(self, center):
+        """
+        Updates tag info.
+
+        :param: None
+
+        :return: Nothing
+        """
+        # Update tag center.
+        self.cX, self.cY = center
 
         # Grab the camera parameters
         img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
@@ -33,7 +50,7 @@ class Tag:
         depth_cY = int((self.cY * (core.vision.camera_handler.depth_res_y)) / (img_res_y))
 
         # Grab the distance from the depth map
-        distance = NaN
+        self.distance = NaN
 
         # Find some permutations we can use in case of noisy data
         coordinates = [0, 1, -1, 2, -2, 3, -3, 4, -4]
@@ -42,14 +59,14 @@ class Tag:
         # Grab the distance from the depth map, iterating over pixels if the distance is not finite
         index = 0
 
-        while not np.isfinite(distance) and index < len(perm):
+        while not np.isfinite(self.distance) and index < len(perm):
             if index < len(perm):
-                distance = core.vision.camera_handler.grab_depth_data()[depth_cY + perm[index][1]][
+                self.distance = core.vision.camera_handler.grab_depth_data()[depth_cY + perm[index][1]][
                     depth_cX + perm[index][0]
                 ]
                 # If distance is equal to or greater than 40000 (max zed and sim range), then set distance to 40 meters.
-                if distance >= 40000:
-                    distance = 40000
+                if self.distance >= 40000:
+                    self.distance = 40001
                 index += 1
 
         # Vision system reports depth in mm, we want in meters
@@ -61,6 +78,15 @@ class Tag:
         angle_per_pixel = hfov / img_res_x
         pixel_offset = self.cX - (img_res_x / 2)
         self.angle = pixel_offset * angle_per_pixel
+
+        # Calculate absolute heading of the obstacle relative to the rover.
+        heading = (interfaces.nav_board.heading() + self.angle) % 360
+        rover_location = interfaces.nav_board.location()
+        # Find GPS location of tag.
+        destination = VincentyDistance(meters=self.distance).destination(
+            Point(rover_location[0], rover_location[1]), heading
+        )
+        self.lat, self.long = destination.latitude, destination.longitude
 
 
 class ArucoARTagDetector:
@@ -101,8 +127,20 @@ class ArucoARTagDetector:
         cX = (x1 + x2) / 2
         cY = (y1 + y2) / 2
 
+        # Make sure tag_id is valid.
         if tag_id <= 5:
-            self.tag_list.append(Tag(tag_id, (cX, cY)))
+            # Check if a tag with the same ID is already in the list.
+            if tag_id in [tag.id for tag in self.tag_list]:
+                # Don't add duplicate tag, just increment times_detected.
+                # Find the tag with matching id.
+                for tag in self.tag_list:
+                    if tag.id == tag_id:
+                        # Increment number of times tag has been seen.
+                        tag.times_detected += 1
+                        # Refresh tag distance and angle.
+                        tag.refresh((cX, cY))
+            else:
+                self.tag_list.append(Tag(tag_id, (cX, cY)))
 
     def detect_ar_tag(self, reg_img):
         """
@@ -123,18 +161,23 @@ class ArucoARTagDetector:
         # Capture Tags
         detected_corners, detected_ids, _ = self.detector.detectMarkers(gray)
 
-        # Loop through all detected tags and add them to list.
-        for tag_id, tag_corners in zip(detected_ids, detected_corners):
-            # Check if a tag with the same ID is already in the list.
-            if tag_id in [tag.id for tag in self.tag_list]:
-                # Don't add duplicate tag, just increment times_detected.
-                # Find the tag with matching id.
-                for tag in self.tag_list:
-                    if tag.id == tag_id:
-                        tag.times_detected += 1
-            else:
+        # Make sure at least one tag is detected.
+        if detected_corners is not None and detected_ids is not None:
+            # Loop through all detected tags and add them to list.
+            for tag_id, tag_corners in zip(detected_ids, detected_corners):
+                # Unpack.
+                tag_id = tag_id[0]
                 # Add tag, this method doesn't care about filtering. It just adds all raw tag data.
                 self.add_tag(tag_id, tag_corners)
+        # If no tags are detected, then decrement the times_detected from all current tags in the list.
+        else:
+            for tag in self.tag_list:
+                # Decrement detection counter.
+                tag.times_detected -= 1
+                # Check if times_detected has hit zero.
+                if tag.times_detected <= 0:
+                    # Remove from list.
+                    self.tag_list.remove(tag)
 
     def filter_ar_tags(self, angle_range=180, distance_range=40, valid_id_range=[1, 2, 3, 4, 5]):
         """

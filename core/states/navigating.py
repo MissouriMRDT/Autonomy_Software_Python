@@ -14,11 +14,9 @@ import algorithms
 import numpy as np
 import matplotlib.pyplot as plt
 from core.states import RoverState
-from algorithms import geomath
-from core.vision.ar_tag_detector import clear_tags
+from algorithms import geomath, stanley_controller, heading_hold, small_movements
 from algorithms.obstacle_avoider import ASTAR
-from algorithms import stanley_controller
-from algorithms import heading_hold
+
 from core import constants
 
 
@@ -49,6 +47,23 @@ class Navigating(RoverState):
         self.target_idx = 0
         self.path_start_time = 0
         self.time_since_last_path = 0
+
+        # Check if an ar tag is in front of us.
+        print(core.vision.ar_tag_detector.get_tags())
+        if (
+            len(
+                [
+                    distance
+                    for distance in core.vision.ar_tag_detector.get_tags()
+                    if distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
+                ]
+            )
+            > 1
+        ):
+            # Print log.
+            self.logger.warning("BACKING UP! AR Tag detected in front of rover.")
+            # Backup for a defined amount of time.
+            small_movements.backup(core.constants.NAVIGATION_START_BACKUP_TIME, core.constants.NAVIGATION_BACKUP_SPEED)
 
     def exit(self):
         """
@@ -168,8 +183,8 @@ class Navigating(RoverState):
         # Calculate distance from goal for checking for markers and gates.
         bearing, distance = geomath.haversine(current[0], current[1], goal[0], goal[1])
         distance *= 1000  # convert from km to m
-        if distance > constants.ARUCO_GOAL_DISTANCE_THRESH:
-            clear_tags()
+        if distance > constants.ARUCO_ENABLE_DISTANCE:
+            core.vision.ar_tag_detector.clear_tags()
 
         # Move to approaching marker if 1 ar tag is spotted during marker leg type
         if (

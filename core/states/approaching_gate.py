@@ -114,7 +114,7 @@ class ApproachingGate(RoverState):
             utm_current = utm.from_latlon(current[0], current[1])
             # Use get_tags to create an array of the 2 gate posts
             # (named tuples containing the distance and relative angle from the camera)
-            tags = core.vision.ar_tag_detector.get_tags()
+            tags = core.vision.ar_tag_detector.get_valid_tags()
             goal, _, leg_type = core.waypoint_handler.get_waypoint().data()
 
             # If we've seen at least 5 frames of 2 tags, assume it's a gate
