@@ -35,6 +35,8 @@ def setup(type="REGULAR"):
     """
     # load the manifest
     this.manifest = get_manifest()
+    # Store mode.
+    this.MODE = type
 
     # IPs and ports depend on type
     if type == "REGULAR":

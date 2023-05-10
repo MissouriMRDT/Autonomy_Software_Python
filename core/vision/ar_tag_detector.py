@@ -1,12 +1,9 @@
 import asyncio
-from typing import List
-from algorithms.ar_tag import Tag
 import core
 import algorithms
 import logging
 import traceback
 from core.constants import ARUCO_FRAMES_DETECTED
-from algorithms.ar_tag import detected_tags
 
 # Dict to hold the obstacle info
 ar_tags = []
@@ -16,38 +13,51 @@ async def async_ar_tag_detector():
     """
     Async function to find obstacles.
     """
+    # Setup logger for function.
     logger = logging.getLogger(__name__)
+
+    # Declare detection objects.
+    TagDetector = algorithms.ar_tag.ArucoARTagDetector()
+
     while True:
         # Maybe this is bad practice but it's helpful.
         try:
+            # Get normal image from camera.
             reg_img = core.vision.camera_handler.grab_regular()
 
-            tags, reg_img = algorithms.ar_tag.detect_ar_tag(reg_img)
+            # Detect tags.
+            TagDetector.detect_ar_tag(reg_img)
+            # Filter tags.
+            # TagDetector.filter_ar_tags()
+
+            # Draw tags.
+            reg_img = TagDetector.track_ar_tags(reg_img)
             core.vision.feed_handler.handle_frame("artag", reg_img)
-            # Print info about tags if 1 or more detected.
-            if len(tags) >= 1:
-                output = f"{len(tags)} Tags Detected: "
-                for tag in tags:
-                    output += f"ID: {tag.id}\n"
-                logger.info(output)
 
-            ids = []
+            # # Print info about tags if 1 or more detected.
+            # if len(tags) >= 1:
+            #     output = f"{len(tags)} Tags Detected: "
+            #     for tag in tags:
+            #         output += f"ID: {tag.id}\n"
+            #     logger.info(output)
 
-            if core.waypoint_handler.gps_data:
-                ar_tags.clear()
+            # ids = []
 
-                if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(tags) > 0) or (
-                    core.waypoint_handler.gps_data.leg_type == "GATE" and len(tags) > 1
-                ):
-                    for t in tags:
-                        if t.detected >= ARUCO_FRAMES_DETECTED:
-                            ids.append(t.id)
-                            ar_tags.append(t)
-            else:
-                ar_tags.clear()
+            # if core.waypoint_handler.gps_data:
+            #     ar_tags.clear()
 
-            if str(core.states.state_machine.state) == "Idle" or str(core.states.state_machine.state) == "Avoidance":
-                clear_tags()
+            #     if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(tags) > 0) or (
+            #         core.waypoint_handler.gps_data.leg_type == "GATE" and len(tags) > 1
+            #     ):
+            #         for t in tags:
+            #             if t.detected >= ARUCO_FRAMES_DETECTED:
+            #                 ids.append(t.id)
+            #                 ar_tags.append(t)
+            # else:
+            #     ar_tags.clear()
+
+            if str(core.states.state_machine.state) == "Idle":
+                TagDetector.clear_tags()
 
         except Exception:
             # Because we are using async functions, they don't print out helpful tracebacks. We must do this instead.
@@ -63,7 +73,6 @@ def clear_tags():
     :returns: None
     """
     ar_tags.clear()
-    detected_tags.clear()
 
 
 def is_marker():
@@ -90,7 +99,7 @@ def is_gate():
     return flag
 
 
-def get_tags() -> List[Tag]:
+def get_tags():
     """
     Returns a list of all the tags found.
 

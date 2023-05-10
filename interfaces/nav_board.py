@@ -32,6 +32,7 @@ class NavBoard:
         self._accur_vertical = -1
         self._accur_heading = -1
         self._start_UTM = None
+        self._start_Heading = 0
 
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
@@ -41,14 +42,15 @@ class NavBoard:
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
-        core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["AccuracyData"]["dataId"], self.process_accuracy_data)
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["AccuracyData"]["dataId"], self.process_accuracy_data
+        )
 
     def process_imu_data(self, packet):
         """
         Process IMU Data
         :param packet: pitch, heading, and roll included
         """
-
         self._pitch, self._heading, self._roll = packet.data
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
@@ -57,7 +59,6 @@ class NavBoard:
         Process GPS Data
         :param packet: lat and lon included
         """
-
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
@@ -69,10 +70,8 @@ class NavBoard:
         Process Accuracy Data
         :param packet: lat and lon included
         """
-
-        # The GPS sends data as two int32_t's
+        # The GPS sends data as three floats.
         self._accur_horizontal, self._accur_vertical, self._accur_heading = packet.data
-        self._location = Coordinate(lat, lon)
 
     def pitch(self) -> float:
         # Check if ZED relative positioning is turned on.
@@ -108,7 +107,7 @@ class NavBoard:
         # Check if ZED relative positioning is turned on.
         if core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
-            heading = core.vision.camera_handler.get_pose()[4]
+            heading = core.vision.camera_handler.get_pose()[4] + self._start_Heading
 
             # Wrap heading.
             if heading < 0:
@@ -129,6 +128,10 @@ class NavBoard:
 
             # Check if we already set are absolute start position.
             if self._start_UTM is None:
+                # Reset zed pose.
+                core.vision.camera_handler.reset_pose()
+                # Store current heading.
+                self._start_Heading = self._heading
                 # Get current GPS.
                 self._start_UTM = utm.from_latlon(self._location[0], self._location[1])
 
