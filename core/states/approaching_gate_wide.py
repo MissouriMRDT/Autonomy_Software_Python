@@ -109,6 +109,7 @@ class ApproachingGate(RoverState):
             print("POST 2 COORD:", post_2_coord)
             if post_1_coord[0] == 40.0 or post_2_coord[0] == 40.0:
                 print("NULL TAG DISTANCE")
+                interfaces.drive_board.send_drive(core.MAX_DRIVE_POWER * 0.8, core.MAX_DRIVE_POWER * 0.8)
                 return self
 
             try:
@@ -163,7 +164,8 @@ class ApproachingGate(RoverState):
             else:
                 interfaces.drive_board.send_drive(150, -150)
 
-            if core.vision.ar_tag_detector.is_gate():
+            tags = core.vision.ar_tag_detector.get_tags() 
+            if core.vision.ar_tag_detector.is_gate() and (tags[0].angle + tags[1].angle / 2) < core.RECENTER_GATE_THRESHOLD:
                 self.is_turning = False
                 interfaces.drive_board.stop()
             else:
@@ -185,7 +187,7 @@ class ApproachingGate(RoverState):
                 # interfaces.drive_board.stop()
                 if not (0 < distance < 5) or np.isnan(distance):
                     distance = 3
-                small_movements.time_drive(distance + 2)
+                small_movements.time_drive(distance)
                 self.logger.info("Reached Marker")
 
                 # Transmit that we have reached the marker

@@ -352,7 +352,7 @@ class Navigating(RoverState):
                 interfaces.drive_board.send_drive(left, right)
         else:
             # Stop the drive board.
-            interfaces.drive_board.stop()
+            # interfaces.drive_board.stop()
             # Print debug that path has completed.
             self.logger.info("Navigate ASTAR path is empty.")
 

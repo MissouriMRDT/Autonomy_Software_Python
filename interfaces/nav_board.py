@@ -28,6 +28,9 @@ class NavBoard:
         self._distToGround: int = 0
         self._lidarQuality = 0  # int 5 for brand-new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
+        self._accur_horizontal = -1
+        self._accur_vertical = -1
+        self._accur_heading = -1
         self._start_UTM = None
 
         # Set up RoveComm and Logger
@@ -38,6 +41,7 @@ class NavBoard:
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
+        core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["AccuracyData"]["dataId"], self.process_accuracy_data)
 
     def process_imu_data(self, packet):
         """
@@ -58,6 +62,16 @@ class NavBoard:
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
+        self._location = Coordinate(lat, lon)
+
+    def process_accuracy_data(self, packet) -> None:
+        """
+        Process Accuracy Data
+        :param packet: lat and lon included
+        """
+
+        # The GPS sends data as two int32_t's
+        self._accur_horizontal, self._accur_vertical, self._accur_heading = packet.data
         self._location = Coordinate(lat, lon)
 
     def pitch(self) -> float:
@@ -127,3 +141,11 @@ class NavBoard:
             # Get reported GPS location from nav board.
             gps_current = self._location
         return gps_current
+
+    def accuracy(self) -> float:
+        # Return accuracy data.
+        return self._accur_horizontal, self._accur_vertical, self._accur_heading
+
+    def reset_start_utm(self) -> None:
+        # Force zed offset to realign.
+        self._start_UTM = None

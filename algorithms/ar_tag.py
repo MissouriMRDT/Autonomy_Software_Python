@@ -232,7 +232,7 @@ def track_ar_tag(center):
     depth_cY = int((cY * (core.vision.camera_handler.depth_res_y)) / (img_res_y))
 
     # Grab the distance from the depth map
-    distance = NaN
+    distance = 40000
 
     # Find some permutations we can use in case of noisy data
     coordinates = [0, 1, -1, 2, -2, 3, -3, 4, -4]

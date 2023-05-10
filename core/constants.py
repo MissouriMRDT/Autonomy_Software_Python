@@ -13,6 +13,8 @@ import json
 
 # Autonomy General Configuration
 EVENT_LOOP_DELAY = 0.1  # seconds
+IDLE_TIME_GPS_REALIGN = 5 # Second to sit in idle before realigning gps with relative.
+IDLE_GPS_ACCUR_THRESH = 0.8 # The minimum meter accuracy needed to update rover position.
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels
@@ -37,6 +39,7 @@ GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
     3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
 )
 GATE_DRIVE_THROUGH_TIME = 10  # The amount of time to continue driving after going through gate.
+RECENTER_GATE_THRESHOLD = 20
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 5  # meters

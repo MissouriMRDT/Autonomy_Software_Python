@@ -7,6 +7,8 @@
 #
 
 import core
+import time
+import interfaces
 from core.states import RoverState
 
 
@@ -16,6 +18,8 @@ class Idle(RoverState):
     Its singular purpose is to keep the python program running to receive and transmit rovecomm commands
     from base station that configure the next leg’s settings and confirm them.
     """
+    def __init__(self):
+        self.idle_time = time.time()
 
     def on_event(self, event) -> RoverState:
         """
@@ -26,6 +30,9 @@ class Idle(RoverState):
         """
         state: RoverState = None
         if event == core.AutonomyEvents.START:
+            # Set time to zero.
+            self.idle_time = 0
+            # Change states.
             state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
@@ -48,4 +55,18 @@ class Idle(RoverState):
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
+        
+        # Check if time zero.
+        if self.idle_time == 0:
+            self.idle_time = time.time()
+
+        # Check if idle time is over threshold and update position.
+        if time.time() - self.idle_time > core.constants.IDLE_TIME_GPS_REALIGN:
+            # Check accuracy of nav board.
+            if interfaces.nav_board.accuracy()[0] < core.constants.IDLE_GPS_ACCUR_THRESH:
+                # Realign gps with relative.
+                interfaces.nav_board.reset_start_utm()
+
+
         return self
+
