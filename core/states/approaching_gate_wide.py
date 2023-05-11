@@ -80,7 +80,7 @@ class ApproachingGate(RoverState):
 
     async def run(self) -> RoverState:
 
-        # Use get_tags to create an array of the 2 gate posts
+        # Use get_valid_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
         tags = core.vision.ar_tag_detector.get_valid_tags()
         gps_data = core.waypoint_handler.get_waypoint()
@@ -146,7 +146,7 @@ class ApproachingGate(RoverState):
                 self.logger.debug(f"Diving at speeds: Left: {left} Right: {right}")
 
                 interfaces.drive_board.send_drive(left, right)
-                time.sleep(0.01)
+                await asyncio.sleep(core.EVENT_LOOP_DELAY)
             interfaces.drive_board.stop()
             self.is_first = False
             self.is_turning = True
@@ -164,7 +164,7 @@ class ApproachingGate(RoverState):
             else:
                 interfaces.drive_board.send_drive(150, -150)
 
-            tags = core.vision.ar_tag_detector.get_tags()
+            tags = core.vision.ar_tag_detector.get_valid_tags()
             if (
                 core.vision.ar_tag_detector.is_gate()
                 and (tags[0].angle + tags[1].angle / 2) < core.RECENTER_GATE_THRESHOLD

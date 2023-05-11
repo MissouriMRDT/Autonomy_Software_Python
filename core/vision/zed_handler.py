@@ -115,7 +115,6 @@ class ZedHandler(Camera):
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / self.fps)
 
     def grab_regular(self):
         """

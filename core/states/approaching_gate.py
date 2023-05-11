@@ -127,69 +127,70 @@ class ApproachingGate(RoverState):
                 """
                 WAYPOINT LOGIC.
                 """
-                # Clear previous obstacles.
-                self.astar.clear_obstacles()
-                # Store AR tags as obstacles.
-                obstacle_list = [(tags[0].angle, tags[0].distance), (tags[1].angle, tags[1].distance)]
-                self.astar.update_obstacles(
-                    obstacle_list,
-                    min_object_distance=0.3,
-                    max_object_distance=9999,
-                    min_object_angle=-180,
-                    max_object_angle=180,
-                )
-
-                # The update_obstacles method automatically converts the angles and distances to gps, so pull out gps coords.
-                gate_coords = self.astar.get_obstacle_coords()
-                # Convert gate gps coords to utm xs and ys.
-                gate_xs = [utm.from_latlon(t[0], t[1])[0] for t in gate_coords]
-                gate_ys = [utm.from_latlon(t[0], t[1])[1] for t in gate_coords]
-                # Find midpoint of gate.
-                gatemid_x = (gate_xs[0] + gate_xs[1]) / 2
-                gatemid_y = (gate_ys[0] + gate_ys[1]) / 2
-                # Convert UTM midpoint to gps.
-                gate_midpoint_goal = utm.to_latlon(gatemid_x, gatemid_y, utm_current[2], utm_current[3])
-
-                # Add gate midpoint to the waypoint handler.
-                core.waypoint_handler.set_goal(gate_midpoint_goal)
-
-                # Generate path from rovers current position.
-                path = self.astar.plan_astar_avoidance_route(
-                    max_route_size=40,
-                    near_object_threshold=constants.GATE_NEAR_MARKER_THRESH,
-                    start_gps=current,
-                    waypoint_thresh=0.1,
-                )
-
-                # If path was generated successfully, then put it in our future path. Cut out old future.
-                if path is not None:
-                    # Set path start timer.
-                    self.path_start_time = time.time()
-
-                    # Cut off path data after our current location.
-                    self.path_xs = self.path_xs[: self.target_idx]
-                    self.path_ys = self.path_ys[: self.target_idx]
-                    self.path_yaws = self.path_yaws[: self.target_idx]
-
-                    # Append new path onto current.
-                    for point in path:
-                        # Add new path starting from current location.
-                        self.path_xs.append(point[0])
-                        self.path_ys.append(point[1])
-
-                    # Manually calulate yaws since ASTAR doesn't given yaws.
-                    self.path_yaws = stanley_controller.calculate_yaws_from_path(
-                        self.path_xs, self.path_ys, interfaces.nav_board.heading()
+                if len(self.path_xs) <= 0:
+                    # Clear previous obstacles.
+                    self.astar.clear_obstacles()
+                    # Store AR tags as obstacles.
+                    obstacle_list = [(tags[0].angle, tags[0].distance), (tags[1].angle, tags[1].distance)]
+                    self.astar.update_obstacles(
+                        obstacle_list,
+                        min_object_distance=0.3,
+                        max_object_distance=9999,
+                        min_object_angle=-180,
+                        max_object_angle=180,
                     )
 
-                    # Store last index of path.
-                    self.last_idx = len(self.path_xs) - 1
+                    # The update_obstacles method automatically converts the angles and distances to gps, so pull out gps coords.
+                    gate_coords = self.astar.get_obstacle_coords()
+                    # Convert gate gps coords to utm xs and ys.
+                    gate_xs = [utm.from_latlon(t[0], t[1])[0] for t in gate_coords]
+                    gate_ys = [utm.from_latlon(t[0], t[1])[1] for t in gate_coords]
+                    # Find midpoint of gate.
+                    gatemid_x = (gate_xs[0] + gate_xs[1]) / 2
+                    gatemid_y = (gate_ys[0] + gate_ys[1]) / 2
+                    # Convert UTM midpoint to gps.
+                    gate_midpoint_goal = utm.to_latlon(gatemid_x, gatemid_y, utm_current[2], utm_current[3])
 
-                # Check if we are close to the gate. If we are then stop updating path.
-                if (
-                    algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000
-                ) < constants.GATE_UPDATE_PATH_MAX_MARKER_DISTANCE:
-                    self.gate_update_toggle = False
+                    # Add gate midpoint to the waypoint handler.
+                    core.waypoint_handler.set_goal(gate_midpoint_goal)
+
+                    # Generate path from rovers current position.
+                    path = self.astar.plan_astar_avoidance_route(
+                        max_route_size=40,
+                        near_object_threshold=constants.GATE_NEAR_MARKER_THRESH,
+                        start_gps=current,
+                        waypoint_thresh=0.1,
+                    )
+
+                    # If path was generated successfully, then put it in our future path. Cut out old future.
+                    if path is not None:
+                        # Set path start timer.
+                        self.path_start_time = time.time()
+
+                        # Cut off path data after our current location.
+                        self.path_xs = self.path_xs[: self.target_idx]
+                        self.path_ys = self.path_ys[: self.target_idx]
+                        self.path_yaws = self.path_yaws[: self.target_idx]
+
+                        # Append new path onto current.
+                        for point in path:
+                            # Add new path starting from current location.
+                            self.path_xs.append(point[0])
+                            self.path_ys.append(point[1])
+
+                        # Manually calulate yaws since ASTAR doesn't given yaws.
+                        self.path_yaws = stanley_controller.calculate_yaws_from_path(
+                            self.path_xs, self.path_ys, interfaces.nav_board.heading()
+                        )
+
+                        # Store last index of path.
+                        self.last_idx = len(self.path_xs) - 1
+
+                    # Check if we are close to the gate. If we are then stop updating path.
+                    if (
+                        algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000
+                    ) < constants.GATE_UPDATE_PATH_MAX_MARKER_DISTANCE:
+                        self.gate_update_toggle = False
 
             """
             PATH GENERATION AND FOLLOWING.
@@ -258,7 +259,9 @@ class ApproachingGate(RoverState):
                         plt.savefig("logs/!approachinggate_gps_path.png")
 
                     # Send drive board commands to drive at a certain speed at a certain angle.
-                    left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)
+                    left, right = heading_hold.get_motor_power_from_heading(
+                        core.constants.GATE_APPROACH_DRIVE_POWER, goal_heading
+                    )
                     # Set drive powers.
                     self.logger.info(f"ApproachingGate: Driving at ({left}, {right})")
                     interfaces.drive_board.send_drive(left, right)

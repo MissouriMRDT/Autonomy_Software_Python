@@ -12,7 +12,7 @@ import math
 import json
 
 # Autonomy General Configuration
-EVENT_LOOP_DELAY = 0.1  # seconds
+EVENT_LOOP_DELAY = 0.0  # seconds
 IDLE_TIME_GPS_REALIGN = 5  # Second to sit in idle before realigning gps with relative.
 IDLE_GPS_ACCUR_THRESH = 0.8  # The minimum meter accuracy needed to update rover position.
 
@@ -33,7 +33,7 @@ METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
 NAVIGATION_START_BACKUP_TIME = 2  # Time to backup if tag is in front of rover when entering nav state.
 NAVIGATION_BACKUP_SPEED = -250  # the speed to backup with.
-NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 2  # Min distance tag can be from rover to trigger backup.
+NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 3  # Min distance tag can be from rover to trigger backup.
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
@@ -41,6 +41,7 @@ GATE_NEAR_MARKER_THRESH = 0.4  # The closest the rover can get to a post.
 GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
     3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
 )
+GATE_APPROACH_DRIVE_POWER = 250  # Speed to approach and drive through gate.
 GATE_DRIVE_THROUGH_TIME = 10  # The amount of time to continue driving after going through gate.
 RECENTER_GATE_THRESHOLD = 20
 

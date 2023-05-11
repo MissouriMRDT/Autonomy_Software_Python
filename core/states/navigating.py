@@ -49,21 +49,23 @@ class Navigating(RoverState):
         self.time_since_last_path = 0
 
         # Check if an ar tag is in front of us.
-        print(core.vision.ar_tag_detector.get_tags())
         if (
             len(
                 [
-                    distance
-                    for distance in core.vision.ar_tag_detector.get_tags()
-                    if distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
+                    tag.distance
+                    for tag in core.vision.ar_tag_detector.get_valid_tags()
+                    if tag.distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
                 ]
             )
-            > 1
+            >= 1
         ):
             # Print log.
             self.logger.warning("BACKING UP! AR Tag detected in front of rover.")
             # Backup for a defined amount of time.
             small_movements.backup(core.constants.NAVIGATION_START_BACKUP_TIME, core.constants.NAVIGATION_BACKUP_SPEED)
+
+        # Clear AR Tags.
+        core.vision.ar_tag_detector.clear_tags()
 
     def exit(self):
         """
@@ -367,7 +369,7 @@ class Navigating(RoverState):
                 interfaces.drive_board.send_drive(left, right)
         else:
             # Stop the drive board.
-            # interfaces.drive_board.stop()
+            interfaces.drive_board.stop()
             # Print debug that path has completed.
             self.logger.info("Navigate ASTAR path is empty.")
 

@@ -129,7 +129,7 @@ class SearchPattern(RoverState):
             interfaces.drive_board.stop()
 
             # Sleep for a brief second
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
             self.logger.info("Search Pattern: Gate seen")
             return self.on_event(core.AutonomyEvents.GATE_SEEN)
@@ -138,7 +138,7 @@ class SearchPattern(RoverState):
             interfaces.drive_board.stop()
 
             # Sleep for a brief second
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
             self.logger.info("Search Pattern: Marker seen")
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
@@ -146,7 +146,7 @@ class SearchPattern(RoverState):
         # If Stanley has reached the last index of the path generate new one even though we aren't there yet.
         if self.target_idx == self.last_idx:
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
             # Find and set the next goal in the search pattern
             goal = algorithms.marker_search.calculate_next_coordinate(start, goal)

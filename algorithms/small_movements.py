@@ -18,6 +18,8 @@ def backup(target_distance, speed=-200):
         target_distance (float) - distance to travel backwards (meters)
         speed (int16) - the speed to drive right and left motors (between -1000 and -1)
     """
+    # Setup logger for function.
+    logger = logging.getLogger(__name__)
 
     # Force distance to be positive and speed to be negative
     target_distance = abs(target_distance)
@@ -35,11 +37,11 @@ def backup(target_distance, speed=-200):
             start_latitude, start_longitude, current_latitude, current_longitude
         )
         distance_traveled *= 1000  # convert km to m
-        print(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
+        logger.info(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
         time.sleep(core.EVENT_LOOP_DELAY)
 
     # Stop rover
-    print(f"Backing Up: COMPLETED")
+    logger.info(f"Backing Up: COMPLETED")
     interfaces.drive_board.stop()
 
 

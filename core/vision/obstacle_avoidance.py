@@ -99,7 +99,7 @@ async def async_obstacle_detector():
             # Because we are using async functions, they don't print out helpful tracebacks. We must do this instead.
             logger.critical(traceback.format_exc())
         # Must await async process or the code will pause here.
-        await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
+        await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
 
 def is_obstacle():
