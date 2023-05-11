@@ -43,7 +43,7 @@ class ApproachingGate(RoverState):
         self.not_seen = 0
         self.is_first = True
         self.is_turning = False
-        self.og_angle = 0
+        self.previous_turning_angle = 1000
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -80,6 +80,9 @@ class ApproachingGate(RoverState):
 
     async def run(self) -> RoverState:
 
+        if self.is_first and not core.vision.ar_tag_detector.is_gate():
+            return self
+
         # Use get_valid_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
         tags = core.vision.ar_tag_detector.get_valid_tags()
@@ -107,7 +110,7 @@ class ApproachingGate(RoverState):
             print("Current GPS coords", start[0], start[1])
             print("POST 1 COORD:", post_1_coord)
             print("POST 2 COORD:", post_2_coord)
-            if post_1_coord[0] == 40.0 or post_2_coord[0] == 40.0:
+            if post_1_coord[0] == 40.001 or post_2_coord[0] == 40.001:
                 print("NULL TAG DISTANCE")
                 interfaces.drive_board.send_drive(core.MAX_DRIVE_POWER * 0.8, core.MAX_DRIVE_POWER * 0.8)
                 return self
@@ -152,27 +155,27 @@ class ApproachingGate(RoverState):
             self.is_turning = True
             self.last_angle = 1000
             self.not_seen = 0
-            self.og_angle = ((tags[0].angle) + (tags[1].angle)) / 2
             core.vision.ar_tag_detector.clear_tags()
             return self
 
         if self.is_turning:
             print("TURNING")
 
-            if self.og_angle < 0:
-                interfaces.drive_board.send_drive(-150, 150)
-            else:
-                interfaces.drive_board.send_drive(150, -150)
+            interfaces.drive_board.send_drive(150, -150)
 
-            tags = core.vision.ar_tag_detector.get_valid_tags()
-            if (
-                core.vision.ar_tag_detector.is_gate()
-                and (tags[0].angle + tags[1].angle / 2) < core.RECENTER_GATE_THRESHOLD
-            ):
-                self.is_turning = False
-                interfaces.drive_board.stop()
-            else:
-                return self
+            if core.vision.ar_tag_detector.is_gate():
+                tags = core.vision.ar_tag_detector.get_valid_tags()
+                current_truning_angle = abs(tags[0].angle + tags[1].angle / 2)
+
+                if current_truning_angle > self.previous_turning_angle:
+                    print("TURNING ANGLES: ", current_truning_angle, self.previous_turning_angle)
+                    self.is_turning = False
+                    self.previous_turning_angle = 1000
+                    interfaces.drive_board.stop()
+                else:
+                    self.previous_turning_angle = current_truning_angle
+
+            return self
 
         # Calculate angle and distance of center point between ar tags.
         distance = (tags[0].distance + tags[1].distance) / 2
