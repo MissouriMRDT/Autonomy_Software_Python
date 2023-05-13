@@ -60,8 +60,9 @@ async def async_ar_tag_detector():
                 if (core.waypoint_handler.gps_data.leg_type == "MARKER" and len(ar_tags) > 0) or (
                     core.waypoint_handler.gps_data.leg_type == "GATE" and len(ar_tags) > 1
                 ):
-                    # Clear valid_ids list.
-                    leg_valid_tags.clear()
+                    if len(ar_tags) > 0:
+                        # Clear valid_ids list.
+                        leg_valid_tags.clear()
 
                     # Loop through each tag and check if the times_detected for each one is over the threshold.
                     for tag in ar_tags:

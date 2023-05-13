@@ -223,12 +223,6 @@ class ZedHandler(Camera):
         ox, oy, oz = np.rad2deg(pose.get_orientation(orientation).get_rotation_matrix().get_euler_angles())
         return tx, ty, tz, ox, oy, oz
 
-    def reset_pose(self):
-        """
-        Resets the pose of the ZED camera back to zero.
-        """
-        # Reset pose.
-        self.zed.reset_positional_tracking()
 
     def start(self):
         """

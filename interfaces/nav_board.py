@@ -128,12 +128,10 @@ class NavBoard:
 
             # Check if we already set are absolute start position.
             if self._start_UTM is None:
-                # Reset zed pose.
-                core.vision.camera_handler.reset_pose()
                 # Store current heading.
-                self._start_Heading = self._heading
+                # self._start_Heading = self._heading
                 # Get current GPS.
-                self._start_UTM = utm.from_latlon(self._location[0], self._location[1])
+                self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
 
             # Add Start UTM coords to ZED position.
             x, y = x + self._start_UTM[0], y + self._start_UTM[1]
@@ -149,6 +147,24 @@ class NavBoard:
         # Return accuracy data.
         return self._accur_horizontal, self._accur_vertical, self._accur_heading
 
-    def reset_start_utm(self) -> None:
-        # Force zed offset to realign.
-        self._start_UTM = None
+    def realign(self) -> None:
+        if self._start_UTM is None:
+            # Get current GPS.
+            self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+        else:
+            # Get curremt relative in UTM.
+            location = core.vision.camera_handler.get_pose()
+            # Get zed x, y location.
+            x, y = location[0] / 1000, location[2] / 1000
+            
+            # Get current position in UTM.
+            current_UTM = utm.from_latlon(self._location[0], self._location[1])
+
+            # Calculate offset.
+            offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (self._start_UTM[1] + y)
+            # Realign zed offset.
+            self._start_UTM[0] = self._start_UTM[0] + offset_lat
+            self._start_UTM[1] = self._start_UTM[1] + offset_long
+            print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long)
+
+            # core.vision.camera_handler.reset_pose()

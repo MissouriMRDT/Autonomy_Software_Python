@@ -24,7 +24,7 @@ RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
 WAYPOINT_DISTANCE_THRESHOLD = 2.0  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
-MAX_DRIVE_POWER = 600  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+MAX_DRIVE_POWER = 500  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 MIN_DRIVE_POWER = -250  # -1000 to 1000, normally 50
 GATE_POINT_DISTANCES = 3.0
 NAVIGATION_PATH_EXPIRATION_SECONDS = 10  # The time in seconds before a new path is force generated.
@@ -51,7 +51,7 @@ MAX_DETECTION_ATTEMPTS = 20  # This should be about 1 second
 
 
 # Search Pattern Parameters
-SEARCH_DISTANCE = 5  # meters
+SEARCH_DISTANCE = 4  # meters
 SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 DELTA_THETA = math.pi / 4
 
@@ -70,7 +70,7 @@ AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a ti
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
 
 # Vision Parameters
-ARUCO_FRAMES_DETECTED = 5  # ArUco Detection Occurrences
+ARUCO_FRAMES_DETECTED = 2  # ArUco Detection Occurrences
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
 ARUCO_ENABLE_DISTANCE = 25  # The minimum distance from the goal waypoint before aruco detection os considered valid.

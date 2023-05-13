@@ -23,6 +23,7 @@ class Idle(RoverState):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.idle_time = time.time()
+        self.realigned = False
 
     def on_event(self, event) -> RoverState:
         """
@@ -66,12 +67,19 @@ class Idle(RoverState):
                 self.idle_time = time.time()
 
             # Check if idle time is over threshold and update position.
-            if time.time() - self.idle_time > core.constants.IDLE_TIME_GPS_REALIGN:
-                # Check accuracy of nav board.
-                if interfaces.nav_board.accuracy()[0] < core.constants.IDLE_GPS_ACCUR_THRESH:
-                    # Realign gps with relative.
-                    interfaces.nav_board.reset_start_utm()
-                    # Print warning that GPS location has been realigned.
-                    self.logger.warning(f"Relative positional tracking has been realigned to current GPS location.")
+            if time.time() - self.idle_time > core.constants.IDLE_TIME_GPS_REALIGN and not self.realigned:
+                # Check odd time.
+                if (int(time.time()) % 5 == 0):
+                    # Check accuracy of nav board.
+                    if interfaces.nav_board.accuracy()[0] < core.constants.IDLE_GPS_ACCUR_THRESH:
+                        # Realign gps with relative.
+                        interfaces.nav_board.realign()
+                        # Print warning that GPS location has been realigned.
+                        self.logger.warning(f"Relative positional tracking has been realigned to current GPS location.")
+                        # Set toggle.
+                        self.realigned = True
+            else:
+                # Reset toggle.
+                self.realigned = False
 
         return self

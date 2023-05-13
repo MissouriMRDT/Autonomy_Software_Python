@@ -26,7 +26,6 @@ class Tag:
         self.times_detected = 1
         self.distance = 0
         self.angle = 0
-        self.lat, self.long = 0, 0
 
         # Get tag info.
         self.refresh(center)
@@ -82,11 +81,6 @@ class Tag:
         # Calculate absolute heading of the obstacle relative to the rover.
         heading = (interfaces.nav_board.heading() + self.angle) % 360
         rover_location = interfaces.nav_board.location()
-        # Find GPS location of tag.
-        destination = VincentyDistance(meters=self.distance).destination(
-            Point(rover_location[0], rover_location[1]), heading
-        )
-        self.lat, self.long = destination.latitude, destination.longitude
 
 
 class ArucoARTagDetector:
@@ -173,7 +167,8 @@ class ArucoARTagDetector:
         else:
             for tag in self.tag_list:
                 # Decrement detection counter.
-                tag.times_detected -= 1
+                if str(core.states.state_machine.state) != "ApproachingGate":
+                    tag.times_detected -= 1
                 # Check if times_detected has hit zero.
                 if tag.times_detected <= 0:
                     # Remove from list.
