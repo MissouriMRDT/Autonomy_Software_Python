@@ -61,9 +61,10 @@ class ZedHandler(Camera):
             self.zed.close()
             exit(1)
 
-        # Get camera params
+        # Get camera params and sensors.
         self.obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
         self.runtime_params = sl.RuntimeParameters()
+        self.sensors_data = sl.SensorsData()
 
         # Add the desired feeds to be recorded (not streamed)
         self.feed_handler.add_feed(10, "regular", save_video=True, stream_video=False)
@@ -221,8 +222,27 @@ class ZedHandler(Camera):
         tz = round(pose.get_translation(translation).get()[2], 3)
         orientation = sl.Orientation()
         ox, oy, oz = np.rad2deg(pose.get_orientation(orientation).get_rotation_matrix().get_euler_angles())
+
+        # Wrap heading.
+        if oy < 0:
+            oy = 360 + oy
+
         return tx, ty, tz, ox, oy, oz
 
+    def get_compass_heading(self):
+        """
+        Returns the estimated compass heading of the ZED camera. ZED CAMERA MUST BE CALIBRATED FOR THIS TO BE ACCURATE.
+        CHECK ZED DOCS ONLINE.
+        """
+        # Retrieve only frame synchronized data.
+        self.zed.get_sensors_data(self.sensors_data, sl.TIME_REFERENCE.IMAGE)
+        # Retrieve calibrated magnetic field
+        heading = self.sensors_data.get_magnetometer_data().magnetic_heading
+        # Remap the -180-180 output to 0-360, clockwise positive.
+        if heading < 0:
+            heading = 360 + heading
+
+        return heading
 
     def start(self):
         """

@@ -46,6 +46,14 @@ def main() -> None:
 
     :return: None
     """
+    # Add the examples' folder to our path, so we can run example files
+    sys.path.insert(0, "example/")
+
+    # Add the unit test folder to our path, so we can run tests
+    sys.path.insert(0, "tests/unit/")
+
+    # Initialize the rovecomm node
+    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Parse arguments for autonomy
     parser = argparse.ArgumentParser()
@@ -94,8 +102,16 @@ def main() -> None:
     parser.add_argument(
         "--relative-positioning",
         choices=["ENABLE", "DISABLE"],
-        default="DISABLE",
-        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM position.",
+        default="ENABLE",
+        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM positionwith periodic adjustments in idle state.",
+    )
+
+    # Add optional argument for zed absolute magnetometer toggle.
+    parser.add_argument(
+        "--zed-magnetometer",
+        choices=["ENABLE", "DISABLE"],
+        default="ENABLE",
+        help="Toggle between using GPS heading from Rovecomm or ZED built-in magnetometer for absolute compass heading. ZED MUST BE CALIBRATED TO ENVIRONMENT OR VALUES WILL BE BAD!",
     )
 
     args = parser.parse_args()
@@ -114,21 +130,27 @@ def main() -> None:
     if args.relative_positioning == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
         # Print warning message.
         logger.warning("ZED relative positioning is not available when mode is SIM or vision mode isn't ZED")
-
-    # Add the examples' folder to our path, so we can run example files
-    sys.path.insert(0, "example/")
-
-    # Add the unit test folder to our path, so we can run tests
-    sys.path.insert(0, "tests/unit/")
-
-    # Initialize the rovecomm node
-    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
+        # Force off.
+        args.relative_positioning = "DISABLE"
+    # Make sure SIM mode is off when relative distance is enabled.
+    if args.zed_magnetometer == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
+        # Print warning message.
+        logger.warning("ZED magnetometer heading is not available when mode is SIM or vision mode isn't ZED")
+        # Force off.
+        args.zed_magnetometer = "DISABLE"
 
     # Initialize the core handlers (excluding vision)
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes, args.relative_positioning)
+    core.vision.setup(
+        args.vision,
+        args.stream,
+        args.obstacle_avoidance,
+        args.yolo_classes,
+        args.relative_positioning,
+        args.zed_magnetometer,
+    )
 
     # Initialize the Interfaces
     interfaces.setup()

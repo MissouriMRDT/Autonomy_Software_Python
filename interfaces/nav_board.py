@@ -104,14 +104,13 @@ class NavBoard:
         return roll
 
     def heading(self) -> float:
+        # Check if the ZED absolute magnotometer heading is turned on.
+        if core.vision.ZED_MAGNETOMETER:
+            heading = core.vision.camera_handler.get_compass_heading()
         # Check if ZED relative positioning is turned on.
-        if core.vision.RELATIVE_POSITIONING:
+        elif core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
             heading = core.vision.camera_handler.get_pose()[4] + self._start_Heading
-
-            # Wrap heading.
-            if heading < 0:
-                heading = 360 + heading
         else:
             # Return reported heading from nav board.
             heading = self._heading
@@ -128,8 +127,6 @@ class NavBoard:
 
             # Check if we already set are absolute start position.
             if self._start_UTM is None:
-                # Store current heading.
-                # self._start_Heading = self._heading
                 # Get current GPS.
                 self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
 
@@ -156,15 +153,15 @@ class NavBoard:
             location = core.vision.camera_handler.get_pose()
             # Get zed x, y location.
             x, y = location[0] / 1000, location[2] / 1000
-            
+
             # Get current position in UTM.
             current_UTM = utm.from_latlon(self._location[0], self._location[1])
 
             # Calculate offset.
-            offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (self._start_UTM[1] + y)
+            offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (
+                self._start_UTM[1] + y
+            )
             # Realign zed offset.
             self._start_UTM[0] = self._start_UTM[0] + offset_lat
             self._start_UTM[1] = self._start_UTM[1] + offset_long
             print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long)
-
-            # core.vision.camera_handler.reset_pose()
