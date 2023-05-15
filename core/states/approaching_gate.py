@@ -132,6 +132,9 @@ class ApproachingGate(RoverState):
                     self.astar.clear_obstacles()
                     # Store AR tags as obstacles.
                     obstacle_list = [(tags[0].angle, tags[0].distance), (tags[1].angle, tags[1].distance)]
+                    # Calculate the intersection line and perp line to the obstacles to make a 'trench' for the rover to drive through.
+
+                    # Update ASTAR object.
                     self.astar.update_obstacles(
                         obstacle_list,
                         min_object_distance=0.3,
