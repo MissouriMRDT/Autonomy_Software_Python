@@ -170,8 +170,7 @@ class ArucoARTagDetector:
         else:
             for tag in self.tag_list:
                 # Decrement detection counter.
-                if str(core.states.state_machine.state) != "ApproachingGate":
-                    tag.times_detected -= 1
+                tag.times_detected -= 1
                 # Check if times_detected has hit zero.
                 if tag.times_detected <= 0:
                     # Remove from list.

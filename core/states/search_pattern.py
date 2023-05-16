@@ -33,7 +33,7 @@ class SearchPattern(RoverState):
         Schedule Search Pattern
         """
         # Create state specific variable.
-        self.astar = ASTAR()
+        self.astar = ASTAR(core.constants.SEARCH_OBSTACLE_QUEUE_LENGTH)
         self.rover_position_state = None
         self.path_xs = []
         self.path_ys = []

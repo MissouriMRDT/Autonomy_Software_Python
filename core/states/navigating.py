@@ -34,7 +34,7 @@ class Navigating(RoverState):
         Schedule Navigating
         """
         # Create state specific variable.
-        self.astar = ASTAR()
+        self.astar = ASTAR(max_queue_length=0)
         self.rover_position_state = None
         self.path_xs = []
         self.path_ys = []

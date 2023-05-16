@@ -19,8 +19,8 @@ import time
 import math
 
 k = 0.6  # control gain
-Kp = 0.01  # speed proportional gain
-L = 2.0  # [m] Wheel base of vehicle
+Kp = 0.05  # speed proportional gain
+L = 1.0  # [m] Wheel base of vehicle
 max_steer = np.radians(60.0)  # [rad] max steering angle
 yaw_tolerance = np.deg2rad(5)  # Error tolerance off of the path.
 
@@ -214,8 +214,10 @@ def calculate_yaws_from_path(cx, cy, start_angle=0.0, radians=True):
             # Append angle to yaws list.
             yaws.append(angle)
 
-        # Copy second to last angle to last point since the last point doesn't have a point after it to find angle from.
-        yaws.append(yaws[-1])
+        # Copy second to last angle to last point until list lengths match.
+        while len(yaws) < len(cx):
+            yaws.append(yaws[-1])
+
     # If only one point exists in path.
     elif len(cx) == 1:
         # Append zero heading angle.

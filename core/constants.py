@@ -37,13 +37,17 @@ NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 3  # Min distance tag can be from rover 
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
-GATE_NEAR_MARKER_THRESH = 0.4  # The closest the rover can get to a post.
+GATE_NEAR_OBSTACLE_THRESH = 0.75  # The closest the rover can get to a post.
+GATE_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
-    3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
+    3.5  # The max distance we must be from the gate markers before we think tag detections will be accurate.
 )
 GATE_APPROACH_DRIVE_POWER = 250  # Speed to approach and drive through gate.
-GATE_DRIVE_THROUGH_TIME = 10  # The amount of time to continue driving after going through gate.
+GATE_DRIVE_THROUGH_TIME = 3  # The amount of time to continue driving after going through gate.
+GATE_OBSTACLE_QUEUE_LENGTH = 120  # The max obstacles to store at once.
+GATE_MAX_DETECTION_ATTEMPTS = 500
 RECENTER_GATE_THRESHOLD = 20
+
 
 # Approaching Marker Parameters.
 MARKER_MAX_APPROACH_SPEED = 200  # The speed to approach the marker at.
@@ -53,6 +57,7 @@ MAX_DETECTION_ATTEMPTS = 20  # This should be about 1 second
 # Search Pattern Parameters
 SEARCH_DISTANCE = 4  # meters
 SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
+SEARCH_OBSTACLE_QUEUE_LENGTH = 10  # The max number of objects to store at once.
 DELTA_THETA = math.pi / 4
 
 # Obstacle Detection Parameters.
@@ -71,11 +76,11 @@ AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the
 
 # Vision Parameters
 ARUCO_FRAMES_DETECTED = 2  # ArUco Detection Occurrences
-ARUCO_MAX_FRAMES_DETECTED = 10 # Max frame counter for each tag.
+ARUCO_MAX_FRAMES_DETECTED = 10  # Max frame counter for each tag.
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
 ARUCO_ENABLE_DISTANCE = 25  # The minimum distance from the goal waypoint before aruco detection os considered valid.
-ARUCO_MARKER_STOP_DISTANCE = 1.50
+ARUCO_MARKER_STOP_DISTANCE = 2.0
 DISPLAY_TEST_MODE = False  # This will enable opening of OpenCV windows for vision detection live viewing.
 ZED_X_OFFSET = 0.060325
 ZED_Z_OFFSET = 0.000

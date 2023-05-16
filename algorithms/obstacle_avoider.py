@@ -122,15 +122,18 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
 
 
 class ASTAR:
-    def __init__(self):
+    def __init__(self, max_queue_length):
         """
         Initialize the ASTAR class.
+
+        :param max_queue_length: The max number of obstacles to store in the queue.
         """
         # Create class variables.
         self.obstacle_coords = []
         self.utm_zone = []
         self.start = Node()
         self.end = Node()
+        self.max_queue_length = max_queue_length
 
     def update_obstacles(
         self,
@@ -171,7 +174,7 @@ class ASTAR:
                 # Append to array.
                 self.obstacle_coords.append((obstacle_easting, obstacle_northing))
                 # If the length of the array is greater than queue max length, remove the oldest element.
-                if len(self.obstacle_coords) > constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH:
+                if len(self.obstacle_coords) > self.max_queue_length:
                     self.obstacle_coords = self.obstacle_coords[1:]
 
     def update_obstacle_coords(self, object_locations, input_gps=True):
@@ -194,7 +197,7 @@ class ASTAR:
                 self.obstacle_coords.append(object_coord)
 
             # If the length of the array is greater than queue max length, remove the oldest element.
-            if len(self.obstacle_coords) > constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH:
+            if len(self.obstacle_coords) > self.max_queue_length:
                 self.obstacle_coords = self.obstacle_coords[1:]
 
     def clear_obstacles(self):
