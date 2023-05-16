@@ -10,7 +10,7 @@ from core.states.state import RoverState
 from core.states.state_machine import StateMachine
 from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
-from core.states.old_navigating import Navigating
+from core.states.navigating import Navigating
 from core.states.approaching_marker import ApproachingMarker
 from core.states.approaching_gate import ApproachingGate
 from core.states.avoidance import Avoidance

@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import time
 import math
 
-k = 0.4  # control gain
+k = 0.6  # control gain
 Kp = 0.01  # speed proportional gain
 L = 2.0  # [m] Wheel base of vehicle
 max_steer = np.radians(60.0)  # [rad] max steering angle

@@ -129,8 +129,11 @@ class ArucoARTagDetector:
                 # Find the tag with matching id.
                 for tag in self.tag_list:
                     if tag.id == tag_id:
-                        # Increment number of times tag has been seen.
-                        tag.times_detected += 1
+                        # Don't go over detection limit.
+                        if tag.times_detected < core.constants.ARUCO_MAX_FRAMES_DETECTED:
+                            # Increment number of times tag has been seen.
+                            tag.times_detected += 1
+
                         # Refresh tag distance and angle.
                         tag.refresh((cX, cY))
             else:

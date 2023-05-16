@@ -44,6 +44,7 @@ class ApproachingGate(RoverState):
         self.is_first = True
         self.is_turning = False
         self.previous_turning_angle = 1000
+        self.total_detections = 0
 
     def exit(self):
         # Cancel all state specific coroutines
@@ -97,10 +98,11 @@ class ApproachingGate(RoverState):
         self.logger.info("Gate detected, beginning navigation")
 
         if not self.is_turning:
-            distance = (tags[0].distance + tags[1].distance) / 2
-            angle = ((tags[0].angle) + (tags[1].angle)) / 2
-            if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
-                self.is_first = False
+            if (len(tags) >= 2):
+                distance = (tags[0].distance + tags[1].distance) / 2
+                angle = ((tags[0].angle) + (tags[1].angle)) / 2
+                if abs(tags[0].angle - tags[1].angle) > constants.AR_SKEW_THRESHOLD:
+                    self.is_first = False
 
         if self.is_first:
             # Get
@@ -164,57 +166,67 @@ class ApproachingGate(RoverState):
             interfaces.drive_board.send_drive(150, -150)
 
             if core.vision.ar_tag_detector.is_gate():
-                tags = core.vision.ar_tag_detector.get_valid_tags()
-                current_truning_angle = abs(tags[0].angle + tags[1].angle / 2)
+                # tags = core.vision.ar_tag_detector.get_valid_tags()
+                # current_truning_angle = abs(tags[0].angle + tags[1].angle / 2)
 
-                if current_truning_angle > self.previous_turning_angle:
-                    print("TURNING ANGLES: ", current_truning_angle, self.previous_turning_angle)
-                    self.is_turning = False
-                    self.previous_turning_angle = 1000
-                    interfaces.drive_board.stop()
-                else:
-                    self.previous_turning_angle = current_truning_angle
+                self.is_turning = False
+                interfaces.drive_board.stop()
+
+                # if current_truning_angle > self.previous_turning_angle:
+                #     print("TURNING ANGLES: ", current_truning_angle, self.previous_turning_angle)
+                #     self.is_turning = False
+                #     self.previous_turning_angle = 1000
+                #     interfaces.drive_board.stop()
+            # else:
+            #     self.previous_turning_angle = current_truning_angle
 
             return self
 
         # Calculate angle and distance of center point between ar tags.
-        distance = (tags[0].distance + tags[1].distance) / 2
-        angle = ((tags[0].angle) + (tags[1].angle)) / 2
-
-        if angle == self.last_angle:
-            self.not_seen += 1
-            if self.not_seen > 10:
-                # t1 = time.time()
-                # t2 = time.time()
-                # # drive past gate for 10 seconds
-                # while t2 - t1 < 3:
-                #     t2 = time.time()
-                #     interfaces.drive_board.send_drive(150, 150)
-                # interfaces.drive_board.stop()
-                if not (0 < distance < 5) or np.isnan(distance):
-                    distance = 3
-                small_movements.time_drive(distance)
-                self.logger.info("Reached Marker")
-
-                # Transmit that we have reached the marker
-                core.rovecomm_node.write(
-                    core.RoveCommPacket(
-                        core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
-                        "B",
-                        (1,),
-                    ),
-                    False,
-                )
-
-                # Tell multimedia board to flash our LED matrix green to indicate reached marker
-                interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
-
-                # Clear ar tag list!?!?!?!?
-                core.vision.ar_tag_detector.clear_tags()
-
-                return self.on_event(core.AutonomyEvents.REACHED_MARKER)
-        else:
+        if (len(tags) >= 2):
+            distance = (tags[0].distance + tags[1].distance) / 2
+            angle = ((tags[0].angle) + (tags[1].angle)) / 2
             self.not_seen = 0
+
+            current_detections = (tags[0].times_detected) + (tags[1].times_detected)
+
+            if current_detections == 0 or current_detections < self.total_detections:
+                angle = 0
+            self.total_detections = current_detections
+
+
+        else:
+            # self.not_seen += 1
+            # if self.not_seen > 2:
+            # t1 = time.time()
+            # t2 = time.time()
+            # # drive past gate for 10 seconds
+            # while t2 - t1 < 3:
+            #     t2 = time.time()
+            #     interfaces.drive_board.send_drive(150, 150)
+            # interfaces.drive_board.stop()
+            # if not (0 < distance < 5) or np.isnan(distance):
+            distance = 3
+            small_movements.time_drive(distance)
+            self.logger.info("Reached Marker")
+
+            # Transmit that we have reached the marker
+            core.rovecomm_node.write(
+                core.RoveCommPacket(
+                    core.manifest["Autonomy"]["Telemetry"]["ReachedMarker"]["dataId"],
+                    "B",
+                    (1,),
+                ),
+                False,
+            )
+
+            # Tell multimedia board to flash our LED matrix green to indicate reached marker
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
+
+            # Clear ar tag list!?!?!?!?
+            core.vision.ar_tag_detector.clear_tags()
+
+            return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
         self.last_angle = angle
 

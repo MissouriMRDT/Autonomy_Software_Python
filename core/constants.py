@@ -71,6 +71,7 @@ AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the
 
 # Vision Parameters
 ARUCO_FRAMES_DETECTED = 2  # ArUco Detection Occurrences
+ARUCO_MAX_FRAMES_DETECTED = 10 # Max frame counter for each tag.
 ARUCO_MARKER_BORDER_BITS = 1
 ARUCO_ERROR_CORRECTION_RATE = 1
 ARUCO_ENABLE_DISTANCE = 25  # The minimum distance from the goal waypoint before aruco detection os considered valid.

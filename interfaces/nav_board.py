@@ -24,6 +24,7 @@ class NavBoard:
         self._pitch: float = 0
         self._roll: float = 0
         self._heading: float = 0
+        self._zed_heading: float = 0
         self._location: Coordinate = Coordinate(0, 0)
         self._distToGround: int = 0
         self._lidarQuality = 0  # int 5 for brand-new data, counts down 1 every 50ms, should never go below 3.
@@ -32,7 +33,7 @@ class NavBoard:
         self._accur_vertical = -1
         self._accur_heading = -1
         self._start_UTM = None
-        self._start_Heading = 0
+        self._heading_adjust = 0
 
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
@@ -104,13 +105,10 @@ class NavBoard:
         return roll
 
     def heading(self) -> float:
-        # Check if the ZED absolute magnotometer heading is turned on.
-        if core.vision.ZED_MAGNETOMETER:
-            heading = core.vision.camera_handler.get_compass_heading()
         # Check if ZED relative positioning is turned on.
-        elif core.vision.RELATIVE_POSITIONING:
+        if core.vision.RELATIVE_POSITIONING:
             # Get heading from the zed camera.
-            heading = core.vision.camera_handler.get_pose()[4] + self._start_Heading
+            heading = (core.vision.camera_handler.get_pose()[4] + self._heading_adjust) % 360
         else:
             # Return reported heading from nav board.
             heading = self._heading
@@ -164,4 +162,10 @@ class NavBoard:
             # Realign zed offset.
             self._start_UTM[0] = self._start_UTM[0] + offset_lat
             self._start_UTM[1] = self._start_UTM[1] + offset_long
-            print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long)
+
+            # Realign heading.
+            # Check if the ZED absolute magnotometer heading is turned on.
+            if core.vision.ZED_MAGNETOMETER:
+                self._zed_heading = core.vision.camera_handler.get_compass_heading()
+                self._heading_adjust = self._zed_heading - core.vision.camera_handler.get_pose()[4]
+            print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long, self._zed_heading, self._heading_adjust, core.vision.camera_handler.get_pose()[4])
