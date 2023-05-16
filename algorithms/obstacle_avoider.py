@@ -167,26 +167,35 @@ class ASTAR:
 
                 # Convert GPS coords to UTM coords.
                 obstacle_easting, obstacle_northing, _, _ = utm.from_latlon(obstacle_lat, obstacle_lon)
-                # Determine if these coords already exist or are within 0.5 meters away from another object.
-                coord_to_close = False
-                for object_coord in self.obstacle_coords:
-                    # Calculate staight line distance from current obstacle to be added.
-                    distance = math.sqrt(
-                        math.pow(obstacle_easting - object_coord[0], 2)
-                        + math.pow(obstacle_northing - object_coord[1], 2)
-                    )
-                    # If the object is closer than half a meter away, then disregard it.
-                    if distance <= 1.0:
-                        coord_to_close = True
-
-                if coord_to_close:
-                    continue
 
                 # Append to array.
                 self.obstacle_coords.append((obstacle_easting, obstacle_northing))
-                # If the length of the array is greater than 50, remove the oldest element.
+                # If the length of the array is greater than queue max length, remove the oldest element.
                 if len(self.obstacle_coords) > constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH:
-                    self.obstacle_coords = self.obstacle_coords[: -constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH]
+                    self.obstacle_coords = self.obstacle_coords[1:]
+
+    def update_obstacle_coords(self, object_locations, input_gps=True):
+        """
+        Loops through the given array of obstacle angles and distances and calculate their GPS->UTM position.
+
+        :params object_locations: A list of obstacle coords. Must be 2D list of shape (n, 2) containing only lat,lon or easting, northing.
+        :params input_gps: Whether or not the input list of coords is in GPS or UTM.
+        """
+        # Loop through each obstacle and calculate their coords and add them to the array.
+        for object_coord in object_locations:
+            # Check if the input is in GPS.
+            if input_gps:
+                # Convert to UTM.
+                obstacle_easting, obstacle_northing, _, _ = utm.from_latlon(object_coord[0], object_coord[1])
+                # Append to array.
+                self.obstacle_coords.append((obstacle_easting, obstacle_northing))
+            else:
+                # Append to array.
+                self.obstacle_coords.append(object_coord)
+
+            # If the length of the array is greater than queue max length, remove the oldest element.
+            if len(self.obstacle_coords) > constants.AVOIDANCE_OBSTACLE_QUEUE_LENGTH:
+                self.obstacle_coords = self.obstacle_coords[1:]
 
     def clear_obstacles(self):
         """

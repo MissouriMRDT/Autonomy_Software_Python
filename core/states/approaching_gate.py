@@ -14,6 +14,7 @@ from algorithms.obstacle_avoider import ASTAR
 import algorithms
 from core.states import RoverState
 import numpy as np
+from numpy import NaN
 import time
 import math
 import asyncio
@@ -132,8 +133,6 @@ class ApproachingGate(RoverState):
                     self.astar.clear_obstacles()
                     # Store AR tags as obstacles.
                     obstacle_list = [(tags[0].angle, tags[0].distance), (tags[1].angle, tags[1].distance)]
-                    # Calculate the intersection line and perp line to the obstacles to make a 'trench' for the rover to drive through.
-
                     # Update ASTAR object.
                     self.astar.update_obstacles(
                         obstacle_list,
@@ -142,7 +141,6 @@ class ApproachingGate(RoverState):
                         min_object_angle=-180,
                         max_object_angle=180,
                     )
-
                     # The update_obstacles method automatically converts the angles and distances to gps, so pull out gps coords.
                     gate_coords = self.astar.get_obstacle_coords()
                     # Convert gate gps coords to utm xs and ys.
@@ -156,6 +154,59 @@ class ApproachingGate(RoverState):
 
                     # Add gate midpoint to the waypoint handler.
                     core.waypoint_handler.set_goal(gate_midpoint_goal)
+
+                    ######################################################################################################################
+                    # Calculate the intersection line and perp line to the obstacles to make a 'trench' for the rover to drive through.
+                    # Check https://www.desmos.com/calculator/xcbgsmlk6x for an interactive graph.
+                    ######################################################################################################################
+                    # Create list to store UTM coords.
+                    gate_obstacles = []
+                    # Store the UTM easting/northing for each gate.
+                    x1, y1 = gate_xs[0], gate_ys[0]
+                    x2, y2 = gate_xs[1], gate_ys[1]
+                    # Find slope of line that pases through both points.
+                    try:
+                        m = (y2 - y1) / (x2 - x1)
+                    except ZeroDivisionError:
+                        # If points are vertically aligned just set, slope to NaN.
+                        m = NaN
+
+                    # Find radius' from -3 to 3 in increments of 0.5
+                    for r in [x * 0.5 for x in range(-6, 6)]:
+                        # If slope if zero, just add to y values.
+                        if m == 0:
+                            # Append simple obstacles.
+                            gate_obstacles.append((x1, y1 + r))
+                            gate_obstacles.append((x2, y2 + r))
+                        # Check if slope is undefined.
+                        elif m == NaN:
+                            # Append simple obstacles.
+                            gate_obstacles.append((x1 + r, y1))
+                            gate_obstacles.append((x2 + r, y2))
+                        else:
+                            # This is the equation that will spit out the x coordinate of the first gates trench line given the radius of a circle
+                            # with origin at the gatepoint.
+                            # Find appropriate x point for first gate marker.
+                            gate1_rad_x = m * (
+                                -m * ((-2 * x1) - (2 * x1) / math.pow(m, 2)) + (2 * r) * math.sqrt(1 + math.pow(m, 2))
+                            )
+                            # Find appropriate x point for second gate marker.
+                            gate2_rad_x = m * (
+                                -m * ((-2 * x2) - (2 * x2) / math.pow(m, 2)) + (2 * r) * math.sqrt(1 + math.pow(m, 2))
+                            )
+
+                            # Find the cooresponding Y point for the calculated X point using the perpendicular line of slope m at each gate point.
+                            # Find Y point for first gate marker.
+                            gate1_rad_y = (-1 / m) * (gate1_rad_x - x1) + y1
+                            # Find Y point for second gate marker.
+                            gate2_rad_y = (-1 / m) * (gate2_rad_x - x2) + y2
+
+                            # Add points to gate obstacle list.
+                            gate_obstacles.append((gate1_rad_x, gate1_rad_y))
+                            gate_obstacles.append((gate2_rad_x, gate2_rad_y))
+
+                    # Add gate trench obstalces to ASTAR object.
+                    self.astar.update_obstacle_coords(gate_obstacles, input_gps=False)
 
                     # Generate path from rovers current position.
                     path = self.astar.plan_astar_avoidance_route(
