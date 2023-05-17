@@ -209,8 +209,8 @@ class ApproachingGate(RoverState):
                     gate2_obstacles.append((gate2_rad_x, gate2_rad_y))
 
             # Add gate1 and gate2 obstacles to astar list.
-            self.astar.update_obstacle_coords(gate1_obstacles, input_gps=False)
-            self.astar.update_obstacle_coords(gate2_obstacles, input_gps=False)
+            self.astar.update_obstacle_coords(gate1_obstacles[5:-5], input_gps=False)
+            self.astar.update_obstacle_coords(gate2_obstacles[5:-5], input_gps=False)
 
             # Find midpoint between matching points in the trench.
             mid_points = []

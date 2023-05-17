@@ -34,7 +34,7 @@ async def async_ar_tag_detector():
             # Detect tags.
             TagDetector.detect_ar_tag(reg_img)
             # Filter tags.
-            TagDetector.filter_ar_tags(angle_range=30, distance_range=5, valid_id_range=[0, 1, 2, 3, 4, 5])
+            TagDetector.filter_ar_tags(angle_range=40, distance_range=5, valid_id_range=[0, 1, 2, 3, 4, 5])
             # Get and store tags.
             ar_tags = TagDetector.get_tags()
 

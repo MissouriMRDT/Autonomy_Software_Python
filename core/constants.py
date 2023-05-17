@@ -37,7 +37,7 @@ NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 3  # Min distance tag can be from rover 
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
-GATE_NEAR_OBSTACLE_THRESH = 0.3  # The closest the rover can get to a post.
+GATE_NEAR_OBSTACLE_THRESH = 0.6  # The closest the rover can get to a post.
 GATE_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
     3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
