@@ -175,7 +175,7 @@ class ApproachingGate(RoverState):
                 m = NaN
 
             # Find radius' from -3 to 3 in increments of 0.5
-            for r in [x * 0.125 for x in range(-12, 12)]:
+            for r in [x * 0.125 for x in range(-16, 16)]:
                 # If slope if zero, just add to y values.
                 if m == 0:
                     # Append simple obstacles.
