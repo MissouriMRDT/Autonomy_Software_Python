@@ -358,12 +358,12 @@ class ASTAR:
                     # Check if we are getting closer to the obstacle.
                     if node_distance_from_obstacle <= near_object_threshold:
                         coord_to_close = True
-                    # # Check if the robot is within circle radius of obstacle and pick the point that will move us away from it.
-                    # if (
-                    #     robot_distance_from_obstacle < near_object_threshold
-                    #     and node_distance_from_obstacle > robot_distance_from_obstacle
-                    # ):
-                    #     coord_to_close = False
+                    # Check if the robot is within circle radius of obstacle and pick the point that will move us away from it.
+                    if (
+                        robot_distance_from_obstacle < near_object_threshold
+                        and node_distance_from_obstacle > robot_distance_from_obstacle
+                    ):
+                        coord_to_close = False
                 # If the current child node is too close to the object skip it.
                 if coord_to_close:
                     continue

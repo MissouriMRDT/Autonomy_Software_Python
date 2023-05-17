@@ -106,7 +106,7 @@ class SearchPattern(RoverState):
         """
         # Get current position and next desired waypoint position.
         current = interfaces.nav_board.location()
-        gps_data = core.waypoint_handler.get_waypoint()
+        gps_data = core.waypoint_handler.gps_data
 
         """
         STATE TRANSITION AND WAYPOINT LOGIC.
@@ -248,7 +248,7 @@ class SearchPattern(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/!searchpattern_gps_path.png")
+                    plt.savefig("logs/!stanley_utm_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)

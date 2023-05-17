@@ -360,7 +360,7 @@ class Navigating(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/!navigation_gps_path.png")
+                    plt.savefig("logs/!stanley_utm_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(goal_speed, goal_heading)

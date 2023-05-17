@@ -79,7 +79,7 @@ async def autonomy_state_loop():
         )
 
         # Print Useful heading.
-        print("HEADING: ", interfaces.nav_board.heading())
+        # print("HEADING: ", interfaces.nav_board.heading())
 
         # Core state machine runs every X ms, to prevent unnecessarily fast computation.
         # Sensor data is processed separately, as that is the bulk of processing time

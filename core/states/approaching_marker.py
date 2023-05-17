@@ -117,6 +117,12 @@ class ApproachingMarker(RoverState):
             # If we have attempted to track an AR Tag unsuccesfully
             # MAX_DETECTION_ATTEMPTS times, we will return to search pattern
             if self.num_detection_attempts >= core.MAX_DETECTION_ATTEMPTS:
+                # Get current position and next desired waypoint position.
+                current = interfaces.nav_board.location()
+                # Set goal waypoint as current.
+                core.waypoint_handler.set_goal(current)
+                core.waypoint_handler.set_start(current)
+                # Print log.
                 self.logger.info("Lost sign of marker, returning to Search Pattern")
                 return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 

@@ -47,8 +47,8 @@ class ApproachingGate(RoverState):
         self.path_start_time = 0
         self.num_detection_attempts = 0
         self.gate_detection_attempts = 0
-        self.gate_update_toggle = True
-        self.gate_coords = []
+        self.gate_coords = [(0, 0), (0, 0)]
+        self.tags = []
         self.trench_mid_points = []
         self.through_gate_timer = 0
 
@@ -118,15 +118,23 @@ class ApproachingGate(RoverState):
         heading = np.deg2rad(interfaces.nav_board.heading() - 90)
         # Use get_tags to create an array of the 2 gate posts
         # (named tuples containing the distance and relative angle from the camera)
-        tags = core.vision.ar_tag_detector.get_valid_tags()
+        self.tags = core.vision.ar_tag_detector.get_valid_tags()
+        # Gate waypoint data.
         goal, _, leg_type = core.waypoint_handler.get_waypoint().data()
 
         # If we've seen at least 5 frames of 2 tags, assume it's a gate
         if (
-            len(tags) == 2
+            len(self.tags) == 2
             and self.gate_detection_attempts >= constants.ARUCO_FRAMES_DETECTED
             and leg_type == "GATE"
-            and self.gate_update_toggle
+            and algorithms.geomath.haversine(
+                current[0],
+                current[1],
+                (self.gate_coords[0][0] + self.gate_coords[1][0]) / 2,
+                (self.gate_coords[0][1] + self.gate_coords[1][1]) / 2,
+            )[1]
+            * 1000
+            > core.constants.GATE_UPDATE_PATH_MAX_MARKER_DISTANCE
         ):
             """
             WAYPOINT LOGIC.
@@ -134,12 +142,12 @@ class ApproachingGate(RoverState):
             # Clear previous obstacles.
             self.astar.clear_obstacles()
             # Store AR tags as obstacles.
-            obstacle_list = [(tags[0].angle, tags[0].distance), (tags[1].angle, tags[1].distance)]
+            obstacle_list = [(self.tags[0].angle, self.tags[0].distance), (self.tags[1].angle, self.tags[1].distance)]
             # Update ASTAR object.
             self.astar.update_obstacles(
                 obstacle_list,
                 min_object_distance=0.3,
-                max_object_distance=9999,
+                max_object_distance=99999,
                 min_object_angle=-180,
                 max_object_angle=180,
             )
@@ -217,12 +225,19 @@ class ApproachingGate(RoverState):
             # Find which end of the trenchline is closer to the rover.
             end1_distance = algorithms.geomath.utm_distance(
                 utm_current[0], utm_current[1], self.trench_mid_points[0][0], self.trench_mid_points[0][1]
-            )
+            )[1]
             end2_distance = algorithms.geomath.utm_distance(
                 utm_current[0], utm_current[1], self.trench_mid_points[-1][0], self.trench_mid_points[-1][1]
-            )
+            )[1]
             # Set whatever end is closer to us as the current goal.
             if end1_distance < end2_distance:
+                # Set waypoint goal.
+                core.waypoint_handler.set_goal(
+                    utm.to_latlon(
+                        self.trench_mid_points[0][0], self.trench_mid_points[0][1], utm_current[2], utm_current[3]
+                    )
+                )
+            else:
                 # Set waypoint goal.
                 core.waypoint_handler.set_goal(
                     utm.to_latlon(
@@ -232,20 +247,13 @@ class ApproachingGate(RoverState):
 
                 # Reverse midpoint list.
                 self.trench_mid_points = self.trench_mid_points[::-1]
-            else:
-                # Set waypoint goal.
-                core.waypoint_handler.set_goal(
-                    utm.to_latlon(
-                        self.trench_mid_points[0][0], self.trench_mid_points[0][1], utm_current[2], utm_current[3]
-                    )
-                )
 
             # Generate path from rovers current position to new goal.
             path = self.astar.plan_astar_avoidance_route(
                 max_route_size=50,
                 near_object_threshold=constants.GATE_NEAR_OBSTACLE_THRESH,
                 start_gps=current,
-                waypoint_thresh=0.2,
+                waypoint_thresh=0.1,
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
@@ -282,12 +290,6 @@ class ApproachingGate(RoverState):
                 core.waypoint_handler.set_goal(
                     utm.to_latlon(self.path_xs[-1], self.path_ys[-1], utm_current[2], utm_current[3])
                 )
-
-            # Check if we are close to the gate. If we are then stop updating path.
-            if (
-                algorithms.geomath.haversine(current[0], current[1], goal[0], goal[1])[1] * 1000
-            ) < constants.GATE_UPDATE_PATH_MAX_MARKER_DISTANCE:
-                self.gate_update_toggle = False
 
         """
         PATH GENERATION AND FOLLOWING.
@@ -356,7 +358,7 @@ class ApproachingGate(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/!approachinggate_gps_path.png")
+                    plt.savefig("logs/!stanley_utm_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(
@@ -423,7 +425,7 @@ class ApproachingGate(RoverState):
             self.logger.info("ApproachingGate ASTAR path is empty.")
 
         # Check if we've reached the end of the path.
-        if self.target_idx == self.last_idx and not self.gate_update_toggle:
+        if self.target_idx == self.last_idx and not self.target_idx == 0 and not self.last_idx == 0:
             # Continue following path for user defined amount of time.
             if self.through_gate_timer == 0:
                 # Get current time.
@@ -435,7 +437,7 @@ class ApproachingGate(RoverState):
                 return self.on_event(core.AutonomyEvents.REACHED_MARKER)
 
         # If we grabbed more than one, see if it's a gate
-        elif len(tags) > 1:
+        elif len(self.tags) > 1:
             self.gate_detection_attempts += 1
             self.logger.info(f"2 Markers in frame, count:{self.gate_detection_attempts}")
 
@@ -452,8 +454,9 @@ class ApproachingGate(RoverState):
                 self.logger.info("Lost sign of gate, returning to Search Pattern")
                 # Get current position and next desired waypoint position.
                 current = interfaces.nav_board.location()
-                # Set goal waypoint as current.
+                # Set goal and current waypoint as current location.
                 core.waypoint_handler.set_goal(current)
+                core.waypoint_handler.set_start(current)
 
                 return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 

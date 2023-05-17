@@ -37,17 +37,15 @@ NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 3  # Min distance tag can be from rover 
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
-GATE_NEAR_OBSTACLE_THRESH = 0.75  # The closest the rover can get to a post.
+GATE_NEAR_OBSTACLE_THRESH = 0.3  # The closest the rover can get to a post.
 GATE_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
-    3.5  # The max distance we must be from the gate markers before we think tag detections will be accurate.
+    2.3  # The max distance we must be from the gate markers before we think tag detections will be accurate.
 )
 GATE_APPROACH_DRIVE_POWER = 250  # Speed to approach and drive through gate.
-GATE_DRIVE_THROUGH_TIME = 3  # The amount of time to continue driving after going through gate.
+GATE_DRIVE_THROUGH_TIME = 1  # The amount of time to continue driving after going through gate.
 GATE_OBSTACLE_QUEUE_LENGTH = 120  # The max obstacles to store at once.
-GATE_MAX_DETECTION_ATTEMPTS = 500
-RECENTER_GATE_THRESHOLD = 20
-
+GATE_MAX_DETECTION_ATTEMPTS = 200
 
 # Approaching Marker Parameters.
 MARKER_MAX_APPROACH_SPEED = 200  # The speed to approach the marker at.
