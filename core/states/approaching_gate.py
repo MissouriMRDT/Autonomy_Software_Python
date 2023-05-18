@@ -79,6 +79,8 @@ class ApproachingGate(RoverState):
         state: RoverState = None
 
         if event == core.AutonomyEvents.REACHED_MARKER:
+            # Tell multimedia board to flash our LED matrix green to indicate reached marker
+            interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
             # Clear markers.
             core.vision.ar_tag_detector.clear_tags()
             # Move to idle state.
