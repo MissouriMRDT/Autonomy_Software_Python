@@ -45,6 +45,8 @@ class SearchPattern(RoverState):
         self.last_idx = 0
         self.target_idx = 0
         self.path_start_time = 0
+        self.stuck_check_timer = 0
+        self.stuck_check_last_position = [0, 0]
 
     def exit(self):
         """
@@ -111,6 +113,27 @@ class SearchPattern(RoverState):
         """
         STATE TRANSITION AND WAYPOINT LOGIC.
         """
+        # We should be navigating, so check if we have been in the same position for awhile.
+        # Only check every predefined amount of seconds.
+        if (time.time() - self.stuck_check_timer) > core.constants.STUCK_UPDATE_TIME:
+            # Calculate distance from goal for checking for markers and gates.
+            _, distance = algorithms.geomath.haversine(
+                self.stuck_check_last_position[0], self.stuck_check_last_position[1], current[0], current[1]
+            )
+            # Convert km to m.
+            distance *= 1000
+
+            # Store new position.
+            self.stuck_check_last_position[0], self.stuck_check_last_position[1] = current[0], current[1]
+
+            # Check if we are stuck.
+            if distance < core.constants.STUCK_MIN_DISTANCE:
+                # Move to stuck state.
+                return self.on_event(core.AutonomyEvents.STUCK)
+
+            # Update timer.
+            self.stuck_check_timer = time.time()
+
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
@@ -163,7 +186,7 @@ class SearchPattern(RoverState):
                 start_coord = current
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
-                max_route_size=40, near_object_threshold=0.0, start_gps=start_coord
+                max_route_size=40, near_object_threshold=0.0, start_gps=start_coord, waypoint_thresh=0.3
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
@@ -265,7 +288,7 @@ class SearchPattern(RoverState):
                     > constants.SEARCH_PATTERN_MAX_ERROR_FROM_PATH
                 ):
                     path = self.astar.plan_astar_avoidance_route(
-                        max_route_size=30, near_object_threshold=0.0, start_gps=current
+                        max_route_size=30, near_object_threshold=0.0, start_gps=current, waypoint_thresh=0.3
                     )
 
                     # If path was generated successfully, then put it in our future path. Cut out old future.

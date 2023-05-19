@@ -36,8 +36,22 @@ class Idle(RoverState):
         if event == core.AutonomyEvents.START:
             # Set time to zero.
             self.idle_time = 0
-            # Change states.
-            state = core.states.Navigating()
+            # Check if an ar tag is in front of us.
+            if (
+                len(
+                    [
+                        tag.distance
+                        for tag in core.vision.ar_tag_detector.get_valid_tags()
+                        if tag.distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
+                    ]
+                )
+                >= 1
+            ):
+                # Move to reversing state.
+                state = core.states.Reversing()
+            else:
+                # Change states.
+                state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
             state = self
@@ -69,7 +83,7 @@ class Idle(RoverState):
             # Check if idle time is over threshold and update position.
             if time.time() - self.idle_time > core.constants.IDLE_TIME_GPS_REALIGN and not self.realigned:
                 # Check odd time.
-                if (int(time.time()) % 5 == 0):
+                if int(time.time()) % 5 == 0:
                     # Check accuracy of nav board.
                     if interfaces.nav_board.accuracy()[0] < core.constants.IDLE_GPS_ACCUR_THRESH:
                         # Realign gps with relative.

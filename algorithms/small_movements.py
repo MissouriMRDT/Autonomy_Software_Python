@@ -1,22 +1,20 @@
 import interfaces
 import logging
 import core
-import math
-import algorithms.heading_hold as hh
 import algorithms
-import itertools
 import time
-import asyncio
 
 
-def backup(target_distance, speed=-200):
+def backup(start_latitude, start_longitude, target_distance, speed=-200):
     """
     Backs rover up for a specified distance at specified speed
 
-    Parameters:
-    -----------
-        target_distance (float) - distance to travel backwards (meters)
-        speed (int16) - the speed to drive right and left motors (between -1000 and -1)
+    :param start_lat: The start reference to calculate distance from.
+    :param start_long: The start reference to calculate distance from.
+    :param target_distance: Distance to travel backwards (meters)
+    :param speed: The speed to drive right and left motors (between -1000 and -1)
+
+    :returns done: Whether or not the rover has backed up the target distance.
     """
     # Setup logger for function.
     logger = logging.getLogger(__name__)
@@ -25,24 +23,29 @@ def backup(target_distance, speed=-200):
     target_distance = abs(target_distance)
     speed = -abs(speed)
 
-    # Initialize
-    distance_traveled = 0
-    start_latitude, start_longitude = interfaces.nav_board.location()
+    # Get total distance traveled so far.
+    current_latitude, current_longitude = interfaces.nav_board.location()
+    bearing, distance_traveled = algorithms.geomath.haversine(
+        start_latitude, start_longitude, current_latitude, current_longitude
+    )
+    # Convert to km to m.
+    distance_traveled *= 1000
 
     # Check distance traveled until target distance is reached
-    while distance_traveled < target_distance:
+    if distance_traveled < target_distance:
+        # Send drive command.
         interfaces.drive_board.send_drive(speed, speed)
-        current_latitude, current_longitude = interfaces.nav_board.location()
-        bearing, distance_traveled = algorithms.geomath.haversine(
-            start_latitude, start_longitude, current_latitude, current_longitude
-        )
-        distance_traveled *= 1000  # convert km to m
+        # Print log.
         logger.info(f"Backing Up: {distance_traveled} meters / {target_distance} meters")
-        time.sleep(core.EVENT_LOOP_DELAY)
-
-    # Stop rover
-    logger.info(f"Backing Up: COMPLETED")
-    interfaces.drive_board.stop()
+        # Return false since we are still backing up.
+        return False
+    else:
+        # Stop rover drive.
+        interfaces.drive_board.stop()
+        # Print log.
+        logger.info(f"Backing Up: COMPLETED")
+        # Return true since we have reversed specified distance.
+        return True
 
 
 def time_drive(distance):

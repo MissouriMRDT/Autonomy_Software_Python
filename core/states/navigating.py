@@ -47,22 +47,8 @@ class Navigating(RoverState):
         self.target_idx = 0
         self.path_start_time = 0
         self.time_since_last_path = 0
-
-        # Check if an ar tag is in front of us.
-        if (
-            len(
-                [
-                    tag.distance
-                    for tag in core.vision.ar_tag_detector.get_valid_tags()
-                    if tag.distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
-                ]
-            )
-            >= 1
-        ):
-            # Print log.
-            self.logger.warning("BACKING UP! AR Tag detected in front of rover.")
-            # Backup for a defined amount of time.
-            small_movements.backup(core.constants.NAVIGATION_START_BACKUP_TIME, core.constants.NAVIGATION_BACKUP_SPEED)
+        self.stuck_check_timer = 0
+        self.stuck_check_last_position = [0, 0]
 
         # Clear AR Tags.
         core.vision.ar_tag_detector.clear_tags()
@@ -105,7 +91,7 @@ class Navigating(RoverState):
         elif event == core.AutonomyEvents.NEW_WAYPOINT:
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
-                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
+                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0, waypoint_thresh=0.3
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
@@ -145,6 +131,10 @@ class Navigating(RoverState):
 
         elif event == core.AutonomyEvents.OBSTACLE_AVOIDANCE:
             state = core.states.Avoidance()
+        elif event == core.AutonomyEvents.REVERSE:
+            state = core.states.Reversing()
+        elif event == core.AutonomyEvents.STUCK:
+            state = core.states.Stuck()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
@@ -170,6 +160,28 @@ class Navigating(RoverState):
         """
         STATE TRANSITION AND WAYPOINT LOGIC.
         """
+
+        # We should be navigating, so check if we have been in the same position for awhile.
+        # Only check every predefined amount of seconds.
+        if (time.time() - self.stuck_check_timer) > core.constants.STUCK_UPDATE_TIME:
+            # Calculate distance from goal for checking for markers and gates.
+            _, distance = algorithms.geomath.haversine(
+                self.stuck_check_last_position[0], self.stuck_check_last_position[1], current[0], current[1]
+            )
+            # Convert km to m.
+            distance *= 1000
+
+            # Store new position.
+            self.stuck_check_last_position[0], self.stuck_check_last_position[1] = current[0], current[1]
+
+            # Check if we are stuck.
+            if distance < core.constants.STUCK_MIN_DISTANCE:
+                # Move to stuck state.
+                return self.on_event(core.AutonomyEvents.STUCK)
+
+            # Update timer.
+            self.stuck_check_timer = time.time()
+
         # If the gps_data is none, there were no waypoints to be grabbed,
         # so log that and return
         if gps_data is None:
@@ -275,7 +287,7 @@ class Navigating(RoverState):
         if self.time_since_last_path > constants.NAVIGATION_PATH_EXPIRATION_SECONDS or len(self.path_xs) <= 1:
             # Generate path.
             path = self.astar.plan_astar_avoidance_route(
-                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0
+                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0, waypoint_thresh=0.3
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.

@@ -39,7 +39,9 @@ class Avoidance(RoverState):
         self.rover_vs = []
         self.last_idx = 0
         self.target_idx = 0
-        self.path_start_time = 0.0
+        self.path_start_time = 0
+        self.stuck_check_timer = 0
+        self.stuck_check_last_position = [0, 0]
 
     def exit(self):
         # Cancel all state specific coroutines and reset state variables.
@@ -98,6 +100,27 @@ class Avoidance(RoverState):
         """
         STATE TRANSITION AND WAYPOINT LOGIC.
         """
+        # We should be navigating, so check if we have been in the same position for awhile.
+        # Only check every predefined amount of seconds.
+        if (time.time() - self.stuck_check_timer) > core.constants.STUCK_UPDATE_TIME:
+            # Calculate distance from goal for checking for markers and gates.
+            _, distance = algorithms.geomath.haversine(
+                self.stuck_check_last_position[0], self.stuck_check_last_position[1], current[0], current[1]
+            )
+            # Convert km to m.
+            distance *= 1000
+
+            # Store new position.
+            self.stuck_check_last_position[0], self.stuck_check_last_position[1] = current[0], current[1]
+
+            # Check if we are stuck.
+            if distance < core.constants.STUCK_MIN_DISTANCE:
+                # Move to stuck state.
+                return self.on_event(core.AutonomyEvents.STUCK)
+
+            # Update timer.
+            self.stuck_check_timer = time.time()
+
         # Move to approaching marker if 1 ar tag is spotted during marker leg type
         if (
             core.waypoint_handler.gps_data.leg_type == "MARKER"
@@ -142,6 +165,7 @@ class Avoidance(RoverState):
             path = self.astar.plan_astar_avoidance_route(
                 max_route_size=core.constants.AVOIDANCE_PATH_ROUTE_LENGTH,
                 near_object_threshold=core.constants.AVOIDANCE_OBJECT_DISTANCE_MIN,
+                waypoint_thresh=0.3,
             )
 
             # If path was generated successfully, then put it in our future path. Cut out old future.
