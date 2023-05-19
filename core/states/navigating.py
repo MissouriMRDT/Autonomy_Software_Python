@@ -11,7 +11,6 @@ import core
 import time
 import interfaces
 import algorithms
-import numpy as np
 import matplotlib.pyplot as plt
 from core.states import RoverState
 from algorithms import geomath, stanley_controller, heading_hold, small_movements
@@ -34,19 +33,8 @@ class Navigating(RoverState):
         Schedule Navigating
         """
         # Create state specific variable.
-        self.astar = ASTAR(max_queue_length=0)
-        self.rover_position_state = None
-        self.path_xs = []
-        self.path_ys = []
-        self.path_yaws = []
         self.rover_xs = []
         self.rover_ys = []
-        self.rover_yaws = []
-        self.rover_vs = []
-        self.last_idx = -1
-        self.target_idx = 0
-        self.path_start_time = 0
-        self.time_since_last_path = 0
         self.stuck_check_timer = 0
         self.stuck_check_last_position = [0, 0]
 
@@ -57,18 +45,9 @@ class Navigating(RoverState):
         """
         Cancel all state specific coroutines
         """
-        # Cancel all state specific coroutines and reset state variables.
-        self.astar.clear_obstacles()
-        self.path_xs.clear()
-        self.path_ys.clear()
-        self.path_yaws.clear()
+        # Clear rover path.
         self.rover_xs.clear()
         self.rover_ys.clear()
-        self.rover_yaws.clear()
-        self.rover_vs.clear()
-        self.target_idx = 0
-        # Set position state back to none.
-        self.rover_position_state = None
 
     def on_event(self, event) -> RoverState:
         """
@@ -89,38 +68,6 @@ class Navigating(RoverState):
             state = core.states.SearchPattern()
 
         elif event == core.AutonomyEvents.NEW_WAYPOINT:
-            # Generate path.
-            path = self.astar.plan_astar_avoidance_route(
-                max_route_size=constants.NAVIGATION_PATH_ROUTE_LENGTH, near_object_threshold=0.0, waypoint_thresh=0.3
-            )
-
-            # If path was generated successfully, then put it in our future path. Cut out old future.
-            if path is not None:
-                # Set path start timer.
-                self.path_start_time = time.time()
-
-                # Cut off path data after our current location.
-                self.path_xs = self.path_xs[: self.target_idx]
-                self.path_ys = self.path_ys[: self.target_idx]
-                self.path_yaws = self.path_yaws[: self.target_idx]
-
-                # Append new path onto current.
-                for point in path:
-                    # Add new path starting from current location.
-                    self.path_xs.append(point[0])
-                    self.path_ys.append(point[1])
-
-                # Manually calulate yaws since ASTAR doesn't given yaws.
-                self.path_yaws = stanley_controller.calculate_yaws_from_path(
-                    self.path_xs, self.path_ys, interfaces.nav_board.heading()
-                )
-
-                # Store last index of path.
-                self.last_idx = len(self.path_xs) - 1
-            else:
-                # Print error.
-                self.logger.error("Path didn't generate!")
-
             state = self
 
         elif event == core.AutonomyEvents.START:
@@ -131,8 +78,10 @@ class Navigating(RoverState):
 
         elif event == core.AutonomyEvents.OBSTACLE_AVOIDANCE:
             state = core.states.Avoidance()
+
         elif event == core.AutonomyEvents.REVERSE:
             state = core.states.Reversing()
+
         elif event == core.AutonomyEvents.STUCK:
             state = core.states.Stuck()
 
@@ -278,8 +227,30 @@ class Navigating(RoverState):
             self.last_idx = -1
 
         # Calculate powers.
-        left, right = algorithms.gps_navigate.calculate_move(goal, interfaces.nav_board.location(force_absolute=True), start, core.MAX_DRIVE_POWER)
+        left, right = algorithms.gps_navigate.calculate_move(
+            goal, interfaces.nav_board.location(force_absolute=True), start, core.MAX_DRIVE_POWER
+        )
         # Send drive.
         interfaces.drive_board.send_drive(left, right)
+
+        # Store rover position path.
+        utm_current = utm.from_latlon(current[0], current[1])
+        utm_goal = utm.from_latlon(goal[0], goal[1])
+        self.rover_xs.append(utm_current[0])
+        self.rover_ys.append(utm_current[1])
+        # Write path 1 second before it expires.
+        if int(time.time()) % 2 == 0:
+            plt.cla()
+            # Plot path, current location, and goal.
+            plt.gca().set_aspect("equal", adjustable="box")
+            plt.plot(self.rover_xs, self.rover_ys, "-b", label="trajectory")
+            # Plot goal.
+            plt.plot(utm_goal[0], utm_goal[1], "^", label="goal")
+            # Plot rover.
+            plt.plot(utm_current[0], utm_current[1], "2", label="rover")
+            plt.axis("equal")
+            plt.grid(True)
+            plt.title(f"Simple Navigating - Heading: {int(interfaces.nav_board.heading())}")
+            plt.savefig("logs/!rover_path.png")
 
         return self

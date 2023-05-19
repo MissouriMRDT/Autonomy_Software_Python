@@ -107,32 +107,61 @@ class NavBoard:
     def heading(self, force_absolute=False) -> float:
         # Check if ZED relative positioning is turned on.
         if core.vision.RELATIVE_POSITIONING and not force_absolute:
-            # Get heading from the zed camera.
-            heading = (core.vision.camera_handler.get_pose()[4] + self._heading_adjust) % 360
+            # Get heading from the zed camera IMU.
+            heading = core.vision.camera_handler.get_pose()[4]
         else:
             # Return reported heading from nav board.
             heading = self._heading
+        """
+        OLD
+        """
+        # # Check if ZED relative positioning is turned on.
+        # if core.vision.RELATIVE_POSITIONING and not force_absolute:
+        #     # Get heading from the zed camera.
+        #     heading = (core.vision.camera_handler.get_pose()[4] + self._heading_adjust) % 360
+        # else:
+        #     # Return reported heading from nav board.
+        #     heading = self._heading
 
         return heading
 
     def location(self, force_absolute=False) -> Coordinate:
         # Check if ZED relative positioning is turned on.
         if core.vision.RELATIVE_POSITIONING and not force_absolute:
-            location = core.vision.camera_handler.get_pose()
-
-            # Get zed x, y location.
-            x, y = location[0] / 1000, location[2] / 1000
-
             # Check if we already set are absolute start position.
             if self._start_UTM is None:
                 # Get current GPS.
                 self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+                # Align set pose to current gps location and heading.
+                core.vision.camera_handler.set_pose(self._start_UTM[0], 0, self._start_UTM[1], 0, self._heading, 0)
 
-            # Add Start UTM coords to ZED position.
-            x, y = x + self._start_UTM[0], y + self._start_UTM[1]
+            # Get current pose of camera.
+            location = core.vision.camera_handler.get_pose()
+            # Get zed x, y location. Actually Z.
+            x, y = location[0], location[2]
             # Convert back to GPS. Last two params are UTM zone.
             gps_current = utm.to_latlon(*(x, y, self._start_UTM[2], self._start_UTM[3]))
             gps_current = Coordinate(gps_current[0], gps_current[1])
+
+            """
+            OLD
+            """
+            # location = core.vision.camera_handler.get_pose()
+
+            # # Get zed x, y location. Actually Z.
+            # x, y = location[0], location[2]
+
+            # # Check if we already set are absolute start position.
+            # if self._start_UTM is None:
+            #     # Get current GPS.
+            #     self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+            #     # Align set pose to current gps location and heading.
+
+            # # Add Start UTM coords to ZED position.
+            # x, y = x + self._start_UTM[0], y + self._start_UTM[1]
+            # # Convert back to GPS. Last two params are UTM zone.
+            # gps_current = utm.to_latlon(*(x, y, self._start_UTM[2], self._start_UTM[3]))
+            # gps_current = Coordinate(gps_current[0], gps_current[1])
         else:
             # Get reported GPS location from nav board.
             gps_current = self._location
@@ -143,31 +172,42 @@ class NavBoard:
         return self._accur_horizontal, self._accur_vertical, self._accur_heading
 
     def realign(self) -> None:
-        if self._start_UTM is None:
-            # Get current GPS.
-            self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
-        else:
-            # Get curremt relative in UTM.
-            location = core.vision.camera_handler.get_pose()
-            # Get zed x, y location.
-            x, y = location[0] / 1000, location[2] / 1000
+        """
+        Realigns the relative positioning to the absolute position.
+        """
+        # Get current GPS.
+        utm_current = list(utm.from_latlon(self._location[0], self._location[1]))
+        # Align set pose to current gps location and heading.
+        core.vision.camera_handler.set_pose(utm_current[0], 0, utm_current[1], 0, self._heading, 0)
 
-            # Get current position in UTM.
-            current_UTM = utm.from_latlon(self._location[0], self._location[1])
+        """
+        OLD
+        """
+        # if self._start_UTM is None:
+        #     # Get current GPS.
+        #     self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+        # else:
+        #     # Get curremt relative in UTM.
+        #     location = core.vision.camera_handler.get_pose()
+        #     # Get zed x, y location.
+        #     x, y = location[0], location[2]
 
-            # Calculate offset.
-            offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (
-                self._start_UTM[1] + y
-            )
-            # Realign zed offset.
-            self._start_UTM[0] = self._start_UTM[0] + offset_lat
-            self._start_UTM[1] = self._start_UTM[1] + offset_long
+        #     # Get current position in UTM.
+        #     current_UTM = utm.from_latlon(self._location[0], self._location[1])
 
-            # Realign heading.
-            # Check if the ZED absolute magnotometer heading is turned on.
-            if core.vision.ZED_MAGNETOMETER:
-                self._zed_heading = core.vision.camera_handler.get_compass_heading()
-                self._heading_adjust = self._zed_heading - core.vision.camera_handler.get_pose()[4]
-            else:
-                self._diffGPS_heading = self._heading
-                self._heading_adjust = self._diffGPS_heading - core.vision.camera_handler.get_pose()[4]
+        #     # Calculate offset.
+        #     offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (
+        #         self._start_UTM[1] + y
+        #     )
+        #     # Realign zed offset.
+        #     self._start_UTM[0] = self._start_UTM[0] + offset_lat
+        #     self._start_UTM[1] = self._start_UTM[1] + offset_long
+
+        #     Realign heading.
+        #     # Check if the ZED absolute magnotometer heading is turned on.
+        #     if core.vision.ZED_MAGNETOMETER:
+        #         self._zed_heading = core.vision.camera_handler.get_compass_heading()
+        #         self._heading_adjust = self._zed_heading - core.vision.camera_handler.get_pose()[4]
+        #     else:
+        #         self._diffGPS_heading = self._heading
+        #         self._heading_adjust = self._diffGPS_heading - core.vision.camera_handler.get_pose()[4]

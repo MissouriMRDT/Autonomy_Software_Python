@@ -84,34 +84,6 @@ def time_drive(distance):
     interfaces.drive_board.stop()
 
 
-def rotate_rover(angle):
-    """
-    Rotates the Rover a specified angle.
-    This is completely theoretical right now.
-    I also wanna die -Donovan
-
-    Perameters:
-    -----------
-        angle (degrees) - turn 'angle' degrees. Negative turns left, positive turns right.
-    """
-
-    start_heading = interfaces.nav_board.heading(force_absolute=True)
-    going = True
-    while going:
-        if (interfaces.nav_board.heading(force_absolute=True) + 5) % 360 < angle:
-            interfaces.drive_board.send_drive(core.MAX_TURN_IN_PLACE_POWER, -core.MAX_TURN_IN_PLACE_POWER)
-            going = True
-            time.sleep(core.EVENT_LOOP_DELAY)
-        elif (interfaces.nav_board.heading(force_absolute=True) - 5) % 360 > angle:
-            interfaces.drive_board.send_drive(-core.MAX_DRIVE_POWER, core.MIN_DRIVE_POWER)
-            going = True
-            time.sleep(core.EVENT_LOOP_DELAY)
-        else:
-            going = False
-
-    interfaces.drive_board.stop()
-
-
 def dance_party():
     """
     Spin in place multiple times.

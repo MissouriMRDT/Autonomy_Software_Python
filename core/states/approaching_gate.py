@@ -197,11 +197,19 @@ class ApproachingGate(RoverState):
                         # with origin at the gatepoint.
                         # Find appropriate x point for first gate marker.
                         gate1_rad_x = (
-                            m * (-m * ((-2 * x1) - ((2 * x1) / math.pow(m, 2))) - ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
+                            m
+                            * (
+                                -m * ((-2 * x1) - ((2 * x1) / math.pow(m, 2)))
+                                - ((2 * r) * math.sqrt(1 + math.pow(m, 2)))
+                            )
                         ) / (2 * (math.pow(m, 2) + 1))
                         # Find appropriate x point for second gate marker.
                         gate2_rad_x = (
-                            m * (-m * ((-2 * x2) - ((2 * x2) / math.pow(m, 2))) + ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
+                            m
+                            * (
+                                -m * ((-2 * x2) - ((2 * x2) / math.pow(m, 2)))
+                                + ((2 * r) * math.sqrt(1 + math.pow(m, 2)))
+                            )
                         ) / (2 * (math.pow(m, 2) + 1))
 
                         # Find the cooresponding Y point for the calculated X point using the perpendicular line of slope m at each gate point.
@@ -364,7 +372,7 @@ class ApproachingGate(RoverState):
                     plt.axis("equal")
                     plt.grid(True)
                     plt.title("Rover Velocity (M/S):" + str(self.rover_position_state.v))
-                    plt.savefig("logs/!stanley_utm_path.png")
+                    plt.savefig("logs/!rover_path.png")
 
                 # Send drive board commands to drive at a certain speed at a certain angle.
                 left, right = heading_hold.get_motor_power_from_heading(

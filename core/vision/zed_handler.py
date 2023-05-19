@@ -217,9 +217,9 @@ class ZedHandler(Camera):
 
         # Unpack pose values.
         translation = sl.Translation()
-        tx = round(pose.get_translation(translation).get()[0], 3)
-        ty = round(pose.get_translation(translation).get()[1], 3)
-        tz = round(pose.get_translation(translation).get()[2], 3)
+        tx = round(pose.get_translation(translation).get()[0], 3) / 1000
+        ty = round(pose.get_translation(translation).get()[1], 3) / 1000
+        tz = round(pose.get_translation(translation).get()[2], 3) / 1000
         orientation = sl.Orientation()
         ox, oy, oz = np.rad2deg(pose.get_orientation(orientation).get_rotation_matrix().get_euler_angles())
 
@@ -228,6 +228,55 @@ class ZedHandler(Camera):
             oy = 360 + oy
 
         return tx, ty, tz, ox, oy, oz
+
+    def set_pose(self, x, y, z, roll, pitch, yaw):
+        """
+        This method will set the zed translation and rotation to the given values.
+        You must pass in a x, y, z, roll, pitch, yaw. PAY ATTENTION TO THE ZED COORDINATE FRAME.
+        Z - FORWARD
+        Y - DOWN
+        X - RIGHT
+
+        :param x: The new x position in meters to set the camera to.
+        :param y: The new y position in meters to set the camera to.
+        :param z: The new z position in meters to set the camera to.
+        :param roll: The new roll angle in degrees to set the camera to.
+        :param pitch: The new pitch angle in degrees to set the camera to.
+        :param yaw: The new yaw angle in degrees to set the camera to.
+        """
+        # Create zed translation object.
+        translation_vector = sl.Translation()
+        translation_vector.init_vector(x * 1000, y * 1000, z * 1000)
+        # Create zed rotation object.
+        rotation_angles = sl.Rotation()
+        rotation_angles.set_euler_angles(roll, pitch, yaw, radian=False)
+        # Sets the Matrix3f to identity.
+        # rotation_angles.set_identity()
+        # Build transform.
+        new_transform = sl.Transform()
+        new_transform.init_rotation_translation(rotation_angles, translation_vector)
+
+        # Reset positional tracking.
+        self.zed.reset_positional_tracking(new_transform)
+
+    def reset_pose(self):
+        """
+        This method will set the zed translation and rotation back to zero.
+        """
+        # Create zed translation object.
+        translation_vector = sl.Translation()
+        translation_vector.init_vector(0, 0, 0)
+        # Create zed rotation object.
+        rotation_angles = sl.Rotation()
+        rotation_angles.set_euler_angles(0, 0, 0, radian=False)
+        # Sets the Matrix3f to identity.
+        rotation_angles.set_identity()
+        # Build transform.
+        new_transform = sl.Transform()
+        new_transform.init_rotation_translation(rotation_angles, translation_vector)
+
+        # Reset positional tracking.
+        self.zed.reset_positional_tracking(new_transform)
 
     def get_compass_heading(self):
         """

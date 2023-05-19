@@ -75,8 +75,9 @@ class Idle(RoverState):
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
 
-        # Only realign if not mode sim.
-        if core.MODE != "SIM":
+        # Only realign if not mode sim and relative positioning is turned on.
+        print(core.MODE, core.vision.RELATIVE_POSITIONING)
+        if core.MODE != "SIM" and core.vision.RELATIVE_POSITIONING:
             # Check if time zero.
             if self.idle_time == 0:
                 self.idle_time = time.time()

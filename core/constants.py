@@ -17,8 +17,8 @@ IDLE_TIME_GPS_REALIGN = 5  # Second to sit in idle before realigning gps with re
 IDLE_GPS_ACCUR_THRESH = 0.8  # The minimum meter accuracy needed to update rover position.
 
 # Stuck Parameters.
-STUCK_MIN_DISTANCE = 0.15
-STUCK_UPDATE_TIME = 5
+STUCK_MIN_DISTANCE = 0.35
+STUCK_UPDATE_TIME = 15
 
 # Navigation Parameters
 WIDTH = 640.0  # pixels

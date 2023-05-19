@@ -6,10 +6,14 @@
 # Updated on Aug 21, 2022
 #
 
+import utm
+import time
+import math
 import core
 import interfaces
 import algorithms
 from core.states import RoverState
+import matplotlib.pyplot as plt
 
 
 class ApproachingMarker(RoverState):
@@ -21,13 +25,13 @@ class ApproachingMarker(RoverState):
         """
         Schedule AR Tag detection
         """
+        # Create state specific variables.
         self.num_detection_attempts = 0
 
     def exit(self):
         """
         Cancel all state specific coroutines
         """
-
         pass
 
     def on_event(self, event) -> RoverState:
@@ -69,6 +73,11 @@ class ApproachingMarker(RoverState):
 
         :return: RoverState
         """
+        # Get current position and next desired waypoint position.
+        current = interfaces.nav_board.location(force_absolute=True)
+        gps_data = core.waypoint_handler.get_waypoint()
+        # Pull info out of waypoint.
+        goal, start, leg_type = gps_data.data()
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_marker():
