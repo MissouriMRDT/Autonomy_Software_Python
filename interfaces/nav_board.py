@@ -168,4 +168,7 @@ class NavBoard:
             if core.vision.ZED_MAGNETOMETER:
                 self._zed_heading = core.vision.camera_handler.get_compass_heading()
                 self._heading_adjust = self._zed_heading - core.vision.camera_handler.get_pose()[4]
+            else:
+                self._diffGPS_heading = self._heading
+                self._heading_adjust = self._diffGPS_heading - core.vision.camera_handler.get_pose()[4]
             print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long, self._zed_heading, self._heading_adjust, core.vision.camera_handler.get_pose()[4])

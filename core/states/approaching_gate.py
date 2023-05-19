@@ -177,7 +177,7 @@ class ApproachingGate(RoverState):
                 m = NaN
 
             # Find radius' from -3 to 3 in increments of 0.5
-            for r in [x * 0.125 for x in range(-16, 16)]:
+            for r in [x * 0.125 for x in range(-18, 18)]:
                 # If slope if zero, just add to y values.
                 if m == 0:
                     # Append simple obstacles.
@@ -211,8 +211,8 @@ class ApproachingGate(RoverState):
                     gate2_obstacles.append((gate2_rad_x, gate2_rad_y))
 
             # Add gate1 and gate2 obstacles to astar list.
-            self.astar.update_obstacle_coords(gate1_obstacles[5:-5], input_gps=False)
-            self.astar.update_obstacle_coords(gate2_obstacles[5:-5], input_gps=False)
+            self.astar.update_obstacle_coords(gate1_obstacles[6:-6], input_gps=False)
+            self.astar.update_obstacle_coords(gate2_obstacles[6:-6], input_gps=False)
 
             # Find midpoint between matching points in the trench.
             mid_points = []

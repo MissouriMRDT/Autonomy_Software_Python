@@ -110,7 +110,7 @@ def main() -> None:
     parser.add_argument(
         "--zed-magnetometer",
         choices=["ENABLE", "DISABLE"],
-        default="ENABLE",
+        default="DISABLE",
         help="Toggle between using GPS heading from Rovecomm or ZED built-in magnetometer for absolute compass heading. ZED MUST BE CALIBRATED TO ENVIRONMENT OR VALUES WILL BE BAD!",
     )
 
