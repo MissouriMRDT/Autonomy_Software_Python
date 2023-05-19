@@ -76,7 +76,6 @@ class Idle(RoverState):
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
 
         # Only realign if not mode sim and relative positioning is turned on.
-        print(core.MODE, core.vision.RELATIVE_POSITIONING)
         if core.MODE != "SIM" and core.vision.RELATIVE_POSITIONING:
             # Check if time zero.
             if self.idle_time == 0:
