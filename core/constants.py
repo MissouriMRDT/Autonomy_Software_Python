@@ -17,7 +17,7 @@ IDLE_TIME_GPS_REALIGN = 5  # Second to sit in idle before realigning gps with re
 IDLE_GPS_ACCUR_THRESH = 0.8  # The minimum meter accuracy needed to update rover position.
 
 # Stuck Parameters.
-STUCK_MIN_DISTANCE = 0.2
+STUCK_MIN_DISTANCE = 0.15
 STUCK_UPDATE_TIME = 5
 
 # Navigation Parameters
@@ -26,12 +26,12 @@ FIELD_OF_VIEW = 40.0  # degrees
 TARGET_DISTANCE = 0.4  # meters
 RADIUS = 0.063  # meters
 SCALING_FACTOR = 10.0  # pixel-meters
-WAYPOINT_DISTANCE_THRESHOLD = 2.0  # maximum threshold in meters between rover and waypoint
+WAYPOINT_DISTANCE_THRESHOLD = 0.5  # maximum threshold in meters between rover and waypoint
 BEARING_FLIP_THRESHOLD = 30.0  # 180 +/- this many degrees counts as a flip in bearing
-MAX_DRIVE_POWER = 250  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
+MAX_DRIVE_POWER = 450  # -1000 to 1000, normally 250 dropped lower for early testing to be safe
 MIN_DRIVE_POWER = -250  # -1000 to 1000, normally 50
 GATE_POINT_DISTANCES = 3.0
-NAVIGATION_PATH_EXPIRATION_SECONDS = 10  # The time in seconds before a new path is force generated.
+NAVIGATION_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path is force generated.
 NAVIGATION_PATH_ROUTE_LENGTH = 30  # The length in meters that ASTAR will generate at one time.
 METERS_PER_SECOND = 0.762  # at speeds (450, 450) **CHANGE FOR UTAH TERRAIN
 AR_SKEW_THRESHOLD = 30  # min angle allowed between tags for approaching gate to skip first leg
@@ -41,7 +41,7 @@ NAVIGATION_BACKUP_TAG_DISTANCE_THRESH = 3  # Min distance tag can be from rover 
 
 # Approaching Gate Parameters.
 GATE_WAYPOINT_THRESH = 0.3  # The minimum distance from end waypoint before we consider ourselves there.
-GATE_NEAR_OBSTACLE_THRESH = 0.6  # The closest the rover can get to a post.
+GATE_NEAR_OBSTACLE_THRESH = 0.8  # The closest the rover can get to a post.
 GATE_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 GATE_UPDATE_PATH_MAX_MARKER_DISTANCE = (
     2  # The max distance we must be from the gate markers before we think tag detections will be accurate.
@@ -58,6 +58,7 @@ MAX_DETECTION_ATTEMPTS = 20  # This should be about 1 second
 
 # Search Pattern Parameters
 SEARCH_DISTANCE = 4  # meters
+SEARCH_DRIVE_POWER = 250
 SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 SEARCH_OBSTACLE_QUEUE_LENGTH = 10  # The max number of objects to store at once.
 DELTA_THETA = math.pi / 4

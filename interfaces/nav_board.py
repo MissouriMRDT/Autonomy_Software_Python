@@ -104,9 +104,9 @@ class NavBoard:
 
         return roll
 
-    def heading(self) -> float:
+    def heading(self, force_absolute=False) -> float:
         # Check if ZED relative positioning is turned on.
-        if core.vision.RELATIVE_POSITIONING:
+        if core.vision.RELATIVE_POSITIONING and not force_absolute:
             # Get heading from the zed camera.
             heading = (core.vision.camera_handler.get_pose()[4] + self._heading_adjust) % 360
         else:
@@ -115,9 +115,9 @@ class NavBoard:
 
         return heading
 
-    def location(self) -> Coordinate:
+    def location(self, force_absolute=False) -> Coordinate:
         # Check if ZED relative positioning is turned on.
-        if core.vision.RELATIVE_POSITIONING:
+        if core.vision.RELATIVE_POSITIONING and not force_absolute:
             location = core.vision.camera_handler.get_pose()
 
             # Get zed x, y location.
@@ -171,4 +171,3 @@ class NavBoard:
             else:
                 self._diffGPS_heading = self._heading
                 self._heading_adjust = self._diffGPS_heading - core.vision.camera_handler.get_pose()[4]
-            print("UTM REALIGN: ", current_UTM, x, y, offset_lat, offset_long, self._zed_heading, self._heading_adjust, core.vision.camera_handler.get_pose()[4])

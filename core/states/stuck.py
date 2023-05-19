@@ -15,8 +15,8 @@ from core.states import RoverState
 
 class Stuck(RoverState):
     """
-    In this state the program will command the rover to backup.
-    Its singular purpose is to prevent the rover from running into a marker of obstacle.
+    In this state the program will command the rover to stop as it is stuck.
+    Its singular purpose is to prevent the rover from killing itself into a marker or obstacle.
     """
 
     def start(self):
@@ -24,6 +24,8 @@ class Stuck(RoverState):
         self.logger = logging.getLogger(__name__)
         # Stop drive.
         interfaces.drive_board.stop()
+        # Flop toggle.
+        self.toggle = False
 
     def on_event(self, event) -> RoverState:
         """
@@ -60,11 +62,15 @@ class Stuck(RoverState):
         Defines regular rover operation when under this state
         """
         # If time is even set color to pink.
-        if time.time() % 2 == 0:
+        if time.time() % 2 == 0 and not self.toggle:
             # Set color to pink
             interfaces.multimedia_board.send_rgb((255, 127, 127))
-        elif time.time() % 1 == 0:
+            # Set toggle.
+            self.toggle = True
+        elif time.time() % 1 == 0 and self.toggle:
             # Set color to normal autonomy red.
             interfaces.multimedia_board.send_lighting_state(core.OperationState.AUTONOMY)
+            # Set toggle.
+            self.toggle = False
 
         return self

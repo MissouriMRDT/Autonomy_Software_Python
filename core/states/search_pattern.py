@@ -88,6 +88,8 @@ class SearchPattern(RoverState):
 
         elif event == core.AutonomyEvents.ABORT:
             state = core.states.Idle()
+        elif event == core.AutonomyEvents.STUCK:
+            state = core.states.Stuck()
 
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
@@ -249,7 +251,7 @@ class SearchPattern(RoverState):
                 )
                 # Calculate adjusted heading. Add 90 to convert back to gps heading.
                 goal_heading = -np.rad2deg(heading + delta_adjustment) + 90
-                goal_speed = constants.MAX_DRIVE_POWER * (1 + acceleration)
+                goal_speed = constants.SEARCH_DRIVE_POWER * (1 + acceleration)
 
                 # Update the current rover state.
                 self.rover_position_state.update(utm_current[0], utm_current[1], heading)

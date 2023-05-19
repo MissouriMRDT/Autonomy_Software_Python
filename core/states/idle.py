@@ -10,6 +10,7 @@ import core
 import time
 import logging
 import interfaces
+import algorithms
 from core.states import RoverState
 
 

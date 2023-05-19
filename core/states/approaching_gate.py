@@ -51,6 +51,8 @@ class ApproachingGate(RoverState):
         self.tags = []
         self.trench_mid_points = []
         self.through_gate_timer = 0
+        self.gate1_obstacles = []
+        self.gate2_obstacles = []
 
     def exit(self):
         """
@@ -163,60 +165,62 @@ class ApproachingGate(RoverState):
             # Calculate the intersection line and perp line to the obstacles to make a 'trench' for the rover to drive through.
             # Check https://www.desmos.com/calculator/xcbgsmlk6x for an interactive graph.
             ######################################################################################################################
-            # Create list to store UTM coords.
-            gate1_obstacles = []
-            gate2_obstacles = []
-            # Store the UTM easting/northing for each gate.
-            x1, y1 = gate_xs[0], gate_ys[0]
-            x2, y2 = gate_xs[1], gate_ys[1]
-            # Find slope of line that pases through both points.
-            try:
-                m = (y2 - y1) / (x2 - x1)
-            except ZeroDivisionError:
-                # If points are vertically aligned just set, slope to NaN.
-                m = NaN
+            # Catch bad gate coords.
+            if len(gate_xs) <= 2:
+                # Create list to store UTM coords.
+                self.gate1_obstacles.clear()
+                self.gate2_obstacles.clear()
+                # Store the UTM easting/northing for each gate.
+                x1, y1 = gate_xs[0], gate_ys[0]
+                x2, y2 = gate_xs[1], gate_ys[1]
+                # Find slope of line that pases through both points.
+                try:
+                    m = (y2 - y1) / (x2 - x1)
+                except ZeroDivisionError:
+                    # If points are vertically aligned just set, slope to NaN.
+                    m = NaN
 
-            # Find radius' from -3 to 3 in increments of 0.5
-            for r in [x * 0.125 for x in range(-18, 18)]:
-                # If slope if zero, just add to y values.
-                if m == 0:
-                    # Append simple obstacles.
-                    gate1_obstacles.append((x1, y1 + r))
-                    gate2_obstacles.append((x2, y2 + r))
-                # Check if slope is undefined.
-                elif m == NaN:
-                    # Append simple obstacles.
-                    gate1_obstacles.append((x1 + r, y1))
-                    gate2_obstacles.append((x2 + r, y2))
-                else:
-                    # This is the equation that will spit out the x coordinate of the first gates trench line given the radius of a circle
-                    # with origin at the gatepoint.
-                    # Find appropriate x point for first gate marker.
-                    gate1_rad_x = (
-                        m * (-m * ((-2 * x1) - ((2 * x1) / math.pow(m, 2))) - ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
-                    ) / (2 * (math.pow(m, 2) + 1))
-                    # Find appropriate x point for second gate marker.
-                    gate2_rad_x = (
-                        m * (-m * ((-2 * x2) - ((2 * x2) / math.pow(m, 2))) + ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
-                    ) / (2 * (math.pow(m, 2) + 1))
+                # Find radius' from -3 to 3 in increments of 0.5
+                for r in [x * 0.125 for x in range(-24, 24)]:
+                    # If slope if zero, just add to y values.
+                    if m == 0:
+                        # Append simple obstacles.
+                        self.gate1_obstacles.append((x1, y1 + r))
+                        self.gate2_obstacles.append((x2, y2 + r))
+                    # Check if slope is undefined.
+                    elif m == NaN:
+                        # Append simple obstacles.
+                        self.gate1_obstacles.append((x1 + r, y1))
+                        self.gate2_obstacles.append((x2 + r, y2))
+                    else:
+                        # This is the equation that will spit out the x coordinate of the first gates trench line given the radius of a circle
+                        # with origin at the gatepoint.
+                        # Find appropriate x point for first gate marker.
+                        gate1_rad_x = (
+                            m * (-m * ((-2 * x1) - ((2 * x1) / math.pow(m, 2))) - ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
+                        ) / (2 * (math.pow(m, 2) + 1))
+                        # Find appropriate x point for second gate marker.
+                        gate2_rad_x = (
+                            m * (-m * ((-2 * x2) - ((2 * x2) / math.pow(m, 2))) + ((2 * r) * math.sqrt(1 + math.pow(m, 2))))
+                        ) / (2 * (math.pow(m, 2) + 1))
 
-                    # Find the cooresponding Y point for the calculated X point using the perpendicular line of slope m at each gate point.
-                    # Find Y point for first gate marker.
-                    gate1_rad_y = (-1 / m) * (gate1_rad_x - x1) + y1
-                    # Find Y point for second gate marker.
-                    gate2_rad_y = (-1 / m) * (gate2_rad_x - x2) + y2
+                        # Find the cooresponding Y point for the calculated X point using the perpendicular line of slope m at each gate point.
+                        # Find Y point for first gate marker.
+                        gate1_rad_y = (-1 / m) * (gate1_rad_x - x1) + y1
+                        # Find Y point for second gate marker.
+                        gate2_rad_y = (-1 / m) * (gate2_rad_x - x2) + y2
 
-                    # Add points to gate obstacle list.
-                    gate1_obstacles.append((gate1_rad_x, gate1_rad_y))
-                    gate2_obstacles.append((gate2_rad_x, gate2_rad_y))
+                        # Add points to gate obstacle list.
+                        self.gate1_obstacles.append((gate1_rad_x, gate1_rad_y))
+                        self.gate2_obstacles.append((gate2_rad_x, gate2_rad_y))
 
             # Add gate1 and gate2 obstacles to astar list.
-            self.astar.update_obstacle_coords(gate1_obstacles[6:-6], input_gps=False)
-            self.astar.update_obstacle_coords(gate2_obstacles[6:-6], input_gps=False)
+            self.astar.update_obstacle_coords(self.gate1_obstacles[10:-10], input_gps=False)
+            self.astar.update_obstacle_coords(self.gate2_obstacles[10:-10], input_gps=False)
 
             # Find midpoint between matching points in the trench.
             mid_points = []
-            for point1, point2 in zip(gate1_obstacles, gate2_obstacles[::-1]):
+            for point1, point2 in zip(self.gate1_obstacles, self.gate2_obstacles[::-1]):
                 # Calulate midpoint.
                 midpoint = ((point1[0] + point2[0]) / 2, (point1[1] + point2[1]) / 2)
                 # Append point to list.

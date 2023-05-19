@@ -34,7 +34,10 @@ async def async_ar_tag_detector():
             # Detect tags.
             TagDetector.detect_ar_tag(reg_img)
             # Filter tags.
-            TagDetector.filter_ar_tags(angle_range=40, distance_range=5, valid_id_range=[0, 1, 2, 3, 4, 5])
+            if (core.states.state_machine.get_state_str() == "ApproachingGate"):
+                TagDetector.filter_ar_tags(angle_range=45, distance_range=15, valid_id_range=[0, 1, 2, 3, 4, 5])
+            else:
+                TagDetector.filter_ar_tags(angle_range=180, distance_range=15, valid_id_range=[0, 1, 2, 3, 4, 5])
             # Get and store tags.
             ar_tags = TagDetector.get_tags()
 

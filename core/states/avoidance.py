@@ -72,6 +72,9 @@ class Avoidance(RoverState):
         elif event == core.AutonomyEvents.END_OBSTACLE_AVOIDANCE:
             state = core.states.state_machine.get_prev_state()
 
+        elif event == core.AutonomyEvents.STUCK:
+            state = core.states.Stuck()
+
         else:
             self.logger.error(f"Unexpected event {event} for state {self}")
             state = core.states.Idle()

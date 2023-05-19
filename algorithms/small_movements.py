@@ -95,15 +95,14 @@ def rotate_rover(angle):
         angle (degrees) - turn 'angle' degrees. Negative turns left, positive turns right.
     """
 
-    start_heading = interfaces.nav_board.heading()
-    target_heading = (start_heading + angle) % 360
+    start_heading = interfaces.nav_board.heading(force_absolute=True)
     going = True
     while going:
-        if (interfaces.nav_board.heading() + 5) % 360 < target_heading:
-            interfaces.drive_board.send_drive(core.MIN_DRIVE_POWER, -core.MAX_DRIVE_POWER)
+        if (interfaces.nav_board.heading(force_absolute=True) + 5) % 360 < angle:
+            interfaces.drive_board.send_drive(core.MAX_TURN_IN_PLACE_POWER, -core.MAX_TURN_IN_PLACE_POWER)
             going = True
             time.sleep(core.EVENT_LOOP_DELAY)
-        elif (interfaces.nav_board.heading() - 5) % 360 > target_heading:
+        elif (interfaces.nav_board.heading(force_absolute=True) - 5) % 360 > angle:
             interfaces.drive_board.send_drive(-core.MAX_DRIVE_POWER, core.MIN_DRIVE_POWER)
             going = True
             time.sleep(core.EVENT_LOOP_DELAY)
