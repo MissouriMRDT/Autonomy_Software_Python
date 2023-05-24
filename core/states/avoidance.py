@@ -7,11 +7,7 @@
 #
 
 import time
-from algorithms import obstacle_avoider
-from algorithms import stanley_controller
-from algorithms import heading_hold
-from algorithms import gps_navigate
-from algorithms import geomath
+from algorithms import obstacle_avoider, stanley_controller, heading_hold, gps_navigate, geomath
 import matplotlib.pyplot as plt
 import core
 import core.constants
@@ -107,7 +103,7 @@ class Avoidance(RoverState):
         # Only check every predefined amount of seconds.
         if (time.time() - self.stuck_check_timer) > core.constants.STUCK_UPDATE_TIME:
             # Calculate distance from goal for checking for markers and gates.
-            _, distance = algorithms.geomath.haversine(
+            _, distance = geomath.haversine(
                 self.stuck_check_last_position[0], self.stuck_check_last_position[1], current[0], current[1]
             )
             # Convert km to m.

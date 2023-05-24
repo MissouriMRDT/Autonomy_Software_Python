@@ -92,7 +92,7 @@ def test_calculate_move_left():
 
     # should be turning to the left
     assert right > 0
-    assert left == constants.MIN_DRIVE_POWER  or right == 0
+    assert left == constants.MIN_DRIVE_POWER or right == 0
 
 
 def test_calculate_move_straight():
