@@ -7,6 +7,10 @@
 #
 
 import core
+import time
+import logging
+import interfaces
+import algorithms
 from core.states import RoverState
 
 
@@ -17,6 +21,11 @@ class Idle(RoverState):
     from base station that configure the next leg’s settings and confirm them.
     """
 
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.idle_time = time.time()
+        self.realigned = False
+
     def on_event(self, event) -> RoverState:
         """
         Defines all transitions between states based on events
@@ -26,7 +35,24 @@ class Idle(RoverState):
         """
         state: RoverState = None
         if event == core.AutonomyEvents.START:
-            state = core.states.Navigating()
+            # Set time to zero.
+            self.idle_time = 0
+            # Check if an ar tag is in front of us.
+            if (
+                len(
+                    [
+                        tag.distance
+                        for tag in core.vision.ar_tag_detector.get_valid_tags()
+                        if tag.distance <= core.constants.NAVIGATION_BACKUP_TAG_DISTANCE_THRESH
+                    ]
+                )
+                >= 1
+            ):
+                # Move to reversing state.
+                state = core.states.Reversing()
+            else:
+                # Change states.
+                state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
             state = self
@@ -48,4 +74,27 @@ class Idle(RoverState):
         """
         # Send no commands to drive board, the watchdog will trigger and stop the rover from driving anyway
         # The only way to get out of this is through the state machine enable(), triggered by RoveComm
+
+        # Only realign if not mode sim and relative positioning is turned on.
+        if core.MODE != "SIM" and core.vision.RELATIVE_POSITIONING:
+            # Check if time zero.
+            if self.idle_time == 0:
+                self.idle_time = time.time()
+
+            # Check if idle time is over threshold and update position.
+            if time.time() - self.idle_time > core.constants.IDLE_TIME_GPS_REALIGN and not self.realigned:
+                # Check odd time.
+                if int(time.time()) % 5 == 0:
+                    # Check accuracy of nav board.
+                    if interfaces.nav_board.accuracy()[0] < core.constants.IDLE_GPS_ACCUR_THRESH:
+                        # Realign gps with relative.
+                        interfaces.nav_board.realign()
+                        # Print warning that GPS location has been realigned.
+                        self.logger.warning(f"Relative positional tracking has been realigned to current GPS location.")
+                        # Set toggle.
+                        self.realigned = True
+            else:
+                # Reset toggle.
+                self.realigned = False
+
         return self

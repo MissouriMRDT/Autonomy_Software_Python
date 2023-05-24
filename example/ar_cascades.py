@@ -28,9 +28,6 @@ def main() -> None:
 
         core.vision.feed_handler.handle_frame("artag", reg_img)
 
-        # Sleep so we only process around when we expect a new frame
-        time.sleep(1 / 30)
-
 
 if __name__ == "__main__":
     # Run main()

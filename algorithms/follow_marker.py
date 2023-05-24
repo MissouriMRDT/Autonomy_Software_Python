@@ -12,17 +12,6 @@ import interfaces
 import algorithms.heading_hold as hh
 
 
-def drive_through_gate():
-    """
-    Drive through a gate composed of two tags
-
-    :return: None
-    """
-
-    # TODO: Will attempt to drive through a gate composed of two AR Tags
-    pass
-
-
 def drive_to_marker(speed, angle):
     """
     Returns drive speeds necessary to stay on course towards a single marker

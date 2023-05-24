@@ -33,3 +33,9 @@ resources/tests/output/*
 
 # Web Output Files
 *.html
+
+# Pip wheels
+*.whl
+
+# pip lock
+*.lock
