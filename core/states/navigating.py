@@ -234,7 +234,7 @@ class Navigating(RoverState):
             goal, interfaces.nav_board.location(force_absolute=True), start, core.MAX_DRIVE_POWER
         )
         # Send drive.
-        interfaces.drive_board.send_drive(left, right)
+        # interfaces.drive_board.send_drive(left, right)
 
         # Store rover position path.
         utm_current = utm.from_latlon(current[0], current[1])

@@ -220,8 +220,10 @@ class ZedHandler(Camera):
         tx = round(pose.get_translation(translation).get()[0], 3) / 1000
         ty = round(pose.get_translation(translation).get()[1], 3) / 1000
         tz = round(pose.get_translation(translation).get()[2], 3) / 1000
-        orientation = sl.Orientation()
-        ox, oy, oz = np.rad2deg(pose.get_orientation(orientation).get_rotation_matrix().get_euler_angles())
+        # Retrieve only frame synchronized data.
+        zed_imu_pose = sl.Transform()
+        self.zed.get_sensors_data(self.sensors_data, sl.TIME_REFERENCE.IMAGE)
+        ox, oy, oz = np.rad2deg(self.sensors_data.get_imu_data().get_pose(zed_imu_pose).get_orientation().get_rotation_matrix().get_euler_angles())
 
         # Wrap heading.
         if oy < 0:

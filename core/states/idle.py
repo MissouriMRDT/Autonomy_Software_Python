@@ -12,6 +12,8 @@ import logging
 import interfaces
 import algorithms
 from core.states import RoverState
+import utm
+import matplotlib.pyplot as plt
 
 
 class Idle(RoverState):
@@ -21,10 +23,23 @@ class Idle(RoverState):
     from base station that configure the next leg’s settings and confirm them.
     """
 
-    def __init__(self):
+    def start(self):
+        """
+        Schedule Idle
+        """
         self.logger = logging.getLogger(__name__)
         self.idle_time = time.time()
         self.realigned = False
+        self.rover_xs = []
+        self.rover_ys = []
+
+    def exit(self):
+        """
+        Cancel all state specific coroutines
+        """
+        # Clear rover path.
+        self.rover_xs.clear()
+        self.rover_ys.clear()
 
     def on_event(self, event) -> RoverState:
         """
@@ -95,7 +110,25 @@ class Idle(RoverState):
                         self.realigned = True
             else:
                 # Reset toggle.
-                # self.realigned = False
+                self.realigned = False
                 pass
+
+        # Store rover position path.
+        current = interfaces.nav_board.location()
+        utm_current = utm.from_latlon(current[0], current[1])
+        self.rover_xs.append(utm_current[0])
+        self.rover_ys.append(utm_current[1])
+        # Write path 1 second before it expires.
+        if int(time.time()) % 2 == 0:
+            plt.cla()
+            # Plot path, current location, and goal.
+            plt.gca().set_aspect("equal", adjustable="box")
+            plt.plot(self.rover_xs, self.rover_ys, "-b", label="trajectory")
+            # Plot rover.
+            plt.plot(utm_current[0], utm_current[1], "2", label="rover")
+            plt.axis("equal")
+            plt.grid(True)
+            plt.title(f"IDLE - Heading: {int(interfaces.nav_board.heading())}")
+            plt.savefig("logs/!rover_path.png")
 
         return self
