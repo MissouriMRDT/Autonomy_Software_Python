@@ -32,6 +32,7 @@ class Idle(RoverState):
         self.realigned = False
         self.rover_xs = []
         self.rover_ys = []
+        self.max_draw_length = 100
 
     def exit(self):
         """
@@ -130,5 +131,14 @@ class Idle(RoverState):
             plt.grid(True)
             plt.title(f"IDLE - Heading: {int(interfaces.nav_board.heading())}")
             plt.savefig("logs/!rover_path.png")
+
+            # Check length of the rover path.
+
+            if len(self.rover_xs) > self.max_draw_length:
+                # Cutoff old points.
+                self.rover_xs = self.rover_xs[::-1][:self.max_draw_length][::-1]
+                self.rover_ys = self.rover_ys[::-1][:self.max_draw_length][::-1]
+                
+            print(self.rover_xs)
 
         return self
