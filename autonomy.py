@@ -79,9 +79,12 @@ async def autonomy_state_loop():
         )
 
         # Print debug
-        print(interfaces.nav_board.location())
-        print(interfaces.nav_board.heading())
-        print(interfaces.nav_board._heading)
+        relpos = interfaces.nav_board.location()
+        abspos = interfaces.nav_board.location(force_absolute=True)
+        print("RELPOS:", utm.from_latlon(relpos[0], relpos[1])[:2])
+        print("ABSPOS:", utm.from_latlon(abspos[0], abspos[1])[:2])
+        print("RELHEAD:", interfaces.nav_board.heading())
+        print("ABSHEAD:", interfaces.nav_board._heading)
 
         # Core state machine runs every X ms, to prevent unnecessarily fast computation.
         # Sensor data is processed separately, as that is the bulk of processing time

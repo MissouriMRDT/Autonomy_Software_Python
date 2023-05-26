@@ -95,6 +95,7 @@ class Idle(RoverState):
                         self.realigned = True
             else:
                 # Reset toggle.
-                self.realigned = False
+                # self.realigned = False
+                pass
 
         return self

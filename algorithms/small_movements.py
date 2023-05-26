@@ -24,7 +24,7 @@ def backup(start_latitude, start_longitude, target_distance, speed=-200):
     speed = -abs(speed)
 
     # Get total distance traveled so far.
-    current_latitude, current_longitude = interfaces.nav_board.location()
+    current_latitude, current_longitude = interfaces.nav_board.location(force_absolute=True)
     bearing, distance_traveled = algorithms.geomath.haversine(
         start_latitude, start_longitude, current_latitude, current_longitude
     )

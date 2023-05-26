@@ -25,7 +25,7 @@ class Reversing(RoverState):
         # Print log.
         self.logger.warning("BACKING UP! AR Tag detected in front of rover.")
         # Store current location when state is entered.
-        self.start_position = interfaces.nav_board.location()
+        self.start_position = interfaces.nav_board.location(force_absolute=True)
 
     def on_event(self, event) -> RoverState:
         """
