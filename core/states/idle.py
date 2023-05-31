@@ -70,10 +70,10 @@ class Idle(RoverState):
                 # Check reverse always toggle.
                 if core.constants.NAVIGATION_ALWAYS_REVERSE_OUT_OF_IDLE:
                     # Change states.
-                    state = core.states.Navigating()
+                    state = core.states.Reversing()
                 else:
                     # Change states.
-                    state = core.states.Reversing()
+                    state = core.states.Navigating()
 
         elif event == core.AutonomyEvents.ABORT:
             state = self

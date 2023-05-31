@@ -62,7 +62,8 @@ SEARCH_DISTANCE = 4  # meters
 SEARCH_DRIVE_POWER = 400
 SEARCH_PATTERN_MAX_ERROR_FROM_PATH = 5  # The max distance the rover diverge off path before regen.
 SEARCH_OBSTACLE_QUEUE_LENGTH = 10  # The max number of objects to store at once.
-DELTA_THETA = math.pi / 4
+SEARCH_DELTA_THETA = math.pi / 4 # Pattern/shape/vertices of spiral.
+SEARCH_LEFT = False # Spiral turns left or right.
 
 # Obstacle Detection Parameters.
 DETECTION_MODEL_CONF = 0.4
@@ -77,6 +78,9 @@ AVOIDANCE_PATH_EXPIRATION_SECONDS = 5  # The time in seconds before a new path i
 AVOIDANCE_PATH_ROUTE_LENGTH = 40  # The length in meters that ASTAR will generate at one time.
 AVOIDANCE_OBSTACLE_QUEUE_LENGTH = 10  # The number of obstacles to store at a time.
 AVOIDANCE_MAX_SPEED_MPS = 0.6  # The max speed in meters per second to drive the rover. MUST MAKE SURE THIS IS ATTAINABLE WITH DRIVE SPEED POWER.
+
+# Stuck State Parameters.
+STUCK_STILL_TIME = 3.0 # The number of seconds to sit still in stuck state.
 
 # Vision Parameters
 ARUCO_FRAMES_DETECTED = 2  # ArUco Detection Occurrences
