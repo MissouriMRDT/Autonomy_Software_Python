@@ -67,8 +67,13 @@ class Idle(RoverState):
                 # Move to reversing state.
                 state = core.states.Reversing()
             else:
-                # Change states.
-                state = core.states.Navigating()
+                # Check reverse always toggle.
+                if core.constants.NAVIGATION_ALWAYS_REVERSE_OUT_OF_IDLE:
+                    # Change states.
+                    state = core.states.Navigating()
+                else:
+                    # Change states.
+                    state = core.states.Reversing()
 
         elif event == core.AutonomyEvents.ABORT:
             state = self
@@ -114,6 +119,8 @@ class Idle(RoverState):
                 self.realigned = False
                 pass
 
+        
+
         # Store rover position path.
         current = interfaces.nav_board.location()
         utm_current = utm.from_latlon(current[0], current[1])
@@ -139,6 +146,4 @@ class Idle(RoverState):
                 self.rover_xs = self.rover_xs[::-1][:self.max_draw_length][::-1]
                 self.rover_ys = self.rover_ys[::-1][:self.max_draw_length][::-1]
                 
-            print(self.rover_xs)
-
         return self

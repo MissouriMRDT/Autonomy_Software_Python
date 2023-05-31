@@ -7,6 +7,7 @@
 #
 
 import core
+import copy
 from core import constants
 import interfaces
 from algorithms import stanley_controller, heading_hold
@@ -158,15 +159,15 @@ class ApproachingGate(RoverState):
             # The update_obstacles method automatically converts the angles and distances to gps, so pull out gps coords.
             self.gate_coords = self.astar.get_obstacle_coords()
             # Convert gate gps coords to utm xs and ys.
-            gate_xs = [utm.from_latlon(t[0], t[1])[0] for t in self.gate_coords]
-            gate_ys = [utm.from_latlon(t[0], t[1])[1] for t in self.gate_coords]
+            gate_xs = [utm.from_latlon(t[0], t[1])[0] for t in copy.deepcopy(self.gate_coords)]
+            gate_ys = [utm.from_latlon(t[0], t[1])[1] for t in copy.deepcopy(self.gate_coords)]
 
             ######################################################################################################################
             # Calculate the intersection line and perp line to the obstacles to make a 'trench' for the rover to drive through.
             # Check https://www.desmos.com/calculator/xcbgsmlk6x for an interactive graph.
             ######################################################################################################################
             # Catch bad gate coords.
-            if len(gate_xs) <= 2:
+            if len(gate_xs) <= 2 and len(gate_ys) <= 2:
                 # Create list to store UTM coords.
                 self.gate1_obstacles.clear()
                 self.gate2_obstacles.clear()

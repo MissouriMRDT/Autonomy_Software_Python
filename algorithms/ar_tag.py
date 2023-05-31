@@ -131,8 +131,9 @@ class ArucoARTagDetector:
                     if tag.id == tag_id:
                         # Don't go over detection limit.
                         if tag.times_detected < core.constants.ARUCO_MAX_FRAMES_DETECTED:
-                            # Increment number of times tag has been seen.
-                            tag.times_detected += 1
+                            if (core.states.state_machine.get_state_str() != "ApproachingGate"):
+                                # Increment number of times tag has been seen.
+                                tag.times_detected += 1
 
                         # Refresh tag distance and angle.
                         tag.refresh((cX, cY))

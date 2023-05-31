@@ -157,7 +157,7 @@ class SearchPattern(RoverState):
             core.waypoint_handler.set_goal(goal)
 
         # Calculate drive power.
-        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
+        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.constants.SEARCH_DRIVE_POWER)
         # Send drive.
         interfaces.drive_board.send_drive(left, right)
         # Send drive.
