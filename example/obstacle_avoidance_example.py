@@ -1,10 +1,16 @@
+#
+# Mars Rover Design Team
+# obstacle_avoidance_example.py
+#
+# Created on Feb 04, 2021
+# Updated on Aug 21, 2022
+#
+
 import time
 import algorithms
 import core
 import logging
 import interfaces
-from geopy import Point
-from geopy.distance import VincentyDistance
 import algorithms.heading_hold
 import algorithms.obstacle_avoider
 

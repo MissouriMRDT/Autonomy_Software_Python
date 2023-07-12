@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# example.py
+#
+# Created on Mar 11, 2021
+# Updated on Aug 21, 2022
+#
+
 import algorithms
 import core
 import logging

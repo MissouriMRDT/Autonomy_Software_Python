@@ -1,11 +1,17 @@
+#
+# Mars Rover Design Team
+# obstacle_detector.py
+#
+# Created on Jan 16, 2021
+# Updated on Aug 21, 2022
+#
+
 import cv2
 import core
-import numpy as np
-import math
 import algorithms
 import time
 
-# Define depth img/data so we can use them for OpenCV window callbacks
+# Define depth img/data, so we can use them for OpenCV window callbacks
 depth_matrix = None
 
 DISPLAY = True

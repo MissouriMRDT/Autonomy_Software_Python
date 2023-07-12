@@ -114,6 +114,7 @@ The architecture is broken up into four categories:
 ![State Machine Diagram](docs/state_machine.png)
 
 ## Contributing
+To learn more about contributing to Autonomy view [contributing.md](./docs/readme_resources/contributing.md).
 
 Dev serves as the development branch throughout the school year. So if you want to start developing a feature or
 improvement create a branch based off of dev:
@@ -149,7 +150,6 @@ sudo apt-get install python3.8-dev  # for python3.8 installs
 ```
 
 To properly install python-pcl:
-1. sudo apt install python3-pcl
 
 2. copy over pcl/and egg files from usr/lib/python3/dist-packages to .local/share/virtualenvs/Autonomy_Software_Python/lib/python3.8/site-packages/
 
