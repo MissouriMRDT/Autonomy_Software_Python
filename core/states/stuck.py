@@ -28,7 +28,9 @@ class Stuck(RoverState):
         interfaces.drive_board.stop()
         # Set random seed.
         random.seed(time.time())
-        self.rand_num = random.randint(1, 10)
+        self.rand_num = random.randint(1, 9)
+        # Get stuck state start timer.
+        self.start_timer = time.time()
 
     def on_event(self, event) -> RoverState:
         """
@@ -41,7 +43,7 @@ class Stuck(RoverState):
 
         if event == core.AutonomyEvents.START:
             # Change states to Idle
-            state = core.states.Idle()
+            state = core.states.Reversing()
 
         elif event == core.AutonomyEvents.ABORT:
             # Change states to Idle
@@ -99,10 +101,10 @@ class Stuck(RoverState):
             self.logger.warning(
                 "Dude, the Rover's like, 'Whoa, man, I'm totally stuck, bro.' But don't worry, there's a chill solution! Check it out, we got two gnarly buttons: 'START AUTONOMY' and 'STOP AUTONOMY.' No matter which one you hit, this Rover's just gonna kick back and chillax in the idle state, dude. So, like, choose your own adventure, man. Keep the autonomy flowin' or bring it back to chill mode. Either way, this Rover's just cruisin' and enjoyin' the cosmic vibes, man."
             )
-        elif self.rand_num == 10:
-            self.logger.warning(
-                "🤖🚀 Rover: '🆘 I'm 🚫🚶 stuck. ⏯️' 👉 Press ▶️ to activate 🤖🔀 or ❌ to deactivate 🤖🔀 and return to 😴 state. 🤖🚀 Rover: 'Either way, I'm 😎 chillin'!'"
-            )
+
+        # Check if we've been in stuck for more than 5 seconds.
+        if (time.time() - self.start_timer) > core.constants.STUCK_STILL_TIME:
+            return self.on_event(core.AutonomyEvents.START)
 
         # Do nothing.
         await asyncio.sleep(core.constants.EVENT_LOOP_DELAY)

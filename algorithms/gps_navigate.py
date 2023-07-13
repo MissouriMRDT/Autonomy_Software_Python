@@ -67,7 +67,7 @@ def calculate_move(goal, location, start, speed=0.6*MAX_DRIVE_POWER):
     logger.debug(f"Target distance: {target_distance}")
 
     if target_distance < 0.01:
-        speed = 0.4*MAX_DRIVE_POWER
+        speed = 0.4 * speed
 
     goal_heading = target_heading
     logger.debug(f"Current heading: {interfaces.nav_board.heading()}, Goal: {goal_heading}")

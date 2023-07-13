@@ -87,8 +87,8 @@ class SearchPattern(RoverState):
         :return: RoverState
         """
         # Get current position and next desired waypoint position.
-        current = interfaces.nav_board.location()
-        gps_data = core.waypoint_handler.gps_data
+        current = interfaces.nav_board.location(force_absolute=True)
+        gps_data = core.waypoint_handler.get_waypoint()
 
         """
         STATE TRANSITION AND WAYPOINT LOGIC.
@@ -147,7 +147,7 @@ class SearchPattern(RoverState):
             return self.on_event(core.AutonomyEvents.MARKER_SEEN)
 
         if algorithms.gps_navigate.get_approach_status(goal, current, start) != core.ApproachState.APPROACHING:
-            interfaces.drive_board.stop()
+            # interfaces.drive_board.stop()
 
             # Sleep for a little bit before we move to the next point, allows for AR Tag to be picked up
             await asyncio.sleep(core.EVENT_LOOP_DELAY)
@@ -157,7 +157,7 @@ class SearchPattern(RoverState):
             core.waypoint_handler.set_goal(goal)
 
         # Calculate drive power.
-        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.MAX_DRIVE_POWER)
+        left, right = algorithms.gps_navigate.calculate_move(goal, current, start, core.constants.SEARCH_DRIVE_POWER)
         # Send drive.
         interfaces.drive_board.send_drive(left, right)
         # Send drive.

@@ -220,6 +220,9 @@ class Navigating(RoverState):
                     interfaces.multimedia_board.send_lighting_state(core.OperationState.REACHED_MARKER)
                     return self.on_event(core.AutonomyEvents.REACHED_MARKER)
                 else:
+                    # Set gps goal to our current position.
+                    core.waypoint_handler.set_goal(current)
+                    # Move to search pattern state.
                     return self.on_event(core.AutonomyEvents.REACHED_GPS_COORDINATE)
         else:
             # Force path to expire and regenerate.

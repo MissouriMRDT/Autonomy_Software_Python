@@ -132,13 +132,15 @@ class NavBoard:
             if self._start_UTM is None:
                 # Get current GPS.
                 self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+                # Get the current roll and yaw of camera. x and z axis. These need to be retained otherwise camera positional tracking will be off.
+                _, _, _, roll, _, yaw = location = core.vision.camera_handler.get_pose()
                 # Align set pose to current gps location and heading.
-                core.vision.camera_handler.set_pose(self._start_UTM[0], 0, self._start_UTM[1], 0, self._heading, 0)
+                core.vision.camera_handler.set_pose(0, 0, 0, roll, self._heading, yaw)
 
             # Get current pose of camera.
             location = core.vision.camera_handler.get_pose()
-            # Get zed x, y location. Actually Z.
-            x, y = location[0], location[2]
+            # Get zed x, y location. Longitude is actually Z in zed axis because of default coordinate frame.
+            x, y = self._start_UTM[0] + location[2], self._start_UTM[1] + location[0]
             # Convert back to GPS. Last two params are UTM zone.
             gps_current = utm.to_latlon(*(x, y, self._start_UTM[2], self._start_UTM[3]))
             gps_current = Coordinate(gps_current[0], gps_current[1])
@@ -176,9 +178,11 @@ class NavBoard:
         Realigns the relative positioning to the absolute position.
         """
         # Get current GPS.
-        utm_current = list(utm.from_latlon(self._location[0], self._location[1]))
+        self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+        # Get the current roll and yaw of camera. x and z axis. These need to be retained otherwise camera positional tracking will be off.
+        _, _, _, roll, _, yaw = location = core.vision.camera_handler.get_pose()
         # Align set pose to current gps location and heading.
-        core.vision.camera_handler.set_pose(utm_current[0], 0, utm_current[1], 0, self._heading, 0)
+        core.vision.camera_handler.set_pose(0, 0, 0, roll, self._heading, yaw)
 
         """
         OLD
