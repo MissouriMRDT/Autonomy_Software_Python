@@ -10,6 +10,7 @@ import core
 from core.constants import Coordinate
 import time
 import logging
+import utm
 
 
 class NavBoard:
@@ -23,10 +24,16 @@ class NavBoard:
         self._pitch: float = 0
         self._roll: float = 0
         self._heading: float = 0
+        self._zed_heading: float = 0
         self._location: Coordinate = Coordinate(0, 0)
         self._distToGround: int = 0
         self._lidarQuality = 0  # int 5 for brand-new data, counts down 1 every 50ms, should never go below 3.
         self._lastTime = time.time()
+        self._accur_horizontal = -1
+        self._accur_vertical = -1
+        self._accur_heading = -1
+        self._start_UTM = None
+        self._heading_adjust = 0
 
         # Set up RoveComm and Logger
         self.logger = logging.getLogger(__name__)
@@ -36,13 +43,15 @@ class NavBoard:
         # set up appropriate callbacks so we can store data as we receive it from NavBoard
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["IMUData"]["dataId"], self.process_imu_data)
         core.rovecomm_node.set_callback(core.manifest["Nav"]["Telemetry"]["GPSLatLon"]["dataId"], self.process_gps_data)
+        core.rovecomm_node.set_callback(
+            core.manifest["Nav"]["Telemetry"]["AccuracyData"]["dataId"], self.process_accuracy_data
+        )
 
     def process_imu_data(self, packet):
         """
         Process IMU Data
         :param packet: pitch, heading, and roll included
         """
-
         self._pitch, self._heading, self._roll = packet.data
         self.logger.debug(f"Incoming IMU data: ({self._pitch}, {self._heading}, {self._roll})")
 
@@ -51,21 +60,158 @@ class NavBoard:
         Process GPS Data
         :param packet: lat and lon included
         """
-
         # The GPS sends data as two int32_t's
         lat, lon = packet.data
         self.logger.debug(f"Incoming GPS data: ({lat}, {lon})")
         self._lastTime = time.time()
         self._location = Coordinate(lat, lon)
 
+    def process_accuracy_data(self, packet) -> None:
+        """
+        Process Accuracy Data
+        :param packet: lat and lon included
+        """
+        # The GPS sends data as three floats.
+        self._accur_horizontal, self._accur_vertical, self._accur_heading = packet.data
+
     def pitch(self) -> float:
-        return self._pitch
+        # Check if ZED relative positioning is turned on.
+        if core.vision.RELATIVE_POSITIONING:
+            # Get heading from the zed camera.
+            pitch = core.vision.camera_handler.get_pose()[0]
+
+            # Wrap heading.
+            if pitch < 0:
+                pitch = 360 + pitch
+        else:
+            # Return reported heading from nav board.
+            pitch = self._pitch
+
+        return pitch
 
     def roll(self) -> float:
-        return self._roll
+        # Check if ZED relative positioning is turned on.
+        if core.vision.RELATIVE_POSITIONING:
+            # Get heading from the zed camera.
+            roll = core.vision.camera_handler.get_pose()[2]
 
-    def heading(self) -> float:
-        return self._heading
+            # Wrap heading.
+            if roll < 0:
+                roll = 360 + roll
+        else:
+            # Return reported heading from nav board.
+            roll = self._roll
 
-    def location(self) -> Coordinate:
-        return self._location
+        return roll
+
+    def heading(self, force_absolute=False) -> float:
+        # Check if ZED relative positioning is turned on.
+        if core.vision.RELATIVE_POSITIONING and not force_absolute:
+            # Get heading from the zed camera IMU.
+            heading = core.vision.camera_handler.get_pose()[4]
+        else:
+            # Return reported heading from nav board.
+            heading = self._heading
+        """
+        OLD
+        """
+        # # Check if ZED relative positioning is turned on.
+        # if core.vision.RELATIVE_POSITIONING and not force_absolute:
+        #     # Get heading from the zed camera.
+        #     heading = (core.vision.camera_handler.get_pose()[4] + self._heading_adjust) % 360
+        # else:
+        #     # Return reported heading from nav board.
+        #     heading = self._heading
+
+        return heading
+
+    def location(self, force_absolute=False) -> Coordinate:
+        # Check if ZED relative positioning is turned on.
+        if core.vision.RELATIVE_POSITIONING and not force_absolute:
+            # Check if we already set are absolute start position.
+            if self._start_UTM is None:
+                # Get current GPS.
+                self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+                # Get the current roll and yaw of camera. x and z axis. These need to be retained otherwise camera positional tracking will be off.
+                _, _, _, roll, _, yaw = location = core.vision.camera_handler.get_pose()
+                # Align set pose to current gps location and heading.
+                core.vision.camera_handler.set_pose(0, 0, 0, roll, self._heading, yaw)
+
+            # Get current pose of camera.
+            location = core.vision.camera_handler.get_pose()
+            # Get zed x, y location. Longitude is actually Z in zed axis because of default coordinate frame.
+            x, y = self._start_UTM[0] + location[2], self._start_UTM[1] + location[0]
+            # Convert back to GPS. Last two params are UTM zone.
+            gps_current = utm.to_latlon(*(x, y, self._start_UTM[2], self._start_UTM[3]))
+            gps_current = Coordinate(gps_current[0], gps_current[1])
+
+            """
+            OLD
+            """
+            # location = core.vision.camera_handler.get_pose()
+
+            # # Get zed x, y location. Actually Z.
+            # x, y = location[0], location[2]
+
+            # # Check if we already set are absolute start position.
+            # if self._start_UTM is None:
+            #     # Get current GPS.
+            #     self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+            #     # Align set pose to current gps location and heading.
+
+            # # Add Start UTM coords to ZED position.
+            # x, y = x + self._start_UTM[0], y + self._start_UTM[1]
+            # # Convert back to GPS. Last two params are UTM zone.
+            # gps_current = utm.to_latlon(*(x, y, self._start_UTM[2], self._start_UTM[3]))
+            # gps_current = Coordinate(gps_current[0], gps_current[1])
+        else:
+            # Get reported GPS location from nav board.
+            gps_current = self._location
+        return gps_current
+
+    def accuracy(self) -> float:
+        # Return accuracy data.
+        return self._accur_horizontal, self._accur_vertical, self._accur_heading
+
+    def realign(self) -> None:
+        """
+        Realigns the relative positioning to the absolute position.
+        """
+        # Get current GPS.
+        self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+        # Get the current roll and yaw of camera. x and z axis. These need to be retained otherwise camera positional tracking will be off.
+        _, _, _, roll, _, yaw = location = core.vision.camera_handler.get_pose()
+        # Align set pose to current gps location and heading.
+        core.vision.camera_handler.set_pose(0, 0, 0, roll, self._heading, yaw)
+
+        """
+        OLD
+        """
+        # if self._start_UTM is None:
+        #     # Get current GPS.
+        #     self._start_UTM = list(utm.from_latlon(self._location[0], self._location[1]))
+        # else:
+        #     # Get curremt relative in UTM.
+        #     location = core.vision.camera_handler.get_pose()
+        #     # Get zed x, y location.
+        #     x, y = location[0], location[2]
+
+        #     # Get current position in UTM.
+        #     current_UTM = utm.from_latlon(self._location[0], self._location[1])
+
+        #     # Calculate offset.
+        #     offset_lat, offset_long = current_UTM[0] - (self._start_UTM[0] + x), current_UTM[1] - (
+        #         self._start_UTM[1] + y
+        #     )
+        #     # Realign zed offset.
+        #     self._start_UTM[0] = self._start_UTM[0] + offset_lat
+        #     self._start_UTM[1] = self._start_UTM[1] + offset_long
+
+        #     Realign heading.
+        #     # Check if the ZED absolute magnotometer heading is turned on.
+        #     if core.vision.ZED_MAGNETOMETER:
+        #         self._zed_heading = core.vision.camera_handler.get_compass_heading()
+        #         self._heading_adjust = self._zed_heading - core.vision.camera_handler.get_pose()[4]
+        #     else:
+        #         self._diffGPS_heading = self._heading
+        #         self._heading_adjust = self._diffGPS_heading - core.vision.camera_handler.get_pose()[4]

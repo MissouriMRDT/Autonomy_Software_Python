@@ -1,5 +1,5 @@
 ﻿Events,Idle,Navigating,SearchPattern,ApproachingMarker,Avoidance, ApproachingGate
-START,Navigating,Navigating,SearchPattern,ApproachingMarker,Avoidance, ApproachingGate
+START,Reversing,Navigating,SearchPattern,ApproachingMarker,Avoidance, ApproachingGate
 REACHED_GPS_COORDINATE,,SearchPattern,,,,
 MARKER_SEEN,,,ApproachingMarker,,,
 GATE_SEEN,,,ApproachingGate,,,

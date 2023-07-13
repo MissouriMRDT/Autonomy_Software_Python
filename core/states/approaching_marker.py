@@ -6,10 +6,14 @@
 # Updated on Aug 21, 2022
 #
 
+import utm
+import time
+import math
 import core
 import interfaces
 import algorithms
 from core.states import RoverState
+import matplotlib.pyplot as plt
 
 
 class ApproachingMarker(RoverState):
@@ -21,15 +25,13 @@ class ApproachingMarker(RoverState):
         """
         Schedule AR Tag detection
         """
-
+        # Create state specific variables.
         self.num_detection_attempts = 0
-        self.gate_detection_attempts = 0
 
     def exit(self):
         """
         Cancel all state specific coroutines
         """
-
         pass
 
     def on_event(self, event) -> RoverState:
@@ -71,24 +73,30 @@ class ApproachingMarker(RoverState):
 
         :return: RoverState
         """
+        # Get current position and next desired waypoint position.
+        current = interfaces.nav_board.location(force_absolute=True)
+        gps_data = core.waypoint_handler.get_waypoint()
+        # Pull info out of waypoint.
+        goal, start, leg_type = gps_data.data()
 
         # Call AR Tag tracking code to find position and size of AR Tag
         if core.vision.ar_tag_detector.is_marker():
             # Grab the AR tags
-            tags = core.vision.ar_tag_detector.get_tags()
+            tags = core.vision.ar_tag_detector.get_valid_tags()
             gps_data = core.waypoint_handler.get_waypoint()
             orig_goal, orig_start, leg_type = gps_data.data()
 
             # Currently only orienting based on one AR Tag
             distance = tags[0].distance
             angle = tags[0].angle
+            self.logger.info(f"MARKER DISTANCE: {distance} ANGLE: {angle}")
 
-            left, right = algorithms.follow_marker.drive_to_marker(100, angle)
+            left, right = algorithms.follow_marker.drive_to_marker(core.constants.MARKER_MAX_APPROACH_SPEED, angle)
 
             self.logger.info("Marker in frame")
             self.num_detection_attempts = 0
 
-            if distance < 1.25:
+            if distance < core.constants.ARUCO_MARKER_STOP_DISTANCE:
                 interfaces.drive_board.stop()
 
                 self.logger.info("Reached Marker")
@@ -110,12 +118,20 @@ class ApproachingMarker(RoverState):
                 self.logger.info(f"Driving to target with speeds: ({left}, {right})")
                 interfaces.drive_board.send_drive(left, right)
         else:
+            # Increment counter.
             self.num_detection_attempts += 1
-            self.gate_detection_attempts = 0
+            # Stop drive.
+            interfaces.drive_board.stop()
 
             # If we have attempted to track an AR Tag unsuccesfully
             # MAX_DETECTION_ATTEMPTS times, we will return to search pattern
             if self.num_detection_attempts >= core.MAX_DETECTION_ATTEMPTS:
+                # Get current position and next desired waypoint position.
+                current = interfaces.nav_board.location()
+                # Set goal waypoint as current.
+                core.waypoint_handler.set_goal(current)
+                core.waypoint_handler.set_start(current)
+                # Print log.
                 self.logger.info("Lost sign of marker, returning to Search Pattern")
                 return self.on_event(core.AutonomyEvents.MARKER_UNSEEN)
 

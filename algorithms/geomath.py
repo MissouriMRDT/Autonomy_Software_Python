@@ -45,3 +45,23 @@ def haversine(lat1, lon1, lat2, lon2):
     bearing = (bearing + 360) % 360
 
     return bearing, distance
+
+
+def utm_distance(easting1, northing1, easting2, northing2):
+    """
+    Calculate the bearing and distance between two UTM points.
+
+    :param easting1: The UTM easting of the first point.
+    :param northing1: The UTM northing of the first point.
+    :param easting2: The UTM easting of the second point.
+    :param northing2: The UTM northing of the second point.
+
+    :returns bearing: The bearing from point1 to point2.
+    :returns distance: The distance between point1 and point2.
+    """
+    # Calculate bearing.
+    bearing = math.degrees(math.atan2(easting2 - easting1, northing2 - northing1))
+    # Calculate distance.
+    distance = math.sqrt(math.pow(easting2 - easting1, 2) + math.pow(northing2 - northing1, 2))
+
+    return bearing, distance
