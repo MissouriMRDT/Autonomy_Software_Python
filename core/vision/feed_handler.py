@@ -1,12 +1,20 @@
+#
+# Mars Rover Design Team
+# feed_handler.py
+#
+# Created on Jan 09, 2021
+# Updated on Aug 21, 2022
+#
+
 import cv2
 import time
 import sys
 import multiprocessing as mp
 import os
 
-# Pyfakewebcam requires linux
 if sys.platform == "linux":
-    import pyfakewebcam
+    # Pyfakewebcam requires linux
+    from pyfakewebcam import FakeWebcam
 
 
 def feed_process(
@@ -24,11 +32,22 @@ def feed_process(
     """
     Function to be run as a process, configures streaming and recording of frames.
     Uses pipe to receive incoming frames and stream/save
+
+    :param pipe:
+    :param num:
+    :param feed_id:
+    :param fourcc:
+    :param frame_rate:
+    :param resolution_x:
+    :param resolution_y:
+    :param _event:
+    :param save_video: defaults to True
+    :param stream_video: defaults to True
     """
 
-    # Only attempt to stream video if on Linux (due to package dependancies)
+    # Only attempt to stream video if on Linux (due to package dependencies)
     if stream_video and sys.platform == "linux":
-        streamer = pyfakewebcam.FakeWebcam(
+        streamer: FakeWebcam = FakeWebcam(
             f"/dev/video{num}", int(resolution_x / 2), int(resolution_y / 2)
         )  # append v4l output to list of cameras
 
@@ -76,6 +95,10 @@ class FeedHandler:
     def __init__(self, resolution_x=1280, resolution_y=720, frame_rate=30):
         """
         Configure the resolution and framerate of all feed handlers
+
+        :param resolution_x: defaults to 1280
+        :param resolution_y: defaults to 720
+        :param frame_rate: defaults to 30
         """
 
         self.feeds = {}
@@ -87,6 +110,11 @@ class FeedHandler:
     def add_feed(self, camera_num, feed_id, save_video=True, stream_video=True):
         """
         Adds a new feed and corresponding process, takes care of configure process correctly and creating pipe
+
+        :param camera_num:
+        :param feed_id:
+        :param save_video: defaults to True
+        :param stream_video: defaults to True
         """
         # Create a process to send frames to, to be saved and scheduled to stream
         proc_output, proc_input = mp.Pipe()
@@ -131,6 +159,9 @@ class FeedHandler:
     def handle_frame(self, feed_id, img):
         """
         Passes the image to a corresponding process to stream/save the frame
+
+        :param feed_id:
+        :param img:
         """
         # Frames is a dictionary of (process, pipe_in)
         process, pipe_in, _event = self.feeds[feed_id]

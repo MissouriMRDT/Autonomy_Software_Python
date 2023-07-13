@@ -1,168 +1,383 @@
-import algorithms
+#
+# Mars Rover Design Team
+# obstacle_detector.py
+#
+# Created on Dec 23, 2021
+# Updated on Jan 18, 2023
+#
+import logging
 import numpy as np
-import cv2
+import torch
+import torch.backends.cudnn as cudnn
+import core.constants
 import core
 import math
-import heapq
+import os
+import cv2
+import time
+from pickle import UnpicklingError
+
+# Import yolov5 tools.
+from core.vision.yolov5.models.common import DetectMultiBackend
+from core.vision.yolov5.utils.general import check_img_size, non_max_suppression, scale_coords, xyxy2xywh
+from core.vision.yolov5.utils.torch_utils import select_device
+from core.vision.yolov5.utils.augmentations import letterbox
+from core.vision.yolov5.utils.plots import Annotator, colors
 
 
-def get_floor_mask(reg_img, dimX, dimY):
+def img_preprocess(img, device, half, net_size):
     """
-    Returns a cv2 mask that indentifies the floor in the provided reg_img of dimensions dimX, dimY.
-    This currently works through determing the color of the lower 15th of the image and generating
-    a color mask that removes those colors from the image.
-    This can then be used to remove the floor from a corresponding depth map/color image.
+    Prepares the image from the camera by reformatting it and converting the numpy array to a torch/tensor object
+    depending on the current device selected.
 
-    Parameters:
-    -----------
-        reg_img - the color image where we will perform floor detection
-        dimX - width in pixels of desire mask (size of image to be applied to)
-        dimY - height in pixels of desire mask (size of image to be applied to)
+    :params img: The numpy array containing the camera image.
+    :params device: The device type the array should be optimized for. (CPU or NVIDIA CUDA)
+    :params half: Boolean determining if all the numbers in the array are converted from 32-bit to 16-bit.
+    :params net_size: Tuple containing the size of the image.
 
-    Returns:
-    --------
-        mask - the mask of the floor
+    :returns img: The converted, optimized, and normalized image.
+    :returns ratio: Tuple containing the width and height ratios.
+    :returns pad: Tuple containing width and height padding for the image.
     """
-    # Perform various blur operations on the image to enhance accuracy of color segmentation
-    test_img = cv2.resize(reg_img.copy(), (dimX, dimY))
-    test_img = cv2.blur(test_img, (5, 5))
-    test_img = cv2.medianBlur(test_img, 5)
-    test_img = cv2.GaussianBlur(test_img, (5, 5), 0)
+    net_image, ratio, pad = letterbox(img[:, :, :3], net_size, auto=False)
+    net_image = net_image.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+    net_image = np.ascontiguousarray(net_image)
 
-    test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
+    img = torch.from_numpy(net_image).to(device)
+    img = img.half() if half else img.float()  # uint8 to fp16/32
+    img /= 255.0  # 0 - 255 to 0.0 - 1.0
 
-    # Only take the lower 15 of image, and find color range
-    lower_portion = test_img[int((14 / 15) * dimY) :]
-    smallest = lower_portion.min(axis=(0, 1))
-    largest = lower_portion.max(axis=(0, 1))
-
-    # Get a mask of the possible range of colors of the floor
-    mask = cv2.inRange(test_img, smallest, largest)
-
-    # Invert the mask so we select everything BUT the floor
-    mask = cv2.bitwise_not(mask)
-
-    return mask, lower_portion
+    if img.ndimension() == 3:
+        img = img.unsqueeze(0)
+    return img, ratio, pad
 
 
-def detect_obstacle(depth_matrix, min_depth, max_depth):
+def xywh2abcd(xywh, im_shape):
     """
-    Detects an obstacle in the corresponding depth map. This works by filtering the depth map
-    into distinct segments of depth and then finding contours in that data. The contour with
-    the biggest area is then used as the obstacle if it meets a certain size requirement.
+    Given the x and y center point, and the width and height of a rectangle. This method calculates the four
+    corners of the rectangle in the image and returns those corners in a 2d array.
 
-    Currently we look at the NUM_DEPTH_SEGMENTS busiest segments (most points) and check in order
-    of closeness whether or not they have
+    :params xywh: 1d array containing the x, y, width, height of the rectangle in terms of image pixels.
+    :params im_shape: 1d array containing the shape/resolution of the image.
 
-    Parameters:
-    -----------
-        depth_data - zed depth map
-        min_depth - the minimum depth to look at (in meters)
-        max_depth - the maximum depth to look at (in meters)
-
-    Returns:
-    --------
-        blob - the contour with greatest area, or [] if there were none of sufficent size
+    :returns output: A 2d array containing the box corner points of the rectangle.
     """
-    width, height = core.vision.camera_handler.get_depth_res()
+    output = np.zeros((4, 2))
 
-    maskDepth = np.zeros([height, width], np.uint8)
+    # Center / Width / Height -> BBox corners coordinates
+    x_min = (xywh[0] - 0.5 * xywh[2]) * im_shape[1]
+    x_max = (xywh[0] + 0.5 * xywh[2]) * im_shape[1]
+    y_min = (xywh[1] - 0.5 * xywh[3]) * im_shape[0]
+    y_max = (xywh[1] + 0.5 * xywh[3]) * im_shape[0]
 
-    # Depth segments between min and max with step
-    li = np.arange(min_depth, max_depth, core.DEPTH_STEP_SIZE)
-    max_li = []
+    # A ------ B
+    # | Object |
+    # D ------ C
 
-    # Only pick the NUM_DEPTH_SEGMENTS busisest segments to run on, for performance reasons
-    for depth in li:
-        # Calculates the number of elements at each depth and scales their value by closeness
-        max_li.append(
-            len(
-                depth_matrix[(depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000)]
-                * (1 / ((depth - min_depth) + 1))
+    output[0][0] = x_min
+    output[0][1] = y_min
+
+    output[1][0] = x_max
+    output[1][1] = y_min
+
+    output[2][0] = x_min
+    output[2][1] = y_max
+
+    output[3][0] = x_max
+    output[3][1] = y_max
+    return output
+
+
+def detections_to_custom_box(detections, img, reg_img):
+    """
+    Takes in the list of detections from the NMS function in yolov5 (converts tensor objects to something kinda readable/workable), and
+    uses that info to find a 3-dimensional bounding box withing the zed cameras point cloud.
+
+    :params detections: List of detections, on (n,6) tensor per image [xyxy, conf, cls]. Use the non_max_suppression method from yolov5's utils.general.
+    :params img: The converted camera image from the img_preprocess function.
+    :params reg_img: The normal camera image. (numpy array from zed cam.)
+
+    :returns output: Array containing info about object.
+    """
+    output = []
+    for i, det in enumerate(detections):
+        if len(det):
+            det[:, :4] = scale_coords(img.shape[2:], det[:, :4], reg_img.shape).round()
+            gn = torch.tensor(reg_img.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+
+            for *xyxy, conf, cls in reversed(det):
+                xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+
+                # Creating ingestable objects for the ZED SDK
+                obj = []
+                obj.append(xywh2abcd(xywh, reg_img.shape))
+                obj.append(cls)
+                obj.append(conf)
+                obj.append(False)
+                output.append(obj)
+    return output
+
+
+def torch_proc(img_queue, result_queue, weights, img_size, classes=None, conf_thres=0.2, iou_thres=0.45):
+    """
+    This method runs in a seperate python process and uses shared queues to pass data back and forth with its
+    parent process. This method opens the given weights file, loads the model, and then runs inference.
+
+    :params img_queue: The ctx.Queue object used to give new images to the process.
+    :params result_queue: The ctx.Queue object used to return inference data to the parent.
+    :params weights: The file path containing the weights.pt file.
+    :params img_size: The image size to run inference with.
+    :params conf_thres: The minimum confidence threshold to consider something a good prediction.
+    :params iou_thres: The intersection over union threshold to consider something a good prediction.
+
+    :returns: Nothing (Everything is put in the result queue)
+    """
+
+
+class YOLOObstacleDetector:
+    def __init__(self, weights, model_image_size, classes=None):
+        """
+        Initializing the Obstacle Detector class variables and objects.
+
+        :params weights: The path to the yolo.pt weights file exported from your data using the YOLOv5 repo.
+        :params model_image_size: The image size the model was trained on.
+        :params min_confidence: The minimum confidence to consider something a detected object.
+        :params classes: The YOLO classes to enable for detection. These classes are indexes for the user-defined class names in the yolo YAML file. The default of NONE will detect all classes.
+        """
+        # Create objects and variables.
+        self.logger = logging.getLogger(__name__)
+        self.sim_active = False
+        self.objects = None
+        self.obj_param = None
+        self.names = []
+        self.predictions = None
+        self.object_summary = ""
+        self.inference_time = 0
+        self.classes = classes
+
+        # Setup zed.
+        # Try to use zed, if fails assume we are using the sim.
+        try:
+            # Setup the zed positional tracking.
+            core.vision.camera_handler.enable_pose_tracking()
+            # Setup object detection on zed camera.
+            self.obj_param = core.vision.camera_handler.enable_camera_detection_module(enable_tracking=True)
+        except Exception:
+            self.logger.info("Unable to invoke zed specific methods. object_detector.py is assuming the SIM is active.")
+            self.sim_active = True
+
+        # Create instance variables.
+        self.imgsz = (model_image_size, model_image_size)
+        self.half = False
+
+        self.logger.info("Intializing Neural Network...")
+        # Create the device and model objects. (load model)
+        self.device = select_device()
+        # Catch error if model path is wrong.
+        try:
+            self.model = DetectMultiBackend(
+                weights,
+                device=self.device,
+                dnn=False,
+                data=os.path.dirname(__file__) + "/../core/vision/yolov5/data/coco128.yaml",
             )
-        )
+            cudnn.benchmark = True
 
-    max_li = heapq.nlargest(core.NUM_DEPTH_SEGMENTS, zip(max_li, li))
-    # Sort starting closest (distance wise) first
-    max_li.sort(reverse=False, key=lambda x: x[1])
+            # Load model
+            stride, self.names, pt, jit, onnx, engine = (
+                self.model.stride,
+                self.model.names,
+                self.model.pt,
+                self.model.jit,
+                self.model.onnx,
+                self.model.engine,
+            )
+            self.imgsz = check_img_size(self.imgsz, s=stride)  # check image size
 
-    # For each step selected, run contour detection looking for blobs at that depth
-    for (score, depth) in max_li:
-        # 1 for all entries at depth, 0 for those not. Needed for findContours()
-        maskDepth = np.where(
-            (depth_matrix < (depth + core.DEPTH_STEP_SIZE) * 1000) & (depth_matrix > depth * 1000), 1, 0
-        )
+            # Half
+            self.half &= (
+                pt or jit or engine
+            ) and self.device.type != "cpu"  # half precision only supported by PyTorch on CUDA
+            if pt or jit:
+                self.model.model.half() if self.half else self.model.model.float()
 
-        # Find any contours
-        contours, hierarchy = cv2.findContours(maskDepth, 2, cv2.CHAIN_APPROX_NONE)
-        # Check if there are contours to be detected at this depth
-        if contours != []:
-            # choose the largest blob at this depth
-            blob = max(contours, key=cv2.contourArea)
+            # Warmup/Optimize
+            self.model.warmup(imgsz=(1, 3, *self.imgsz))
+        except FileNotFoundError:
+            logging.error(msg="Unable to open YOLO model file. Make sure directory is correct and model exists.")
+        except UnpicklingError:
+            logging.error(
+                msg="Model path seems correct (a file was found with the given name), but yolov5 was unable to open. Make sure your model isn't corrupted or empty."
+            )
 
-            # return the blob if it meets the size requiremetns
-            if cv2.contourArea(blob) >= core.MIN_OBSTACLE_PIXEL_AREA:
-                return blob
+    def detect_obstacles(self, zed_left_img, conf_thres, iou_thres):
+        """
+        Uses the yolov5 algorithm and a pretrained model to detect potential obstacles. The detected objects in the
+        2d image are then cross referenced with the 3d point cloud to get their real world position.
 
-    return []
 
+        :params zed_left_img: The image to perform inference on.
 
-def track_obstacle(depth_data, obstacle, annotate=False, reg_img=None, rect=False):
-    """
-    Tracks the provided contour, returning angle, distance and center and also optionally
-    annotates the provided image with the info and outlined obstacle
+        :returns objects: A numpy array containing bounding_box_2d, label, probability, and is_grounded data.
+        :returns predictions: List of predictions, on (n,6) tensor per image [xyxy, conf, cls].
+        """
+        # Get new image from camera.
+        image_net = zed_left_img.copy()
 
-    Parameters:
-    -----------
-        depth_data - zed depth map
-        obstacle - the contour detected as an obstacle
-        annotate (bool) - whether or not to also annotate the provided image with the
-        contour/centroid/etc
-        reg_img - the color image from the ZED
-        rect - whether or not we should draw a rectangle bounding box or use the exact
-        contour shape
+        # Record start time.
+        s = time.time()
+        # Reformat and convert the image to something the model can read.
+        img, ratio, pad = img_preprocess(image_net, self.device, self.half, self.imgsz)
+        # Run inference on the image using the model.
+        pred = self.model(img)
+        # Get/filter the model detection results.
+        # Select classes that we want track. For corresponding object labels check the order of classes in your
+        # .yaml file for your dataset.
+        self.predictions = non_max_suppression(pred, conf_thres, iou_thres, self.classes)
+        # ZED CustomBox format (with inverse letterboxing tf applied)
+        self.objects = detections_to_custom_box(self.predictions, img, image_net)
+        self.inference_time = time.time() - s
 
-    Returns:
-    --------
-        angle - the angle of the obstacle in relation to the left ZED camera
-        distance - the distance of the center of the obstacle from the ZED
-        center (x, y) - the coordinates (pixels) of the center of the obstacle
+        return self.objects, self.predictions
 
-    """
-    # Find center of contour and mark it on image
-    M = cv2.moments(obstacle)
-    cX = int(M["m10"] / M["m00"])
-    cY = int(M["m01"] / M["m00"])
+    def track_obstacle(self, reg_img, label_img=True):
+        """
+        Tracks the closest object and display it on screen. All of the others objects are also labeled.
 
-    # Distance is the corresponding value in the depth map of the center of the obstacle
-    distance = round(depth_data[cY][cX], 2)
+        :params reg_img: Zed left eye camera image.
+        :params label_img: Toggle for drawing inferences on screen.
 
-    # Grab the camera parameters
-    img_res_x, img_res_y = core.vision.camera_handler.get_depth_res()
-    hfov = core.vision.camera_handler.get_hfov()
+        :returns angle: The angle of the obstacle in relation to the left ZED camera
+        :returns distance: The distance of the center of the obstacle from the ZED
+        :returns object_summary: A string containing the names and quantity of objects detected.
+        :returns inference_time: The total amount of time it took for the neural network to complete inferencing.
+        :returns object_locations: A list of all the detected objects distances and angles.
+        """
+        # Create instance variables.
+        object_distance = -1
+        object_angle = 0
+        object_locations = []
 
-    # Calculate the angle of the object using camera params
-    angle_per_pixel = hfov / img_res_x
-    pixel_offset = cX - (img_res_x / 2)
-    angle = pixel_offset * angle_per_pixel
+        # Check if we have any predictions.
+        if self.predictions is not None:
+            # Loop though each prediction
+            for i, det in enumerate(self.predictions):  # per image
+                annotator = Annotator(reg_img, line_width=2, example=str(self.names))
+                self.object_summary = ""
+                if len(det):
+                    # Rescale boxes from img_size to im0 size
+                    # det[:, :4] = scale_coords(image_net.shape[2:], det[:, :4], image_net.shape).round()
 
-    # Draw the obstacle if annotate is true
-    if annotate:
-        if rect:
-            rect = cv2.boundingRect(obstacle)
-            x, y, w, h = rect
-            cv2.rectangle(reg_img, (x - 10, y - 10), (x + w + 10, y + h + 10), (255, 0, 0), 2)
-        else:
-            cv2.drawContours(reg_img, obstacle, -1, (0, 255, 0), 3)
-        cv2.putText(
-            reg_img,
-            f"Obstacle Detected at {angle, round(depth_data[cY][cX], 2)/1000}",
-            (cX - 100, cY - 20),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (255, 255, 255),
-            2,
-        )
-        cv2.circle(reg_img, (cX, cY), 7, (255, 255, 255), -1)
+                    # Print results
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        self.object_summary += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
-    return angle, distance, (cX, cY)
+                    # Write results
+                    for *xyxy, conf, cls in reversed(det):
+                        if label_img:  # Add bbox to image
+                            c = int(cls)  # integer class
+                            label = f"{self.names[c]} {conf:.2f}"
+                            annotator.box_label(xyxy, label, color=colors(c, True))
+
+                # Write results overlay onto image if toggle is set.
+                if label_img:
+                    reg_img = annotator.result()
+
+        # Check if we have any objects.
+        if self.objects is not None:
+            if not self.sim_active:
+                # Loop through the object array and get info about each object.
+                closest_point = None
+                for i, obj in enumerate(self.objects):
+                    # Use the bounding box info to get the center point of the object in the point cloud
+                    point = (
+                        int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
+                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
+                    )
+                    # Scale the object center in the screen to the point cloud res.
+                    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    scaled_point = (
+                        int((point[0] * depth_res_y) / img_res_y),
+                        int((point[1] * depth_res_x) / img_res_x),
+                    )
+
+                    # Grab depth data from the zed.
+                    depth = core.vision.camera_handler.grab_depth_data()
+                    # Get distance of the object from the camera. Add zed offset from robot center.
+                    current_distance = math.fabs(depth[scaled_point[0]][scaled_point[1]]) + core.constants.ZED_Z_OFFSET
+
+                    # Calculate the angle of the object using camera params
+                    angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                    pixel_offset = point[1] - (img_res_x / 2)
+                    angle = pixel_offset * angle_per_pixel
+                    # If angle and distance make sense, then add the object info the the object location array.
+                    if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                        object_locations.append((angle, current_distance / 1000))
+
+                    # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                    if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
+                        # Store the closest distance, angle, and point in image.
+                        object_distance = current_distance
+                        object_angle = angle
+                        closest_point = point
+
+                # Draw circle of current tracked object.
+                if closest_point is not None:
+                    reg_img = cv2.circle(
+                        reg_img,
+                        (closest_point[1], closest_point[0]),
+                        radius=5,
+                        color=(0, 0, 255),
+                        thickness=-1,
+                    )
+            else:
+                # Loop through the object array and get info about each object.
+                closest_point = None
+                for i, obj in enumerate(self.objects):
+                    # Use the bounding box info to get the center point of the object in the point cloud
+                    point = (
+                        int((obj[0][3][1] - obj[0][0][1]) / 2 + obj[0][0][1]),
+                        int((obj[0][1][0] - obj[0][0][0]) / 2 + obj[0][0][0]),
+                    )
+                    # Scale the object center in the screen to the point cloud res.
+                    depth_res_x, depth_res_y = core.vision.camera_handler.get_depth_res()
+                    img_res_x, img_res_y = core.vision.camera_handler.get_reg_res()
+                    scaled_point = (
+                        int((point[0] * depth_res_y) / img_res_y),
+                        int((point[1] * depth_res_x) / img_res_x),
+                    )
+
+                    # Grab depth data from the zed.
+                    depth = core.vision.camera_handler.grab_depth_data()
+                    # Get distance of the object from the camera. Add zed offset from robot center.
+                    current_distance = depth[scaled_point[0]][scaled_point[1]][0] + core.constants.ZED_Z_OFFSET
+
+                    # Calculate the angle of the object using camera params
+                    angle_per_pixel = core.vision.camera_handler.get_hfov() / img_res_x
+                    pixel_offset = point[1] - (img_res_x / 2)
+                    angle = pixel_offset * angle_per_pixel
+                    # If angle and distance make sense, then add the object info the the object location array.
+                    if (angle > -90 and angle < 90) and not (math.isnan(current_distance)):
+                        object_locations.append((angle, current_distance / 1000))
+
+                    # Determine if current point is the closest point. ########## CHECK IF THIS ACTUALLY ADDS ALL OBJECTS TO OBJECT_LOCATIONS LIST.
+                    if (object_distance == -1 and not current_distance < 0) or object_distance > current_distance:
+                        # Store the closest distance, angle, and point in image.
+                        object_distance = current_distance
+                        object_angle = angle
+                        closest_point = point
+
+                # Draw circle of current tracked object.
+                if closest_point is not None:
+                    reg_img = cv2.circle(
+                        reg_img,
+                        (closest_point[1], closest_point[0]),
+                        radius=5,
+                        color=(0, 0, 255),
+                        thickness=-1,
+                    )
+
+        # Return angle, distance
+        return object_angle, object_distance, self.object_summary, self.inference_time, object_locations

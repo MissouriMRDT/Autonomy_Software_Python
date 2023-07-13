@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# state_machine.py
+#
+# Created on Dec 31, 2020
+# Updated on Aug 21, 2022
+#
+
 from core.states.state import RoverState
 import core
 import logging
@@ -47,7 +55,7 @@ class StateMachine(object):
         elif self.disable_flag is True:
             self.state = self.state.on_event(core.AutonomyEvents.ABORT)
             # Update the state display on lighting to Teleop
-            interfaces.multimedia_board.send_lighting_state(core.OperationState.TELEOP)
+            # interfaces.multimedia_board.send_lighting_state(core.OperationState.TELEOP)
             self.disable_flag = False
 
         # Run the current state

@@ -1,10 +1,17 @@
+#
+# Mars Rover Design Team
+# obstacle_avoidance_example.py
+#
+# Created on Feb 04, 2021
+# Updated on Aug 21, 2022
+#
+
 import time
 import algorithms
 import core
+import core.constants
 import logging
 import interfaces
-from geopy import Point
-from geopy.distance import VincentyDistance
 import algorithms.heading_hold
 import algorithms.obstacle_avoider
 
@@ -46,7 +53,7 @@ def main() -> None:
             == core.ApproachState.APPROACHING
         ):
             left, right = algorithms.gps_navigate.calculate_move(
-                core.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, 250
+                core.Coordinate(new_lat, new_lon), interfaces.nav_board.location(), previous_loc, core.MAX_DRIVE_POWER
             )
             logger.debug(f"Navigating: Driving at ({left}, {right})")
             interfaces.drive_board.send_drive(left, right)

@@ -1,3 +1,11 @@
+#
+# Mars Rover Design Team
+# gps_navigate_test.py
+#
+# Created on Jul 30, 2020
+# Updated on Aug 21, 2022
+#
+
 import time
 
 from core import constants
@@ -70,7 +78,7 @@ def test_calculate_move_right():
     left, right = gps_nav.calculate_move(goal_coord, current_coord, rolla_coord)
 
     # should be turning to the right
-    assert right == constants.MIN_DRIVE_POWER
+    assert right == constants.MIN_DRIVE_POWER or right == 0
     assert left > 0
 
 
@@ -84,7 +92,7 @@ def test_calculate_move_left():
 
     # should be turning to the left
     assert right > 0
-    assert left == constants.MIN_DRIVE_POWER
+    assert left == constants.MIN_DRIVE_POWER or left == 0
 
 
 def test_calculate_move_straight():

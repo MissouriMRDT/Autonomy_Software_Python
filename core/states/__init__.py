@@ -1,8 +1,18 @@
+#
+# Mars Rover Design Team
+# __init__.py
+#
+# Created on Dec 02, 2020
+# Updated on Aug 21, 2022
+#
+
 from core.states.state import RoverState
 from core.states.state_machine import StateMachine
 from core.states.idle import Idle
 from core.states.search_pattern import SearchPattern
 from core.states.navigating import Navigating
+from core.states.reversing import Reversing
+from core.states.stuck import Stuck
 from core.states.approaching_marker import ApproachingMarker
 from core.states.approaching_gate import ApproachingGate
 from core.states.avoidance import Avoidance
@@ -27,6 +37,9 @@ class AutonomyEvents(Enum):
     END_OBSTACLE_AVOIDANCE = 12
     NO_WAYPOINT = 13
     NEW_WAYPOINT = 14
+    REVERSE = 15
+    REVERSE_COMPLETE = 16
+    STUCK = 17
 
 
 StateMapping = {
@@ -36,4 +49,6 @@ StateMapping = {
     "ApproachingMarker": 3,
     "ApproachingGate": 4,
     "Avoidance": 5,
+    "Reversing": 6,
+    "Stuck": 7,
 }
