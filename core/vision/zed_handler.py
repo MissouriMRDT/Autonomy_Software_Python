@@ -12,6 +12,7 @@ from core.vision import feed_handler
 from core.vision import Camera
 import threading
 import time
+import numpy as np
 from threading import Lock
 
 
@@ -38,7 +39,7 @@ class ZedHandler(Camera):
         self.depth_res_y = 1080
         self.reg_res_x = 1920
         self.reg_res_y = 1080
-        self.hfov = 85
+        self.hfov = 110
 
         # Define the desired runtime FPS
         self.fps = 60
@@ -60,9 +61,10 @@ class ZedHandler(Camera):
             self.zed.close()
             exit(1)
 
-        # Get camera params
+        # Get camera params and sensors.
         self.obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
         self.runtime_params = sl.RuntimeParameters()
+        self.sensors_data = sl.SensorsData()
 
         # Add the desired feeds to be recorded (not streamed)
         self.feed_handler.add_feed(10, "regular", save_video=True, stream_video=False)
@@ -114,7 +116,6 @@ class ZedHandler(Camera):
                 # Now let the feed_handler stream/save the frames
                 self.feed_handler.handle_frame("regular", self.reg_img)
                 self.feed_handler.handle_frame("depth", self.depth_img)
-                time.sleep(1 / self.fps)
 
     def grab_regular(self):
         """
@@ -210,9 +211,89 @@ class ZedHandler(Camera):
         """
         Returns the estimated pose of the ZED camera
         """
+        # Get pose from ZED camera.
         pose = sl.Pose()
-        cam_pose = self.zed.get_position(pose)
-        return cam_pose
+        status = self.zed.get_position(pose, sl.REFERENCE_FRAME.WORLD)
+
+        # Unpack pose values.
+        translation = sl.Translation()
+        tx = round(pose.get_translation(translation).get()[0], 3) / 1000
+        ty = round(pose.get_translation(translation).get()[1], 3) / 1000
+        tz = round(pose.get_translation(translation).get()[2], 3) / 1000
+        # Retrieve only frame synchronized data.
+        zed_imu_pose = sl.Transform()
+        self.zed.get_sensors_data(self.sensors_data, sl.TIME_REFERENCE.IMAGE)
+        ox, oy, oz = np.rad2deg(self.sensors_data.get_imu_data().get_pose(zed_imu_pose).get_orientation().get_rotation_matrix().get_euler_angles())
+
+        # Wrap heading.
+        if oy < 0:
+            oy = 360 + oy
+
+        return tx, ty, tz, ox, oy, oz
+
+    def set_pose(self, x, y, z, roll, pitch, yaw):
+        """
+        This method will set the zed translation and rotation to the given values.
+        You must pass in a x, y, z, roll, pitch, yaw. PAY ATTENTION TO THE ZED COORDINATE FRAME.
+        Z - FORWARD
+        Y - DOWN
+        X - RIGHT
+
+        :param x: The new x position in meters to set the camera to.
+        :param y: The new y position in meters to set the camera to.
+        :param z: The new z position in meters to set the camera to.
+        :param roll: The new roll angle in degrees to set the camera to.
+        :param pitch: The new pitch angle in degrees to set the camera to.
+        :param yaw: The new yaw angle in degrees to set the camera to.
+        """
+        # Create zed translation object.
+        translation_vector = sl.Translation()
+        translation_vector.init_vector(x * 1000, y * 1000, z * 1000)
+        # Create zed rotation object.
+        rotation_angles = sl.Rotation()
+        rotation_angles.set_euler_angles(roll, pitch, yaw, radian=False)
+        # Sets the Matrix3f to identity.
+        # rotation_angles.set_identity()
+        # Build transform.
+        new_transform = sl.Transform()
+        new_transform.init_rotation_translation(rotation_angles, translation_vector)
+
+        # Reset positional tracking.
+        self.zed.reset_positional_tracking(new_transform)
+
+    def reset_pose(self):
+        """
+        This method will set the zed translation and rotation back to zero.
+        """
+        # Create zed translation object.
+        translation_vector = sl.Translation()
+        translation_vector.init_vector(0, 0, 0)
+        # Create zed rotation object.
+        rotation_angles = sl.Rotation()
+        rotation_angles.set_euler_angles(0, 0, 0, radian=False)
+        # Sets the Matrix3f to identity.
+        rotation_angles.set_identity()
+        # Build transform.
+        new_transform = sl.Transform()
+        new_transform.init_rotation_translation(rotation_angles, translation_vector)
+
+        # Reset positional tracking.
+        self.zed.reset_positional_tracking(new_transform)
+
+    def get_compass_heading(self):
+        """
+        Returns the estimated compass heading of the ZED camera. ZED CAMERA MUST BE CALIBRATED FOR THIS TO BE ACCURATE.
+        CHECK ZED DOCS ONLINE.
+        """
+        # Retrieve only frame synchronized data.
+        self.zed.get_sensors_data(self.sensors_data, sl.TIME_REFERENCE.IMAGE)
+        # Retrieve calibrated magnetic field
+        heading = self.sensors_data.get_magnetometer_data().magnetic_heading
+        # Remap the -180-180 output to 0-360, clockwise positive.
+        if heading < 0:
+            heading = 360 + heading
+
+        return heading
 
     def start(self):
         """

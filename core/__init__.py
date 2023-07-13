@@ -9,6 +9,7 @@
 import sys
 
 from core import states
+from core import constants
 from core import vision
 from core.constants import *
 from core.states.state_machine import StateMachine
@@ -34,6 +35,8 @@ def setup(type="REGULAR"):
     """
     # load the manifest
     this.manifest = get_manifest()
+    # Store mode.
+    this.MODE = type
 
     # IPs and ports depend on type
     if type == "REGULAR":

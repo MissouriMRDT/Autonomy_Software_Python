@@ -3,6 +3,7 @@ import math
 import interfaces
 from geopy import Point
 from geopy.distance import VincentyDistance
+import numpy as np
 import heapq
 import logging
 import utm
@@ -69,13 +70,14 @@ class Node:
         return self.f > other.f
 
 
-def return_path(current_node, utm_zone):
+def return_path(current_node, utm_zone, return_gps=False):
     """
     Uses the current node in the heapq and works backwards though the queue, adding the next
     parent node to the list of points.
 
-    :params current_node: The current node to working backwards from to build the path.
-    :params utm_zone: Your current UTM zone on the planet Earth. This must be correct of GPS coords will not be converted correctly.
+    :param current_node: The current node to working backwards from to build the path.
+    :param utm_zone: Your current UTM zone on the planet Earth. This must be correct of GPS coords will not be converted correctly.
+    :param return_gps: Whether or not to conver the coords from utm to gps before returning.
 
     :returns path: The compiled path containing the lat and lon gps coords.
     """
@@ -85,12 +87,19 @@ def return_path(current_node, utm_zone):
 
     # Loop backwards through each parent node until none exist.
     while current is not None:
-        # Use the given UTM zone to convert the UTM coords back to GPS coords.
-        gps_coords = utm.to_latlon(*(current.position[0], current.position[1], utm_zone[0], utm_zone[1]))
+        # Get coords from node.
+        coords = current.position
+
+        # Check if we should convert utm to gps.
+        if return_gps:
+            # Use the given UTM zone to convert the UTM coords back to GPS coords.
+            coords = utm.to_latlon(*(coords[0], coords[1], utm_zone[0], utm_zone[1]))
+
         # Append current nodes position.
-        path.append(gps_coords)
+        path.append(coords)
         # Set current node equal to current node's parent node.
         current = current.parent
+
     # Return reversed path.
     return path[::-1]
 
@@ -112,16 +121,19 @@ def coords_obstacle(distMeters, lat1, lon1, bearing):
     return (lat2, lon2)
 
 
-class ASTAR_AVOIDER:
-    def __init__(self):
+class ASTAR:
+    def __init__(self, max_queue_length):
         """
-        Initialize the ASTAR_AVOIDER class.
+        Initialize the ASTAR class.
+
+        :param max_queue_length: The max number of obstacles to store in the queue.
         """
         # Create class variables.
         self.obstacle_coords = []
         self.utm_zone = []
         self.start = Node()
         self.end = Node()
+        self.max_queue_length = max_queue_length
 
     def update_obstacles(
         self,
@@ -158,26 +170,41 @@ class ASTAR_AVOIDER:
 
                 # Convert GPS coords to UTM coords.
                 obstacle_easting, obstacle_northing, _, _ = utm.from_latlon(obstacle_lat, obstacle_lon)
-                # Determine if these coords already exist or are within 0.5 meters away from another object.
-                coord_to_close = False
-                for object_coord in self.obstacle_coords:
-                    # Calculate staight line distance from current obstacle to be added.
-                    distance = math.sqrt(
-                        math.pow(obstacle_easting - object_coord[0], 2)
-                        + math.pow(obstacle_northing - object_coord[1], 2)
-                    )
-                    # If the object is closer than half a meter away, then disregard it.
-                    if distance <= 1.0:
-                        coord_to_close = True
-
-                if coord_to_close:
-                    continue
 
                 # Append to array.
                 self.obstacle_coords.append((obstacle_easting, obstacle_northing))
-                # If the length of the array is greater than 50, remove the oldest element.
-                if len(self.obstacle_coords) > 50:
-                    self.obstacle_coords = self.obstacle_coords[:-25]
+                # If the length of the array is greater than queue max length, remove the oldest element.
+                if len(self.obstacle_coords) > self.max_queue_length:
+                    self.obstacle_coords = self.obstacle_coords[1:]
+
+    def update_obstacle_coords(self, object_locations, input_gps=True):
+        """
+        Loops through the given array of obstacle angles and distances and calculate their GPS->UTM position.
+
+        :params object_locations: A list of obstacle coords. Must be 2D list of shape (n, 2) containing only lat,lon or easting, northing.
+        :params input_gps: Whether or not the input list of coords is in GPS or UTM.
+        """
+        # Loop through each obstacle and calculate their coords and add them to the array.
+        for object_coord in object_locations:
+            # Check if the input is in GPS.
+            if input_gps:
+                # Convert to UTM.
+                obstacle_easting, obstacle_northing, _, _ = utm.from_latlon(object_coord[0], object_coord[1])
+                # Append to array.
+                self.obstacle_coords.append((obstacle_easting, obstacle_northing))
+            else:
+                # Append to array.
+                self.obstacle_coords.append(object_coord)
+
+            # If the length of the array is greater than queue max length, remove the oldest element.
+            if len(self.obstacle_coords) > self.max_queue_length:
+                self.obstacle_coords = self.obstacle_coords[1:]
+
+    def clear_obstacles(self):
+        """
+        Empty the obstacle queue.
+        """
+        self.obstacle_coords.clear()
 
     def get_obstacle_coords(self):
         """
@@ -188,6 +215,14 @@ class ASTAR_AVOIDER:
         # Create instance variables.
         coords = []
 
+        # Check if UTM zone hasn't been set yet.
+        if len(self.utm_zone) <= 0:
+            # Get current gps position.
+            current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+            # Convert the gps coords to UTM coords. These coords are in meters and they are easier to work with.
+            current_utm_pos = utm.from_latlon(current_gps_pos[0], current_gps_pos[1])
+            self.utm_zone = (current_utm_pos[2], current_utm_pos[3])
+
         # Convert each coord to GPS
         for object in self.obstacle_coords:
             coord = utm.to_latlon(*(object[0], object[1], self.utm_zone[0], self.utm_zone[1]))
@@ -195,24 +230,14 @@ class ASTAR_AVOIDER:
 
         return coords
 
-    def get_distance_from_goal(self):
-        """
-        Calculates and returns the current distance from the waypoint goal.
-
-        :returns distance_from_goal: The straight line distance from the endpoint.
-        """
-        # Calculate distance from goal.
-        if self.start.position is not None and self.end.position is not None:
-            distance_from_goal = math.sqrt(
-                math.pow(self.start.position[0] - self.end.position[0], 2)
-                + math.pow(self.start.position[1] - self.end.position[1], 2)
-            )
-        else:
-            distance_from_goal = -1.0
-
-        return distance_from_goal
-
-    def plan_astar_avoidance_route(self, max_route_size=10, near_object_threshold=2.0):
+    def plan_astar_avoidance_route(
+        self,
+        max_route_size=10,
+        near_object_threshold=2.0,
+        start_gps=None,
+        return_gps=False,
+        waypoint_thresh=constants.WAYPOINT_DISTANCE_THRESHOLD,
+    ):
         """
         Uses the given list of object angles and distances, converts those to GPS waypoints, and then uses the A* (astar)
         algorithm to find the shortest path around the obstacle to a given endpoint in front of the robot.
@@ -220,16 +245,23 @@ class ASTAR_AVOIDER:
 
         :params max_route_size: the max square area available for route planning.
         :params near_object_threshold: the minimum distance the rover can get from the objects along the path.
+        :params start_gps: The start position to use for the path. Will use rover's current GPS position by defualt.
+        :params return_gps: Whether or not to return the path in GPS coords or UTM. UTM by default.
+        :params waypoint_thresh: The minimum distance from the goal to consider the path solved. (meters)
 
         :returns path: A list of gps waypoints around the path that should be safe for traversal.
         """
-        # Get current gps position.
-        current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+        # Determine start position.
+        if start_gps is None:
+            # Get current gps position.
+            current_gps_pos = (interfaces.nav_board.location()[0], interfaces.nav_board.location()[1])
+        else:
+            # Use given start position.
+            current_gps_pos = start_gps
         # Convert the gps coords to UTM coords. These coords are in meters and they are easier to work with.
         current_utm_pos = utm.from_latlon(current_gps_pos[0], current_gps_pos[1])
         self.utm_zone = (current_utm_pos[2], current_utm_pos[3])
 
-        # Only continue if obstacle_coords is not empty.
         ####################################################################
         # Create start and end node.
         ####################################################################
@@ -283,15 +315,15 @@ class ASTAR_AVOIDER:
             # Check if we have hit the maximum number of iterations.
             if outer_iterations > max_interations:
                 # Print info message.
-                logger.info("Unable to solve path: too many iterations.")
-                return return_path(current_node, self.utm_zone)
+                logger.warning("Unable to solve path: too many iterations.")
+                return return_path(current_node, self.utm_zone, return_gps)
 
             # Found the goal.
             if (
-                fabs(current_node.position[0] - self.end.position[0]) <= 1.0
-                and fabs(current_node.position[1] - self.end.position[1]) <= 1.0
+                fabs(current_node.position[0] - self.end.position[0]) <= waypoint_thresh
+                and fabs(current_node.position[1] - self.end.position[1]) <= waypoint_thresh
             ):
-                return return_path(current_node, self.utm_zone)
+                return return_path(current_node, self.utm_zone, return_gps)
 
             ####################################################################
             # Generate children locations for current node.
@@ -326,12 +358,12 @@ class ASTAR_AVOIDER:
                     # Check if we are getting closer to the obstacle.
                     if node_distance_from_obstacle <= near_object_threshold:
                         coord_to_close = True
-                    # # Check if the robot is within circle radius of obstacle and pick the point that will move us away from it.
-                    # if (
-                    #     robot_distance_from_obstacle < near_object_threshold
-                    #     and node_distance_from_obstacle > robot_distance_from_obstacle
-                    # ):
-                    #     coord_to_close = False
+                    # Check if the robot is within circle radius of obstacle and pick the point that will move us away from it.
+                    if (
+                        robot_distance_from_obstacle < near_object_threshold
+                        and node_distance_from_obstacle > robot_distance_from_obstacle
+                    ):
+                        coord_to_close = False
                 # If the current child node is too close to the object skip it.
                 if coord_to_close:
                     continue
@@ -373,5 +405,39 @@ class ASTAR_AVOIDER:
                 heapq.heappush(open_list, child)
 
         # If unable to calulate path, then return nothing
-        logger.info("Couldn't find path around obstacle to destination.")
+        logger.warning("Couldn't find path around obstacle to destination.")
         return None
+
+    def calculate_yaws_from_path(self, cx, cy, start_angle=0.0, radians=True):
+        """
+        Computes the appropiate absolute yaw from a given set of Xs and Ys. These should
+        produce a sensible path and the two lists should be the same length.
+        All yaw angle are calulated in radians by default.
+
+        :param cx: The list of x points within the path.
+        :param cy: The list of y points within the path.
+        :param start_angle: The initial angle for the first point.
+        :param radians: Whether of not to use radians for the angle. (On by default)
+        :return: ([yaws]) An array containing the yaw angles for each point.
+        """
+        # Create instance variables.
+        yaws = []
+
+        # Check if both lists are equal size.
+        if len(cx) == len(cy) and len(cx) > 0:
+            # Loop through points. The zip function returns iterables for a sublist starting at 0:-1 and a sublist starting at 1:end for each list x and y.
+            for i, x, y, x_next, y_next in zip(range(len(cx) - 1), cx[:-1], cy[:-1], cx[1:], cy[1:]):
+                # Basic trig to find angle between two points.
+                angle = math.atan2((y_next - y), (x_next - x))
+
+                # Check if we are converting to degrees.
+                if not radians:
+                    angle = np.rad2deg(angle)
+
+                # Append angle to yaws list.
+                yaws.append(angle)
+
+            # Copy second to last angle to last point since the last point doesn't have a point after it to find angle from.
+            yaws.append(yaws[-1])
+
+        return yaws

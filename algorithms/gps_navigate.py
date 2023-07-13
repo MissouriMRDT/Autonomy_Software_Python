@@ -60,5 +60,17 @@ def calculate_move(goal, location, start, speed=MAX_DRIVE_POWER):
     :param speed: the speed the rover should be going at (defaults to 150)
     :return: left and right speed in a range from -1000 to 1000 (left_speed, right_speed)
     """
-
+    
     logger = logging.getLogger(__name__)
+
+    (target_heading, target_distance) = geomath.haversine(location.lat, location.lon, goal.lat, goal.lon)
+
+    logger.debug(f"Target distance: {target_distance}")
+
+    if target_distance < 0.01:
+        speed = 0.4 * speed
+
+    goal_heading = target_heading
+    logger.debug(f"Current heading: {interfaces.nav_board.heading()}, Goal: {goal_heading}")
+
+    return hh.get_motor_power_from_heading(speed, goal_heading)

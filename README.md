@@ -1,14 +1,23 @@
 # Autonomy Software
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/MissouriMRDT/Autonomy_Software?style=flat)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/MissouriMRDT/Autonomy_Software?style=flat)
-![GitHub issues](https://img.shields.io/github/issues/MissouriMRDT/Autonomy_Software)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Flake8%20Linter/dev?label=flake8%20linter&style=flat)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software/Autonomy%20Unit%20Tests/dev?label=unit%20tests&style=flat)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/MissouriMRDT/Autonomy_Software_Python?style=flat)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/MissouriMRDT/Autonomy_Software_Python?style=flat)
+![GitHub issues](https://img.shields.io/github/issues/MissouriMRDT/Autonomy_Software_Python)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy%20Flake8%20Linter/dev?label=flake8%20linter&style=flat)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy%20Unit%20Tests/dev?label=unit%20tests&style=flat)
 
 This repo contains the Autonomy software stack for the current iteration of the Mars Rover Design Team's Rover designed
 to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
 
+## Getting Set Up
+
+There are a couple of simple steps in order to get started writing software for the Autonomy system.
+
+1. Clone the repo in an appropriate place. Standard practice is to clone it inside a directory such as RoverSoftware.
+
+```
+git clone --recurse-submodules -j8 https://github.com/MissouriMRDT/Autonomy_Software_Python.git
+```
 
 2. Install Python 3.8, and then install pipenv using pip
 

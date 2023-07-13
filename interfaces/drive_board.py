@@ -19,9 +19,15 @@ class DriveBoard:
     """
 
     def __init__(self):
+        # Create class member variables.
         self._targetSpdLeft: int = 0
         self._targetSpdRight: int = 0
         self.logger: logging.Logger = logging.getLogger(__name__)
+
+        # Set rovecomm callback for setting max drive speed.
+        core.rovecomm_node.set_callback(
+            core.manifest["Autonomy"]["Commands"]["SetMaxSpeed"]["dataId"], self.set_max_speed
+        )
 
     def calculate_move(self, speed: float, angle: float) -> Tuple[int, int]:
         """
@@ -57,14 +63,36 @@ class DriveBoard:
         # Write a drive packet (UDP)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
-                "h",
-                (target_left, target_right),
-                core.manifest["Drive"]["Ip"],
+                core.manifest["Core"]["Commands"]["DriveLeftRight"]["dataId"],
+                "f",
+                (target_left / 1000, target_right / 1000),
+                core.manifest["Core"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             False,
         )
+
+    def set_max_speed(self, packet) -> None:
+        """
+        This method is called whenever a SetMaxSpeed packet is sent from basestation.
+
+        :param packet:
+        :return: None
+        """
+        # Get data out of packet.
+        max_speed = packet.data
+
+        # Do some checking.
+        if max_speed < 0:
+            max_speed = 0
+        elif max_speed > 1000:
+            max_speed = 1000
+
+        # Set max speed constant.
+        core.constants.MAX_DRIVE_POWER = max_speed
+
+        # Print logging info.
+        self.logger.info(f"Autonomy set max drive power to {max_speed}")
 
     def stop(self) -> None:
         """
@@ -74,10 +102,10 @@ class DriveBoard:
         # Write a drive packet of 0s (to stop)
         core.rovecomm_node.write(
             core.RoveCommPacket(
-                core.manifest["Drive"]["Commands"]["DriveLeftRight"]["dataId"],
-                "h",
-                (0, 0),
-                core.manifest["Drive"]["Ip"],
+                core.manifest["Core"]["Commands"]["DriveLeftRight"]["dataId"],
+                "f",
+                (0.0, 0.0),
+                core.manifest["Core"]["Ip"],
                 core.UDP_OUTGOING_PORT,
             ),
             False,

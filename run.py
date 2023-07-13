@@ -19,6 +19,7 @@ import core
 import interfaces
 from logging import config
 
+
 def setup_logger(level) -> logging.Logger:
     """
     Sets up the logger used for the autonomy codebase with
@@ -45,56 +46,50 @@ def main() -> None:
 
     :return: None
     """
+    # Add the examples' folder to our path, so we can run example files
+    sys.path.insert(0, "example/")
+
+    # Add the unit test folder to our path, so we can run tests
+    sys.path.insert(0, "tests/unit/")
+
+    # Initialize the rovecomm node
+    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
 
     # Parse arguments for autonomy
     parser = argparse.ArgumentParser()
 
     # Optional: Maps the file name to a known module if found
-    parser.add_argument(
-        "--file",
-        help="Specify the name of the custom module to be run",
-        default="autonomy.py"
-    )
+    parser.add_argument("--file", help="Specify the name of the custom module to be run", default="autonomy.py")
 
     # Optional: Sets the logging level for autonomy
     parser.add_argument(
         "--level",
         help="Specify the logging level to be used",
         choices=["DEBUG", "INFO", "WARN", "CRITICAL", "ERROR"],
-        default="INFO"
+        default="INFO",
     )
 
     # Optional: Sets the vision system to be used
     parser.add_argument(
-        "--vision",
-        help="Specify the vision system for autonomy",
-        choices=["ZED", "SIM"],
-        default="ZED"
+        "--vision", help="Specify the vision system for autonomy", choices=["ZED", "SIM"], default="ZED"
     )
 
     # Optional: Sets whether we are streaming or not
-    parser.add_argument(
-        "--stream",
-        help="Specify if we are streaming",
-        choices=["Y", "N"],
-        default="N"
-    )
+    parser.add_argument("--stream", help="Specify if we are streaming", choices=["Y", "N"], default="N")
 
     # Optional: Sets the mode of operation
     parser.add_argument(
-        "--mode",
-        help="Sets if we are running on rover or on sim",
-        choices=["REGULAR", "SIM"],
-        default="REGULAR"
+        "--mode", help="Sets if we are running on rover or on sim", choices=["REGULAR", "SIM"], default="REGULAR"
     )
 
-     # Optional argument for obstacle avoidance toggle.
+    # Optional argument for obstacle avoidance toggle.
     parser.add_argument(
-        "--obstacle-avoidance", 
-        choices=["ENABLE", "DISABLE"], 
-        default="DISABLE"
+        "--obstacle-avoidance",
+        choices=["ENABLE", "DISABLE"],
+        default="DISABLE",
+        help="Enable or disable YOLO algorithm for obstacle detection.",
     )
-    
+
     # Add optional argument for selecting yolo classes.
     parser.add_argument(
         "--yolo-classes",
@@ -103,32 +98,59 @@ def main() -> None:
         help="filter by class(corresponds to order of classes in dataset .yaml file): --classes 0, or --classes 0 2 3",
     )
 
+    # Add optional argument for zed relative distance toggle.
+    parser.add_argument(
+        "--relative-positioning",
+        choices=["ENABLE", "DISABLE"],
+        default="ENABLE",
+        help="Toggle between using GPS positioning from Rovecomm or relative ZED positional tracking. ZED positioning still using GPS to initially align rover UTM positionwith periodic adjustments in idle state.",
+    )
+
+    # Add optional argument for zed absolute magnetometer toggle.
+    parser.add_argument(
+        "--zed-magnetometer",
+        choices=["ENABLE", "DISABLE"],
+        default="DISABLE",
+        help="Toggle between using GPS heading from Rovecomm or ZED built-in magnetometer for absolute compass heading. ZED MUST BE CALIBRATED TO ENVIRONMENT OR VALUES WILL BE BAD!",
+    )
+
     args = parser.parse_args()
     if (level := getattr(logging, args.level, -1)) < 0:
         parser.print_help()
         exit(1)
 
+    # Enable the logger, also pass-in optional logging level for console output
+    logger = setup_logger(level)
+
     # SIM mode defaults vision subsystem to also originate from simulator
     if args.mode == "SIM":
         args.vision = "SIM"
 
-    # Add the examples' folder to our path, so we can run example files
-    sys.path.insert(0, "example/")
-
-    # Add the unit test folder to our path, so we can run tests
-    sys.path.insert(0, "tests/unit/")
-
-    # Enable the logger, also pass-in optional logging level for console output
-    logger = setup_logger(level)
-
-    # Initialize the rovecomm node
-    core.rovecomm_node = core.RoveComm(11000, ("127.0.0.1", 11111))
+    # Make sure SIM mode is off when relative distance is enabled.
+    if args.relative_positioning == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
+        # Print warning message.
+        logger.warning("ZED relative positioning is not available when mode is SIM or vision mode isn't ZED")
+        # Force off.
+        args.relative_positioning = "DISABLE"
+    # Make sure SIM mode is off when relative distance is enabled.
+    if args.zed_magnetometer == "ENABLE" and (args.mode == "SIM" or args.vision != "ZED"):
+        # Print warning message.
+        logger.warning("ZED magnetometer heading is not available when mode is SIM or vision mode isn't ZED")
+        # Force off.
+        args.zed_magnetometer = "DISABLE"
 
     # Initialize the core handlers (excluding vision)
     core.setup(args.mode)
 
     # Initialize the core vision components
-    core.vision.setup(args.vision, args.stream, args.obstacle_avoidance, args.yolo_classes)
+    core.vision.setup(
+        args.vision,
+        args.stream,
+        args.obstacle_avoidance,
+        args.yolo_classes,
+        args.relative_positioning,
+        args.zed_magnetometer,
+    )
 
     # Initialize the Interfaces
     interfaces.setup()

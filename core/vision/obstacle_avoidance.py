@@ -37,7 +37,6 @@ async def async_obstacle_detector():
     ObstacleIgnorance = algorithms.obstacle_detector.YOLOObstacleDetector(
         weights=os.path.dirname(__file__) + "/../../resources/yolo_models/2022-0601/weights/best.pt",
         model_image_size=640,
-        min_confidence=0.4,
         classes=core.vision.YOLO_CLASSES,
     )
 
@@ -50,14 +49,15 @@ async def async_obstacle_detector():
         try:
             # Get regular image from camera.
             reg_img = core.vision.camera_handler.grab_regular()
-            zed_point_cloud = core.vision.camera_handler.grab_point_cloud()
 
             # Detect obstacles.
-            objects, pred = ObstacleIgnorance.detect_obstacles(reg_img)
+            ObstacleIgnorance.detect_obstacles(
+                reg_img, core.constants.DETECTION_MODEL_CONF, core.constants.DETECTION_MODEL_IOU
+            )
 
             # Track a specific obstacle. (closest one)
             angle, distance, object_summary, inference_time, object_locations = ObstacleIgnorance.track_obstacle(
-                zed_point_cloud, reg_img
+                reg_img
             )
 
             # If obstacle has been detected store its info.
@@ -99,7 +99,7 @@ async def async_obstacle_detector():
             # Because we are using async functions, they don't print out helpful tracebacks. We must do this instead.
             logger.critical(traceback.format_exc())
         # Must await async process or the code will pause here.
-        await asyncio.sleep(1 / core.vision.camera_handler.get_fps())
+        await asyncio.sleep(core.EVENT_LOOP_DELAY)
 
 
 def is_obstacle():
