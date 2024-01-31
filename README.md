@@ -3,8 +3,9 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/MissouriMRDT/Autonomy_Software_Python?style=flat)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/MissouriMRDT/Autonomy_Software_Python?style=flat)
 ![GitHub issues](https://img.shields.io/github/issues/MissouriMRDT/Autonomy_Software_Python)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy%20Flake8%20Linter/dev?label=flake8%20linter&style=flat)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy%20Unit%20Tests/dev?label=unit%20tests&style=flat)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy_Linter.yml?branch=dev&style=flat&label=flake8%20linter)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MissouriMRDT/Autonomy_Software_Python/Autonomy_Unit_Tests.yml?branch=dev&style=flat&label=unit%20tests)
+
 
 This repo contains the Autonomy software stack for the current iteration of the Mars Rover Design Team's Rover designed
 to compete at the University Rover Challenge. The software is developed to run on a Jetson Xavier NX development board.
